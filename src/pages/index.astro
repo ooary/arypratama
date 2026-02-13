@@ -1,0 +1,236 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import BlogCard from "../components/BlogCard.astro";
+import ProjectCard from "../components/ProjectCard.astro";
+import { getCollection } from "astro:content";
+
+const allBlogPosts = (await getCollection("blog")).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+);
+
+let allProjects: any[] = [];
+try {
+  allProjects = (await getCollection("projects")).sort(
+    (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+  );
+} catch {
+  // No projects yet
+}
+
+const recentPosts = allBlogPosts.slice(0, 3);
+const recentProjects = allProjects.slice(0, 3);
+---
+
+<BaseLayout>
+  <!-- About Section -->
+  <section id="about" class="relative">
+    <div
+      class="absolute inset-0 -z-10 bg-grid-dashed pointer-events-none -m-4 sm:-m-8 rounded-3xl"
+    >
+    </div>
+    <div
+      class="flex flex-col sm:flex-row items-center sm:items-start gap-8 sm:gap-12"
+    >
+      <div class="flex-shrink-0 group relative">
+        <div
+          class="w-32 h-32 sm:w-40 sm:h-40 rounded-2xl rotate-3 hover:rotate-0 transition-transform duration-300 bg-zinc-200 dark:bg-zinc-700 overflow-hidden border-4 border-white dark:border-zinc-800 shadow-xl flex items-center justify-center"
+        >
+          <img
+            src="/img/avatar.png"
+            alt="Profile Image"
+            class="w-full h-full object-cover"
+          />
+        </div>
+        <div
+          class="absolute inset-0 rounded-2xl border-2 border-blue-500/30 -rotate-3 -z-10 scale-105"
+        >
+        </div>
+      </div>
+      <div class="text-center sm:text-left flex-1">
+        <h1 class="text-3xl sm:text-4xl font-bold mb-2 tracking-tight">
+          Ary Pratama
+        </h1>
+        <p class="text-lg text-blue-600 dark:text-blue-400 font-bold mb-6">
+          Generalist Engineer
+        </p>
+        <div
+          class="prose dark:prose-invert max-w-none text-zinc-600 dark:text-zinc-300 leading-relaxed text-base"
+        >
+          <h2 class="!text-2xl !text-zinc-900 dark:!text-white !mt-0">
+            Hello, <span class="bg-yellow-200 dark:bg-yellow-900 p-1 rounded-md"
+              >I'm Ary !</span
+            >
+          </h2>
+          <p>
+            A backend-focused software engineer who loves building things on the
+            backend, playing with system design, and exploring modern AI stuff.
+            I enjoy creating reliable backend services, integrating LLM
+            features, and making workflows run smoothly.
+          </p>
+          <p>
+            My coding journey's been a bit of a ride—I was super active from
+            2015 to 2018, took a long break from 2018 to 2022, and since 2022
+            I've been coding on and off. Even though it wasn't always
+            consistent, I never stopped loving code. Now I'm back at it,
+            learning, experimenting, and building my portfolio at my own pace.
+          </p>
+          <h2 class="!text-xl">Technical Stacks</h2>
+          <ul class="list-disc pl-5 space-y-1">
+            <li><strong>Core Focus:</strong> Backend Engineering</li>
+            <li>
+              <strong>Languages & Frameworks:</strong> Python, FastAPI, JavaScript,
+              HTML, CSS, NextJs(But i dont like this one)
+            </li>
+            <li><strong>Data Acrobatics:</strong> Python, Pandas and Polars</li>
+            <li>
+              <strong>Data Visualization:</strong> Power BI, Google Data Studio and
+              Tableau
+            </li>
+            <li>
+              <strong>AI & LLM:</strong> RAG pipelines, LLM integrations into backend
+              applications
+            </li>
+            <li>
+              <strong>Databases & Infrastructure:</strong> PostgreSQL, Redis
+            </li>
+            <li><strong>Automation & Workflows:</strong> n8n, Python</li>
+            <li>
+              <strong>I Really Hate Frontend! but sometimes using:</strong> VueJs/React
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GitHub Activity -->
+  <section class="github-contrib">
+    <h2 class="text-xl font-bold flex items-center gap-2">
+      <i class="ph ph-book-open text-blue-600"></i>
+      Activity
+    </h2>
+    <div class="mt-4">
+      <div class="flex justify-center">
+        <img
+          src="https://ghchart.rshah.org/ooary"
+          alt="GitHub Contributions"
+          loading="lazy"
+        />
+      </div>
+    </div>
+  </section>
+
+  <!-- Divider -->
+  <div class="relative py-4">
+    <div class="absolute inset-0 flex items-center">
+      <div class="w-full border-t border-zinc-200 dark:border-zinc-800"></div>
+    </div>
+    <div class="relative flex justify-center">
+      <span
+        class="bg-light-bg dark:bg-dark-900 px-3 text-zinc-400 dark:text-zinc-600"
+      >
+        <i class="ph-fill ph-star-four text-lg"></i>
+      </span>
+    </div>
+  </div>
+
+  <!-- Blogs Section -->
+  <section id="blogs">
+    <div class="flex justify-between items-end mb-8">
+      <div>
+        <h2 class="text-xl font-bold flex items-center gap-2">
+          <i class="ph ph-book-open text-blue-600"></i>
+          Blogs
+        </h2>
+        <p
+          class="text-xs text-zinc-500 dark:text-zinc-400 mt-1 uppercase tracking-wide"
+        >
+          Thoughts
+        </p>
+      </div>
+      <a
+        href="/blog"
+        class="text-sm font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 flex items-center gap-1 group"
+      >
+        View All
+        <i
+          class="ph ph-arrow-right group-hover:translate-x-1 transition-transform"
+        ></i>
+      </a>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {
+        recentPosts.map((post) => (
+          <BlogCard
+            title={post.data.title}
+            date={post.data.date}
+            slug={post.slug}
+            description={post.data.description}
+            image={post.data.image}
+          />
+        ))
+      }
+    </div>
+  </section>
+
+  <!-- Divider -->
+  <div class="relative py-4">
+    <div class="absolute inset-0 flex items-center">
+      <div class="w-full border-t border-gray-200 dark:border-gray-800"></div>
+    </div>
+    <div class="relative flex justify-center">
+      <span
+        class="bg-light-bg dark:bg-dark-900 px-3 text-gray-400 dark:text-gray-600"
+      >
+        <i class="ph-fill ph-star-four text-lg"></i>
+      </span>
+    </div>
+  </div>
+
+  <!-- Projects Section -->
+  <section id="projects">
+    <div class="flex justify-between items-end mb-8">
+      <div>
+        <h2 class="text-xl font-bold flex items-center gap-2">
+          <i class="ph ph-code text-blue-600"></i>
+          Projects
+        </h2>
+        <p
+          class="text-xs text-zinc-500 dark:text-zinc-400 mt-1 uppercase tracking-wide"
+        >
+          Recent Work
+        </p>
+      </div>
+      {
+        recentProjects.length > 0 && (
+          <a
+            href="/projects"
+            class="text-sm font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 flex items-center gap-1 group"
+          >
+            View All
+            <i class="ph ph-arrow-right group-hover:translate-x-1 transition-transform" />
+          </a>
+        )
+      }
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {
+        recentProjects.length > 0 ? (
+          recentProjects.map((project) => (
+            <ProjectCard
+              title={project.data.title}
+              date={project.data.date}
+              slug={project.slug}
+              description={project.data.description}
+              image={project.data.image}
+            />
+          ))
+        ) : (
+          <p class="text-zinc-500 dark:text-zinc-400 col-span-3 text-center py-8 italic">
+            Projects coming soon...
+          </p>
+        )
+      }
+    </div>
+  </section>
+</BaseLayout>

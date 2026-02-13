@@ -1,0 +1,62 @@
+---
+interface Props {
+  title: string;
+  date: Date;
+  slug: string;
+  description?: string;
+  image?: string;
+}
+
+const { title, date, slug, description, image } = Astro.props;
+
+const formattedDate = date.toISOString().split("T")[0];
+---
+
+<a
+  href={`/projects/${slug}`}
+  class="block bg-white dark:bg-zinc-800 rounded-xl p-6 border border-zinc-200 dark:border-zinc-700 hover:shadow-xl hover:-translate-y-1 dark:hover:border-blue-500/60 transition-all duration-300 flex flex-col h-full group"
+>
+  {
+    image && (
+      <div class="mb-4 rounded-lg overflow-hidden h-40 w-full">
+        <img
+          src={image}
+          alt={title}
+          class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
+          loading="lazy"
+        />
+      </div>
+    )
+  }
+
+  <div class="md-content flex-grow">
+    <h4
+      class="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors"
+    >
+      {title}
+    </h4>
+    <h4
+      class="text-xs text-zinc-500 dark:text-zinc-400 mb-4 border-l-2 border-blue-500 pl-2"
+    >
+      <em>{formattedDate}</em>
+    </h4>
+    {
+      description && (
+        <div class="text-sm line-clamp-3 text-zinc-600 dark:text-zinc-300 font-normal opacity-90">
+          {description}
+        </div>
+      )
+    }
+  </div>
+
+  <div
+    class="mt-auto pt-4 border-t border-zinc-100 dark:border-zinc-700 flex justify-between items-center"
+  >
+    <span class="text-xs font-bold text-zinc-400 uppercase tracking-wider"
+      >Project</span
+    >
+    <i
+      class="ph ph-arrow-right text-zinc-300 group-hover:text-blue-500 transition-colors"
+    ></i>
+  </div>
+</a>

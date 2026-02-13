@@ -1,0 +1,132 @@
+---
+const currentPath = Astro.url.pathname;
+
+const navLinks = [
+  { href: "/#about", label: "About" },
+  { href: "/#projects", label: "Projects" },
+  { href: "/blog", label: "Blog" },
+];
+---
+
+<div
+  class="fixed top-6 left-0 right-0 z-50 flex flex-col items-center px-4 pointer-events-none"
+>
+  <nav
+    class="pointer-events-auto w-full max-w-2xl bg-white/80 dark:bg-dark-800/80 backdrop-blur-lg border border-zinc-200 dark:border-zinc-700 rounded-full shadow-lg px-6 py-3 flex items-center justify-between transition-all duration-300 hover:shadow-xl"
+  >
+    <a
+      href="/"
+      class="font-bold text-lg tracking-tight hover:text-blue-600 transition-colors"
+    >
+      Ary<span class="text-blue-600"> Portfolio</span>
+    </a>
+
+    <div class="flex items-center gap-4 sm:gap-6">
+      <!-- Desktop Nav -->
+      <div class="hidden sm:flex items-center gap-6 text-sm font-bold">
+        {
+          navLinks.map((link) => (
+            <a href={link.href} class="hover:text-blue-600 transition-colors">
+              {link.label}
+            </a>
+          ))
+        }
+        <div class="h-4 w-px bg-zinc-300 dark:bg-zinc-600"></div>
+      </div>
+
+      <!-- Theme Toggle -->
+      <button
+        id="theme-toggle"
+        class="p-1.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors focus:outline-none text-zinc-600 dark:text-zinc-300"
+        aria-label="Toggle dark mode"
+      >
+        <i class="ph ph-sun text-lg hidden dark:block"></i>
+        <i class="ph ph-moon text-lg block dark:hidden"></i>
+      </button>
+
+      <!-- Mobile Menu Button -->
+      <button
+        id="mobile-menu-btn"
+        class="sm:hidden p-1 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 transition-colors focus:outline-none"
+        aria-label="Toggle menu"
+      >
+        <i class="ph ph-list text-2xl" id="menu-icon"></i>
+        <i class="ph ph-x text-2xl hidden" id="close-icon"></i>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Mobile Menu Dropdown -->
+  <div
+    id="mobile-menu"
+    class="pointer-events-auto hidden w-full max-w-sm mt-4 bg-white/75 dark:bg-dark-800/75 backdrop-blur-xl border border-zinc-200 dark:border-zinc-700 rounded-2xl shadow-xl p-4 flex flex-col gap-2 text-center font-bold animate-fade-in"
+  >
+    {
+      navLinks.map((link) => (
+        <a
+          href={link.href}
+          class="mobile-nav-link p-3 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-xl transition-colors text-zinc-700 dark:text-zinc-200"
+        >
+          {link.label}
+        </a>
+      ))
+    }
+  </div>
+</div>
+
+<!-- Mobile Menu Backdrop -->
+<div
+  id="menu-backdrop"
+  class="fixed inset-0 bg-black/20 backdrop-blur-md z-40 hidden transition-all duration-300"
+>
+</div>
+
+<script>
+  // Theme toggle
+  const themeToggleBtn = document.getElementById("theme-toggle");
+  if (themeToggleBtn) {
+    themeToggleBtn.addEventListener("click", () => {
+      document.documentElement.classList.toggle("dark");
+      localStorage.theme = document.documentElement.classList.contains("dark")
+        ? "dark"
+        : "light";
+    });
+  }
+
+  // Mobile menu
+  const mobileMenuBtn = document.getElementById("mobile-menu-btn");
+  const mobileMenu = document.getElementById("mobile-menu");
+  const menuBackdrop = document.getElementById("menu-backdrop");
+  const menuIcon = document.getElementById("menu-icon");
+  const closeIcon = document.getElementById("close-icon");
+
+  function toggleMobileMenu() {
+    if (!mobileMenu || !menuBackdrop || !menuIcon || !closeIcon) return;
+    const isHidden = mobileMenu.classList.contains("hidden");
+    if (isHidden) {
+      mobileMenu.classList.remove("hidden");
+      menuBackdrop.classList.remove("hidden");
+      menuIcon.classList.add("hidden");
+      closeIcon.classList.remove("hidden");
+      document.body.style.overflow = "hidden";
+    } else {
+      mobileMenu.classList.add("hidden");
+      menuBackdrop.classList.add("hidden");
+      menuIcon.classList.remove("hidden");
+      closeIcon.classList.add("hidden");
+      document.body.style.overflow = "";
+    }
+  }
+
+  mobileMenuBtn?.addEventListener("click", toggleMobileMenu);
+  menuBackdrop?.addEventListener("click", toggleMobileMenu);
+
+  // Close mobile menu when clicking a link
+  document.querySelectorAll(".mobile-nav-link").forEach((link) => {
+    link.addEventListener("click", () => {
+      if (mobileMenu && !mobileMenu.classList.contains("hidden")) {
+        toggleMobileMenu();
+      }
+    });
+  });
+</script>
