@@ -8,11 +8,10 @@ import remarkGfm from 'remark-gfm';
 export default defineConfig({
   site: 'https://arypratama.com',
   integrations: [
-    mdx(),
+    mdx({
+      remarkPlugins: [remarkGfm],
+    }),
     tailwind(),
     sitemap(),
   ],
-  markdown: {
-    remarkPlugins: [remarkGfm],
-  },
 });
