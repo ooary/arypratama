@@ -1,0 +1,141 @@
+---
+title: "What is ZeroClaw?"
+description: "An introduction to ZeroClaw — the fast, open-source AI assistant you can actually own."
+pubDate: 2026-02-23
+author: "Ary assisted by ZaP"
+tags: ["zeroclaw", "ai", "automation", "rust", "open-source"]
+---
+
+I've been tinkering with AI assistants for a while now. Most of them are either locked behind subscriptions, force you to use their apps, or just feel... corporate. Then I found **ZeroClaw**, and it's been a game-changer.
+
+## So, What Is ZeroClaw?
+
+ZeroClaw is an **open-source AI assistant** written in Rust. Think of it as your own personal AI that you control completely. It's fast (the binary is only ~3MB!), runs locally or on your server, and doesn't phone home to anyone unless you want it to.
+
+Here's what makes it special:
+
+- **Multi-channel** — Works on Telegram, WhatsApp, Slack, Discord, Matrix, email, SMS, even web chat
+- **Multi-provider** — Use OpenAI, Claude, Gemini, DeepSeek, or run local models via Ollama/llama.cpp
+- **Built-in tools** — File system, shell commands, web browser, memory, scheduling, HTTP requests
+- **Extensible** — Write custom tools in Python or Rust
+- **Memory** — Actually remembers things across conversations (stored locally)
+
+## Memory That Actually Works
+
+This is my favorite part. Most AI assistants have **no memory** — you start fresh every conversation. Or they have "memory" that's just a hacky workaround.
+
+ZeroClaw has **real, persistent memory**:
+
+- **Long-term storage** — `MEMORY.md` keeps important facts, decisions, and preferences across sessions
+- **Daily notes** — Raw logs in `memory/YYYY-MM-DD.md` for context retrieval
+- **On-demand recall** — Searches past conversations when relevant
+- **Privacy-first** — Stored locally, not in some corporation's cloud
+
+**Example:** I told ZeroClaw about my blog redesign three weeks ago. Yesterday I asked "What was that color scheme I mentioned?" and it found it instantly. No setup, no "premium memory features" — it just works.
+
+## How It Compares
+
+| Feature | ZeroClaw | ChatGPT | Claude | Siri/Google |
+|---------|----------|---------|--------|-------------|
+| **Open source** | ✅ Yes | ❌ No | ❌ No | ❌ No |
+| **Self-hosted** | ✅ Yes | ❌ No | ❌ No | ❌ No |
+| **Privacy** | ✅ Local | ☁️ Cloud | ☁️ Cloud | ☁️ Cloud |
+| **Multi-channel** | ✅ 8+ apps | ❌ Web/app only | ❌ Web/app only | Device locked |
+| **Tool use** | ✅ Built-in | ⚠️ Limited | ✅ Good | ❌ Basic |
+| **Scheduling** | ✅ Cron jobs | ❌ No | ❌ No | ⚠️ Limited |
+| **Custom tools** | ✅ Python/Rust | ❌ No | ❌ No | ❌ No |
+| **Multi-agent** | ✅ Yes | ❌ No | ❌ No | ❌ No |
+| **Cost** | Free / API only | $20/mo | $20/mo | Free (data cost) |
+| **Binary size** | ~3MB | Web only | Web only | 100MB+ |
+
+**Bottom line:** ZeroClaw trades "works out of the box" for "works exactly how you want." It's for people who like to tinker and value control over convenience.
+
+## Why I Like It
+
+I use ZeroClaw mainly through **Telegram**. I can message it from anywhere — my phone, laptop, tablet — and it has access to my files, can run commands on my server, and remembers our conversations. No context limits, no "sign in to continue."
+
+Want to check server logs? Just ask. Need a summary of a long article? Forward the link. Want to schedule a weekly report? Done. It's like having a really competent intern who never sleeps.
+
+## How to Get Started
+
+It's surprisingly simple:
+
+**1. Install it**
+```bash
+# Download the binary
+curl -fsSL https://zeroclaw.dev/install.sh | sh
+
+# Or build from source
+git clone https://github.com/zeroclaw-labs/zeroclaw
+cd zeroclaw && cargo build --release
+```
+
+**2. Configure it**
+Create `~/.zeroclaw/config.toml`:
+```toml
+[general]
+identity_path = "~/.zeroclaw/SOUL.md"
+
+[channels_config.telegram]
+enabled = true
+bot_token = "YOUR_BOT_TOKEN"
+
+[model_config]
+provider = "openai"
+model = "gpt-4o"
+api_key = "YOUR_API_KEY"
+```
+
+**3. Run it**
+```bash
+zeroclaw daemon
+```
+
+That's it. Message your bot on Telegram and start chatting.
+
+## Real-World Use Cases
+
+Here are some things I (and others) use ZeroClaw for:
+
+| Use Case | How It Helps |
+|----------|--------------|
+| **Morning briefing** | Daily 8 AM summary of calendar, PRs, news, weather |
+| **Content creation** | Draft blog posts, tweets, documentation |
+| **Data processing** | Parse CSVs, generate reports, send scheduled emails |
+| **Code reviews** | Summarize PRs, check for issues, auto-comment |
+| **Knowledge capture** | Save interesting links, auto-tag, searchable later |
+| **Server monitoring** | Check logs, restart services, alert on errors |
+
+The **Python bridge** is especially cool — you can write automation scripts in Python (using pandas, numpy, whatever) and ZeroClaw can call them as tools. I use this for weekly data reports.
+
+## The Technical Bits (If You're Curious)
+
+- Written in **Rust** — fast, safe, small footprint (3MB binary!)
+- **Modular architecture** — Swap channels, providers, or tools easily
+- **Multi-agent support** — Route different tasks to different AI models
+- **Security-first** — Credentials isolated, sandboxed execution, TOFU encryption for Matrix
+
+It plays nice with your existing tools too. Use it alongside your IDE, hook it into your CI/CD, or just chat with it when you're bored.
+
+## Is It For You?
+
+If you want an AI assistant that:
+- ✅ Respects your privacy
+- ✅ Works where you already are (Telegram, WhatsApp, etc.)
+- ✅ Can actually *do* things (not just chat)
+- ✅ Is hackable and extensible
+- ✅ Doesn't cost a fortune
+
+...then yeah, give ZeroClaw a try.
+
+If you just want a simple chatbot and don't care about owning your data, the big corporate options might be easier. But where's the fun in that? 😉
+
+## Getting Help
+
+- 📖 [Documentation](https://docs.zeroclaw.dev)
+- 💬 [Discord community](https://discord.gg/zeroclaw)
+- 🐙 [GitHub](https://github.com/zeroclaw-labs/zeroclaw)
+
+---
+
+*Written by Ary with help from ZaP, a ZeroClaw assistant. Yes, this post was literally co-written by the thing it's about. Very meta.* 🦀
