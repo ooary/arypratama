@@ -1,0 +1,110 @@
+---
+title: "Why I’d Reach for Redis Before Bloom Filter"
+date: 2026-04-15
+description: "My default way to think about fast username availability checks: do the memory math first, start with exact lookup if it is still cheap, and only bring in Bloom filters when the tradeoff is real."
+tags: ["backend", "system-design", "redis", "bloom-filter", "architecture"]
+---
+
+I like system design questions, but I also think they make people overcomplicate things too fast.
+
+A good example is username availability.
+
+Ask, "How does something like Gmail instantly know a username is taken?" and the conversation usually jumps straight to Bloom filters. It sounds smart, and to be fair, Bloom filters are useful. But I don't think that's the first question.
+
+The first question is simpler:
+
+Can the membership data still fit in memory at a reasonable cost?
+
+If yes, I would rather start with exact lookup.
+
+That could be an in-memory set. It could be a shared Redis layer. It could be a small dedicated service that just answers membership checks quickly. The point is the same: if exact lookup is still cheap enough, I trust that path more than jumping immediately into probabilistic structures.
+
+## Why I think that way
+
+I usually prefer the simplest system that survives real traffic.
+
+For username checks, the real problem is not complicated conceptually. You need to answer a huge number of "does this already exist?" queries with low latency, without pushing all of that load onto the primary database.
+
+If every keystroke hits the main datastore, that gets ugly fast:
+
+- more read pressure
+- worse latency
+- more coupling between product UX and database performance
+
+So I think of it as a membership problem first.
+
+## Why Redis often feels like the better first move
+
+Redis is usually where my head goes before Bloom filters.
+
+Not because Redis is more advanced. The opposite, really. It is often the more practical choice.
+
+With Redis, the shape of the system is easy to understand:
+
+1. normalize the username
+2. check exact membership quickly
+3. return fast feedback
+4. do the final authoritative check on signup
+5. write/update the source of truth
+
+That model is clean. It is easier to debug. It is easier to explain. And if something goes wrong, you are not also dealing with false positives from the first layer.
+
+## Where Bloom filters actually make sense
+
+I am not anti-Bloom filter. I just think they should appear after the memory math, not before it.
+
+They start making sense when:
+
+- exact storage is getting expensive
+- most checks are negative
+- you want a very cheap precheck layer
+- false positives are acceptable in the fast path
+
+That last part matters. A Bloom filter is not your source of truth. It is a fast "maybe yes, definitely no" screen.
+
+That is useful. Just not always the first thing I would build.
+
+## A small practical example in Python
+
+If the dataset is still manageable, my first version would look closer to this than to anything fancy:
+
+```python
+import redis
+
+r = redis.Redis(host="localhost", port=6379, decode_responses=True)
+
+
+def normalize_username(username: str) -> str:
+    return username.strip().lower()
+
+
+def is_username_taken(username: str) -> bool:
+    key = f"username:{normalize_username(username)}"
+    return r.exists(key) == 1
+
+
+def reserve_username(username: str, user_id: str) -> None:
+    key = f"username:{normalize_username(username)}"
+    r.set(key, user_id)
+```
+
+This is not the whole system, obviously. You still need the real database write, uniqueness guarantees, and proper conflict handling. But it shows the point.
+
+For a lot of products, the first useful answer is just a fast exact membership check in front of the source of truth. Not a probabilistic structure on day one.
+
+## What I actually think the answer is
+
+For a lot of systems, the answer is probably:
+
+- exact lookup first
+- Redis if you want a practical shared layer
+- Bloom filter later if scale and memory pressure justify it
+- database remains the final authority no matter what
+
+And at real scale, the mature design is often hybrid anyway.
+
+So the main takeaway for me is simple:
+
+Do the capacity math first. Then choose the simplest system that still works.
+
+That answer is less flashy than saying "Bloom filter" in the first five seconds, but I trust it more.
