@@ -47,8 +47,6 @@ That is why `WHERE` and `HAVING` are not interchangeable. `WHERE` cuts rows earl
 
 ## A small example
 
-![SQL example execution flow](/images/blog/sql-example-execution-flow.png)
-
 ```sql
 SELECT department, COUNT(*) AS total
 FROM employees
@@ -60,6 +58,8 @@ LIMIT 3;
 ```
 
 What the database is really doing:
+
+![SQL example execution flow](/images/blog/sql-example-execution-flow.png)
 
 1. start from `employees`
 2. keep only rows where `active = true`
