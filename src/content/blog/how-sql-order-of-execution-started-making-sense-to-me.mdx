@@ -47,6 +47,8 @@ That is why `WHERE` and `HAVING` are not interchangeable. `WHERE` cuts rows earl
 
 ## A small example
 
+![SQL example execution flow](/images/blog/sql-example-execution-flow.png)
+
 ```sql
 SELECT department, COUNT(*) AS total
 FROM employees
@@ -68,8 +70,6 @@ What the database is really doing:
 7. return only 3 rows
 
 That is also why this mental model helps with performance. If you can reduce rows earlier, grouping and sorting have less work to do later.
-
-![SQL example execution flow](/images/blog/sql-example-execution-flow.png)
 
 ## My takeaway
 
