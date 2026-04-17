@@ -1,0 +1,58 @@
+---
+title: "Why HyperFrames Clicked for Me Faster Than Remotion"
+date: 2026-04-17
+description: "A short personal note on why HyperFrames feels easier to wire into Hermes than Remotion, plus the architecture flow I’d use."
+tags: ["ai", "video", "automation", "hyperframes", "hermes", "remotion"]
+---
+
+I’ve been paying more attention to tools that make AI output easier to inspect.
+
+That’s why HyperFrames got my attention fast.
+
+A lot of AI video tools still feel like a black box. You type a prompt, wait, and hope the result is usable. HyperFrames feels closer to software. You can see the composition, change it, preview it, and render it again. I trust that model more.
+
+The obvious comparison here is Remotion.
+
+Remotion is more mature and more familiar if you already like building things in React. If I wanted a deeper, app-like video system, I’d still take Remotion seriously.
+
+But for Hermes, HyperFrames feels easier to control.
+
+Remotion makes me think in components, props, and a bigger React-shaped system. HyperFrames feels narrower. In this case, that’s a good thing. When an agent is generating the first draft, I’d rather give it a smaller surface area and a clearer path to something valid.
+
+So my take is pretty simple:
+
+- **Remotion** feels stronger as the established engineering platform
+- **HyperFrames** feels better suited for quick agent-driven composition and iteration
+
+That’s why it clicked for me.
+
+## The architecture flow I’d use
+
+![Hermes + HyperFrames architecture flow](/images/blog/hyperframes-hermes-architecture.png)
+
+The split I want is also pretty clean:
+
+- Hermes takes the brief
+- Hermes turns it into scenes, copy, and timing
+- Hermes writes or edits the HyperFrames composition
+- HyperFrames handles preview and render
+- Hermes returns the final MP4 and supports revision requests
+
+That keeps Hermes in the orchestration role instead of turning it into a video engine.
+
+## A simple video result
+
+<video controls preload="metadata" style={{ width: '100%', borderRadius: '12px', marginTop: '1rem', marginBottom: '1rem' }}>
+  <source src="/videos/blog/hyperframes-smoke-test.mp4" type="video/mp4" />
+  Your browser does not support the video tag.
+</video>
+
+The video above is a small smoke test, not a polished production example. That’s fine. The point was to prove the loop works end to end: brief, composition, preview, render, MP4.
+
+That’s the part I actually care about.
+
+If Hermes can reliably take a short brief, generate a first pass, accept revision feedback, and rerender without the whole thing falling apart, then this gets interesting very quickly.
+
+That’s why I’m more excited by HyperFrames than by a lot of “just prompt a video” tools.
+
+It feels less like magic, and more like a system I can actually build around.
