@@ -1,0 +1,82 @@
+---
+title: "How SQL Order of Execution Helps Me Think About Query Performance"
+date: 2026-04-17
+description: "A short and personal way to understand SQL order of execution, and why it matters when you care about query performance."
+tags: ["sql", "database", "backend", "performance"]
+---
+
+![SQL order of execution diagram](/images/blog/sql-order-of-execution-diagram.png)
+
+SQL started making more sense to me when I stopped looking at it as just syntax and started looking at it as work the database has to do.
+
+That gap between how you write it and how it runs, that is where performance lives.
+
+You may write `SELECT` first, but the database does not start there first. And once you care about performance, that difference matters. Because every step changes how many rows survive into the next step.
+
+## The diagram I'd keep in my head
+
+The order is:
+
+1. `FROM` / `JOIN`
+2. `WHERE`
+3. `GROUP BY`
+4. `HAVING`
+5. `SELECT`
+6. `ORDER BY`
+7. `LIMIT`
+
+I like this model because it is not just easier to read. It is also a better way to think about cost.
+
+## How I think about it now
+
+This is the version I keep in my head:
+
+- choose the tables
+- reduce rows as early as possible
+- group only what is left
+- filter grouped results
+- return the columns you need
+- sort at the end
+- trim with `LIMIT`
+
+That simple shift helps a lot.
+
+If a query feels heavy, I usually ask: *where am I forcing the database to carry too much data too far?*
+
+That is why `WHERE` and `HAVING` are not interchangeable. `WHERE` cuts rows earlier. `HAVING` cuts groups later. If you push filtering too late, you may make the database do more work than necessary.
+
+## A small example
+
+```sql
+SELECT department, COUNT(*) AS total
+FROM employees
+WHERE active = true
+GROUP BY department
+HAVING COUNT(*) > 5
+ORDER BY total DESC
+LIMIT 3;
+```
+
+What the database is really doing:
+
+1. start from `employees`
+2. keep only rows where `active = true`
+3. group by `department`
+4. keep only groups where `COUNT(*) > 5`
+5. return `department` and `total`
+6. sort by `total DESC`
+7. return only 3 rows
+
+That is also why this mental model helps with performance. If you can reduce rows earlier, grouping and sorting have less work to do later.
+
+![SQL example execution flow](/images/blog/sql-example-execution-flow.png)
+
+## My takeaway
+
+For me, SQL got easier once I stopped treating it like a list of clauses to memorize.
+
+Now I think of it as a pipeline, and performance is part of that pipeline.
+
+The database is not just reading your query. It is doing work step by step.
+
+If you understand the order, you usually understand the cost better too.
