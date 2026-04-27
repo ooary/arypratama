@@ -1,0 +1,136 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import BlogArchiveList from "../../components/BlogArchiveList.astro";
+import ProjectCard from "../../components/ProjectCard.astro";
+import { getCollection } from "astro:content";
+
+const pageSize = 10;
+
+export async function getStaticPaths() {
+  const pageSize = 10;
+  const allBlogPosts = (await getCollection("blog")).sort(
+    (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+  );
+  const totalBlogPages = Math.ceil(allBlogPosts.length / pageSize);
+
+  return Array.from({ length: Math.max(0, totalBlogPages - 1) }, (_, index) => {
+    const page = index + 2;
+    return {
+      params: { page: String(page) },
+      props: {
+        posts: allBlogPosts.slice((page - 1) * pageSize, page * pageSize),
+        currentPage: page,
+        totalBlogPages,
+      },
+    };
+  });
+}
+
+const { posts, currentPage, totalBlogPages } = Astro.props;
+
+let allProjects: any[] = [];
+try {
+  allProjects = (await getCollection("projects")).sort(
+    (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+  );
+} catch {
+  // No projects yet
+}
+const recentProjects = allProjects.slice(0, 3);
+---
+
+<BaseLayout title={`Posts Page ${currentPage} | Ary Pratama`}>
+  <section id="blogs">
+    <div class="flex items-center gap-4 mb-8">
+      <div>
+        <h1 class="text-xl font-bold flex items-center gap-2">
+          <i class="ph ph-book-open text-blue-600"></i>
+          Posts
+        </h1>
+        <p
+          class="text-xs text-zinc-500 dark:text-zinc-400 mt-1 uppercase tracking-wide"
+        >
+          Archive
+        </p>
+      </div>
+      <div class="h-px flex-grow bg-zinc-200 dark:bg-zinc-700"></div>
+    </div>
+
+    <BlogArchiveList posts={posts} startIndex={(currentPage - 1) * pageSize} />
+
+    <nav class="mt-6 flex flex-wrap justify-center gap-2" aria-label="Posts pagination">
+      {Array.from({ length: totalBlogPages }, (_, index) => index + 1).map((page) => (
+        <a
+          href={page === 1 ? "/" : `/page/${page}`}
+          class:list={[
+            "min-w-10 rounded-xl border px-3 py-2 text-center text-sm font-bold transition-colors",
+            page === currentPage
+              ? "border-blue-600 bg-blue-600 text-white"
+              : "border-zinc-300 text-zinc-600 hover:border-blue-600 hover:text-blue-600 dark:border-zinc-700 dark:text-zinc-300 dark:hover:border-blue-400 dark:hover:text-blue-400",
+          ]}
+        >
+          {page}
+        </a>
+      ))}
+    </nav>
+  </section>
+
+  <div class="relative py-4">
+    <div class="absolute inset-0 flex items-center">
+      <div class="w-full border-t border-gray-200 dark:border-gray-800"></div>
+    </div>
+    <div class="relative flex justify-center">
+      <span
+        class="bg-light-bg dark:bg-dark-900 px-3 text-gray-400 dark:text-gray-600"
+      >
+        <i class="ph-fill ph-star-four text-lg"></i>
+      </span>
+    </div>
+  </div>
+
+  <section id="projects">
+    <div class="flex justify-between items-end mb-8">
+      <div>
+        <h2 class="text-xl font-bold flex items-center gap-2">
+          <i class="ph ph-code text-blue-600"></i>
+          Projects
+        </h2>
+        <p
+          class="text-xs text-zinc-500 dark:text-zinc-400 mt-1 uppercase tracking-wide"
+        >
+          Recent Work
+        </p>
+      </div>
+      {
+        recentProjects.length > 0 && (
+          <a
+            href="/projects"
+            class="text-sm font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 flex items-center gap-1 group"
+          >
+            View All
+            <i class="ph ph-arrow-right group-hover:translate-x-1 transition-transform" />
+          </a>
+        )
+      }
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {
+        recentProjects.length > 0 ? (
+          recentProjects.map((project) => (
+            <ProjectCard
+              title={project.data.title}
+              date={project.data.date}
+              slug={project.slug}
+              description={project.data.description}
+              image={project.data.image}
+            />
+          ))
+        ) : (
+          <div class="col-span-full p-8 text-center border border-dashed border-zinc-300 dark:border-zinc-700 rounded-xl text-zinc-500">
+            No projects published yet.
+          </div>
+        )
+      }
+    </div>
+  </section>
+</BaseLayout>
