@@ -10,7 +10,8 @@ type ContributionDay = {
 };
 
 const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-const dayLabels = ["Mon", "Wed", "Fri"];
+const weekDayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const visibleDayLabels = new Set(["Mon", "Wed", "Fri"]);
 
 function dateToUtc(date: string) {
   const [year, month, day] = date.split("-").map(Number);
@@ -68,15 +69,21 @@ try {
   fetchFailed = true;
 }
 
-const monthLabels = days.reduce<{ label: string; col: number }[]>((labels, day) => {
+const chronologicalDays = [...days].sort(
+  (a, b) => dateToUtc(a.date).getTime() - dateToUtc(b.date).getTime(),
+);
+
+const monthLabels = chronologicalDays.reduce<{ key: string; label: string; col: number }[]>((labels, day) => {
   const currentDate = dateToUtc(day.date);
-  if (currentDate.getUTCDate() <= 7) {
-    const label = monthNames[currentDate.getUTCMonth()];
-    const previous = labels[labels.length - 1];
-    if (!previous || previous.label !== label) labels.push({ label, col: day.col });
+  const key = `${currentDate.getUTCFullYear()}-${currentDate.getUTCMonth()}`;
+  if (currentDate.getUTCDate() <= 7 && !labels.some((month) => month.key === key)) {
+    labels.push({ key, label: monthNames[currentDate.getUTCMonth()], col: day.col });
   }
   return labels;
 }, []);
+
+const columnCount = Math.max(53, ...days.map((day) => day.col));
+const gridTemplateColumns = `repeat(${columnCount}, 11px)`;
 ---
 
 <section class="github-contrib" aria-labelledby="github-activity-title">
@@ -96,8 +103,8 @@ const monthLabels = days.reduce<{ label: string; col: number }[]>((labels, day) 
         GitHub activity is temporarily unavailable. View profile →
       </a>
     ) : (
-      <div class="min-w-[720px] rounded-xl border border-zinc-200 bg-white/40 p-4 dark:border-zinc-800 dark:bg-zinc-900/20">
-        <div class="ml-9 grid grid-cols-[repeat(53,11px)] gap-[3px] text-[10px] text-zinc-500 dark:text-zinc-400">
+      <div class="inline-block min-w-max rounded-xl border border-zinc-200 bg-white/40 p-4 dark:border-zinc-800 dark:bg-zinc-900/20">
+        <div class="ml-9 grid gap-[3px] text-[10px] text-zinc-500 dark:text-zinc-400" style={`grid-template-columns: ${gridTemplateColumns};`}>
           {monthLabels.map((month) => (
             <span style={`grid-column: ${month.col} / span 4`}>{month.label}</span>
           ))}
@@ -106,11 +113,11 @@ const monthLabels = days.reduce<{ label: string; col: number }[]>((labels, day) 
         <div class="mt-2 flex gap-2">
           <div class="grid grid-rows-7 gap-[3px] text-[10px] leading-[11px] text-zinc-500 dark:text-zinc-400">
             {Array.from({ length: 7 }, (_, index) => (
-              <span class="h-[11px] w-7">{dayLabels.includes(["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][index]) ? ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][index] : ""}</span>
+              <span class="h-[11px] w-7">{visibleDayLabels.has(weekDayNames[index]) ? weekDayNames[index] : ""}</span>
             ))}
           </div>
 
-          <div class="grid grid-cols-[repeat(53,11px)] grid-rows-7 gap-[3px]" aria-label={`${totalContributions} GitHub contributions in the last year`}>
+          <div class="grid grid-rows-7 gap-[3px]" style={`grid-template-columns: ${gridTemplateColumns};`} aria-label={`${totalContributions} GitHub contributions in the last year`}>
             {days.map((day) => (
               <a
                 href={`https://github.com/${username}?tab=overview&from=${day.date}&to=${day.date}`}
