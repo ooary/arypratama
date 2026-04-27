@@ -1,5 +1,8 @@
 ---
 const username = "ooary";
+const currentYear = new Date().getUTCFullYear();
+const startOfCurrentYear = new Date(Date.UTC(currentYear, 0, 1));
+const endOfCurrentYear = new Date(Date.UTC(currentYear, 11, 31));
 type ContributionDay = {
   date: string;
   level: number;
@@ -18,6 +21,10 @@ function dateToUtc(date: string) {
   return new Date(Date.UTC(year, month - 1, day));
 }
 
+function dateToKey(date: Date) {
+  return date.toISOString().slice(0, 10);
+}
+
 function weekDiff(start: Date, current: Date) {
   const msPerDay = 24 * 60 * 60 * 1000;
   const startSunday = new Date(start);
@@ -27,8 +34,25 @@ function weekDiff(start: Date, current: Date) {
   return Math.floor((currentSunday.getTime() - startSunday.getTime()) / (msPerDay * 7));
 }
 
-let days: ContributionDay[] = [];
-let totalContributions = 0;
+function emptyDay(date: Date): ContributionDay {
+  const dateKey = dateToKey(date);
+  const label = `No contributions on ${date.toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    timeZone: "UTC",
+  })}.`;
+
+  return {
+    date: dateKey,
+    level: 0,
+    count: 0,
+    label,
+    col: weekDiff(startOfCurrentYear, date) + 1,
+    row: date.getUTCDay() + 1,
+  };
+}
+
+const contributionsByDate = new Map<string, ContributionDay>();
 let fetchFailed = false;
 
 try {
@@ -39,50 +63,47 @@ try {
   if (!response.ok) throw new Error(`GitHub contributions returned ${response.status}`);
 
   const html = await response.text();
-  const totalMatch = html.match(/<h2[^>]*id="js-contribution-activity-description"[^>]*>\s*([\d,]+)/);
-  totalContributions = totalMatch ? Number(totalMatch[1].replace(/,/g, "")) : 0;
-
   const matches = Array.from(
     html.matchAll(/<td([^>]*class="ContributionCalendar-day"[^>]*)><\/td>\s*<tool-tip[^>]*>(.*?)<\/tool-tip>/gs),
   );
 
   const getAttr = (attrs: string, name: string) => attrs.match(new RegExp(`${name}="([^"]+)"`))?.[1] ?? "";
-  const firstDate = matches[0]?.[1] ? dateToUtc(getAttr(matches[0][1], "data-date")) : new Date();
-
-  days = matches.map((match) => {
+  matches.forEach((match) => {
     const attrs = match[1];
     const date = getAttr(attrs, "data-date");
     const currentDate = dateToUtc(date);
+    if (currentDate.getUTCFullYear() !== currentYear) return;
+
     const label = match[2].replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
     const countMatch = label.match(/^(\d+)/);
 
-    return {
+    contributionsByDate.set(date, {
       date,
       level: Number(getAttr(attrs, "data-level") || 0),
       count: countMatch ? Number(countMatch[1]) : 0,
       label,
-      col: weekDiff(firstDate, currentDate) + 1,
+      col: weekDiff(startOfCurrentYear, currentDate) + 1,
       row: currentDate.getUTCDay() + 1,
-    };
+    });
   });
 } catch (error) {
   fetchFailed = true;
 }
 
-const chronologicalDays = [...days].sort(
-  (a, b) => dateToUtc(a.date).getTime() - dateToUtc(b.date).getTime(),
-);
+const days: ContributionDay[] = [];
+for (const cursor = new Date(startOfCurrentYear); cursor <= endOfCurrentYear; cursor.setUTCDate(cursor.getUTCDate() + 1)) {
+  const dateKey = dateToKey(cursor);
+  days.push(contributionsByDate.get(dateKey) ?? emptyDay(new Date(cursor)));
+}
 
-const monthLabels = chronologicalDays.reduce<{ key: string; label: string; col: number }[]>((labels, day) => {
-  const currentDate = dateToUtc(day.date);
-  const key = `${currentDate.getUTCFullYear()}-${currentDate.getUTCMonth()}`;
-  if (currentDate.getUTCDate() <= 7 && !labels.some((month) => month.key === key)) {
-    labels.push({ key, label: monthNames[currentDate.getUTCMonth()], col: day.col });
-  }
-  return labels;
-}, []);
+const totalContributions = days.reduce((total, day) => total + day.count, 0);
+const monthLabels = monthNames.map((label, month) => ({
+  key: `${currentYear}-${month}`,
+  label,
+  col: weekDiff(startOfCurrentYear, new Date(Date.UTC(currentYear, month, 1))) + 1,
+}));
 
-const columnCount = Math.max(53, ...days.map((day) => day.col));
+const columnCount = weekDiff(startOfCurrentYear, endOfCurrentYear) + 1;
 const gridTemplateColumns = `repeat(${columnCount}, 11px)`;
 ---
 
@@ -93,7 +114,7 @@ const gridTemplateColumns = `repeat(${columnCount}, 11px)`;
   </h2>
 
   <div class="mt-4 overflow-x-auto pb-2">
-    {fetchFailed || days.length === 0 ? (
+    {fetchFailed ? (
       <a
         href={`https://github.com/${username}`}
         target="_blank"
@@ -117,7 +138,7 @@ const gridTemplateColumns = `repeat(${columnCount}, 11px)`;
             ))}
           </div>
 
-          <div class="grid grid-rows-7 gap-[3px]" style={`grid-template-columns: ${gridTemplateColumns};`} aria-label={`${totalContributions} GitHub contributions in the last year`}>
+          <div class="grid grid-rows-7 gap-[3px]" style={`grid-template-columns: ${gridTemplateColumns};`} aria-label={`${totalContributions} GitHub contributions in ${currentYear}`}>
             {days.map((day) => (
               <a
                 href={`https://github.com/${username}?tab=overview&from=${day.date}&to=${day.date}`}
@@ -140,7 +161,7 @@ const gridTemplateColumns = `repeat(${columnCount}, 11px)`;
         </div>
 
         <p class="mt-3 text-xs text-zinc-500 dark:text-zinc-400">
-          {totalContributions} contributions in the last year
+          {totalContributions} contributions in {currentYear}
         </p>
       </div>
     )}
