@@ -1,0 +1,100 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import { activeAccount, scheduleRows } from "../../../data/contentSchedule";
+
+export function getStaticPaths() {
+  return scheduleRows.map((post) => ({
+    params: {
+      account: post.accountSlug,
+      slug: post.slug,
+    },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const brief = post.brief;
+---
+
+<BaseLayout
+  title={`${post.hook} | Content Brief`}
+  description={`Brief konten untuk ${post.topic}`}
+>
+  <div class="w-full max-w-3xl mx-auto">
+    <a
+      href="/content-schedule"
+      class="mb-12 flex items-center gap-2 text-sm font-bold text-zinc-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors uppercase tracking-wide"
+    >
+      <i class="ph ph-arrow-left"></i> Back to Schedule
+    </a>
+
+    <article class="px-2">
+      <header class="mb-10 border-b border-zinc-200 dark:border-zinc-700 pb-10">
+        <div
+          class="flex flex-wrap items-center gap-3 text-xs text-zinc-500 dark:text-zinc-400 mb-6 uppercase tracking-wider"
+        >
+          <span class="font-bold">{post.date}</span>
+          <span class="text-zinc-300 dark:text-zinc-600">•</span>
+          <span class="font-bold">{post.time}</span>
+          <span class="text-zinc-300 dark:text-zinc-600">•</span>
+          <span class="font-bold text-blue-600 dark:text-blue-400">{activeAccount.handle}</span>
+          <span class="text-zinc-300 dark:text-zinc-600">•</span>
+          <span class="font-bold">{post.format}</span>
+        </div>
+
+        <p class="text-sm font-bold uppercase tracking-[0.2em] text-blue-600 dark:text-blue-400 mb-4">
+          Content Brief
+        </p>
+
+        <h1
+          class="text-3xl md:text-5xl font-bold text-zinc-900 dark:text-white leading-tight tracking-tight"
+        >
+          {post.hook}
+        </h1>
+
+        <p class="mt-6 text-lg text-zinc-600 dark:text-zinc-300 leading-relaxed">
+          {post.topic}
+        </p>
+      </header>
+
+      <div class="md-content text-lg text-zinc-700 dark:text-zinc-300 leading-relaxed">
+        <p>
+          <strong>Objective:</strong> {brief.objective}
+        </p>
+
+        <p>
+          <strong>Audience:</strong> {brief.audience}
+        </p>
+
+        <p>
+          <strong>Pillar:</strong> {post.pillar}<br />
+          <strong>Account:</strong> {post.account}<br />
+          <strong>Format:</strong> {post.format}
+        </p>
+
+        <h2>Slide Flow</h2>
+        <ol>
+          {brief.structure.map((slide) => (
+            <li>
+              <strong>{slide.copy}</strong><br />
+              <span>Visual: {slide.visual}</span>
+            </li>
+          ))}
+        </ol>
+
+        <h2>Caption</h2>
+        <p class="whitespace-pre-line">{brief.caption}</p>
+
+        <h2>Hashtags</h2>
+        <p>{brief.hashtags.join(" ")}</p>
+
+        <h2>Production Notes</h2>
+        <ul>
+          {brief.productionNotes.map((note) => (
+            <li>{note}</li>
+          ))}
+        </ul>
+      </div>
+    </article>
+  </div>
+</BaseLayout>

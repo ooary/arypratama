@@ -1,11 +1,15 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import BlogCard from "../../components/BlogCard.astro";
+import BlogArchiveList from "../../components/BlogArchiveList.astro";
 import { getCollection } from "astro:content";
 
+const pageSize = 10;
 const allPosts = (await getCollection("blog")).sort(
   (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
 );
+
+const posts = allPosts.slice(0, pageSize);
+const totalPages = Math.max(1, Math.ceil(allPosts.length / pageSize));
 ---
 
 <BaseLayout
@@ -19,22 +23,50 @@ const allPosts = (await getCollection("blog")).sort(
     <i class="ph ph-arrow-left"></i> Back to Home
   </a>
 
-  <div class="flex items-baseline gap-4 mb-8">
-    <h1 class="text-2xl font-bold">All Blog Posts</h1>
-    <div class="h-px flex-grow bg-zinc-200 dark:bg-zinc-700"></div>
-  </div>
+  <div class="rounded-3xl border border-zinc-300 dark:border-zinc-700 bg-white/70 dark:bg-dark-800/60 p-5 sm:p-8 shadow-sm">
+    <header class="text-center space-y-4">
+      <p class="text-xs uppercase tracking-[0.28em] text-blue-600 dark:text-blue-400 font-bold">
+        Blog Archive
+      </p>
+      <h1 class="text-3xl sm:text-5xl font-bold tracking-tight leading-tight">
+        All Blog Posts
+      </h1>
+    </header>
 
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-    {
-      allPosts.map((post) => (
-        <BlogCard
-          title={post.data.title}
-          date={post.data.date}
-          slug={post.slug}
-          description={post.data.description}
-          image={post.data.image}
-        />
-      ))
-    }
+    <div class="my-8 border-t border-zinc-300 dark:border-zinc-700"></div>
+
+    <section>
+      <div class="flex items-center justify-between gap-4 mb-5">
+        <h2 class="text-sm font-bold uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400">
+          Archive
+        </h2>
+        <span class="text-xs text-zinc-500 dark:text-zinc-400">
+          Page 1 / {totalPages}
+        </span>
+      </div>
+
+      <BlogArchiveList posts={posts} />
+    </section>
+
+    {totalPages > 1 && (
+      <>
+        <div class="my-8 border-t border-zinc-300 dark:border-zinc-700"></div>
+        <nav class="flex flex-wrap justify-center gap-2" aria-label="Blog pagination">
+          {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
+            <a
+              href={page === 1 ? "/blog" : `/blog/page/${page}`}
+              class:list={[
+                "min-w-10 rounded-xl border px-3 py-2 text-center text-sm font-bold transition-colors",
+                page === 1
+                  ? "border-blue-600 bg-blue-600 text-white"
+                  : "border-zinc-300 text-zinc-600 hover:border-blue-600 hover:text-blue-600 dark:border-zinc-700 dark:text-zinc-300 dark:hover:border-blue-400 dark:hover:text-blue-400",
+              ]}
+            >
+              {page}
+            </a>
+          ))}
+        </nav>
+      </>
+    )}
   </div>
 </BaseLayout>
