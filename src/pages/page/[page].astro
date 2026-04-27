@@ -39,13 +39,14 @@ try {
 const recentProjects = allProjects.slice(0, 3);
 ---
 
-<BaseLayout title={`Posts Page ${currentPage} | Ary Pratama`}>
-  <section id="blogs">
+<BaseLayout title={`Writing Page ${currentPage} | Ary Pratama`}>
+  <span id="blogs" class="sr-only" aria-hidden="true"></span>
+  <section id="writing">
     <div class="flex items-center gap-4 mb-8">
       <div>
         <h1 class="text-xl font-bold flex items-center gap-2">
           <i class="ph ph-book-open text-blue-600"></i>
-          Posts
+          Writing
         </h1>
         <p
           class="text-xs text-zinc-500 dark:text-zinc-400 mt-1 uppercase tracking-wide"
@@ -58,7 +59,7 @@ const recentProjects = allProjects.slice(0, 3);
 
     <BlogArchiveList posts={posts} startIndex={(currentPage - 1) * pageSize} />
 
-    <nav class="mt-6 flex flex-wrap justify-center gap-2" aria-label="Posts pagination">
+    <nav class="mt-6 flex flex-wrap justify-center gap-2" aria-label="Writing pagination">
       {Array.from({ length: totalBlogPages }, (_, index) => index + 1).map((page) => (
         <a
           href={page === 1 ? "/" : `/page/${page}`}

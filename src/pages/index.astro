@@ -1,6 +1,7 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import BlogArchiveList from "../components/BlogArchiveList.astro";
+import GitHubActivity from "../components/GitHubActivity.astro";
 import ProjectCard from "../components/ProjectCard.astro";
 import { getCollection } from "astro:content";
 
@@ -107,22 +108,7 @@ const recentProjects = allProjects.slice(0, 3);
     </div>
   </section>
 
-  <!-- GitHub Activity -->
-  <section class="github-contrib">
-    <h2 class="text-xl font-bold flex items-center gap-2">
-      <i class="ph ph-book-open text-blue-600"></i>
-      Activity
-    </h2>
-    <div class="mt-4">
-      <div class="flex justify-center">
-        <img
-          src="https://ghchart.rshah.org/ooary"
-          alt="GitHub Contributions"
-          loading="lazy"
-        />
-      </div>
-    </div>
-  </section>
+  <GitHubActivity />
 
   <!-- Divider -->
   <div class="relative py-4">
@@ -138,13 +124,14 @@ const recentProjects = allProjects.slice(0, 3);
     </div>
   </div>
 
-  <!-- Blogs Section -->
-  <section id="blogs">
+  <!-- Writing Section -->
+  <span id="blogs" class="sr-only" aria-hidden="true"></span>
+  <section id="writing">
     <div class="flex items-center gap-4 mb-8">
       <div>
         <h2 class="text-xl font-bold flex items-center gap-2">
           <i class="ph ph-book-open text-blue-600"></i>
-          Posts
+          Writing
         </h2>
         <p
           class="text-xs text-zinc-500 dark:text-zinc-400 mt-1 uppercase tracking-wide"
@@ -158,7 +145,7 @@ const recentProjects = allProjects.slice(0, 3);
     <BlogArchiveList posts={posts} />
 
     {totalBlogPages > 1 && (
-      <nav class="mt-6 flex flex-wrap justify-center gap-2" aria-label="Posts pagination">
+      <nav class="mt-6 flex flex-wrap justify-center gap-2" aria-label="Writing pagination">
         {Array.from({ length: totalBlogPages }, (_, index) => index + 1).map((page) => (
           <a
             href={page === 1 ? "/" : `/page/${page}`}
