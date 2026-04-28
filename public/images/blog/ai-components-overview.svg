@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-label="AI concept diagram">
+  <defs>
+    <style>
+      .box { fill: #fff; stroke: #1f2937; stroke-width: 2.5; rx: 16; }
+      .blue { fill: #e7f5ff; stroke: #1971c2; }
+      .green { fill: #ebfbee; stroke: #2f9e44; }
+      .orange { fill: #fff4e6; stroke: #e67700; }
+      .purple { fill: #f3f0ff; stroke: #7048e8; }
+      .red { fill: #fff5f5; stroke: #e03131; }
+      .yellow { fill: #fff9db; stroke: #f08c00; }
+      .teal { fill: #e6fcf5; stroke: #0ca678; }
+      .text { font-family: "Comic Sans MS", "Trebuchet MS", system-ui, sans-serif; fill: #111827; font-size: 20px; }
+      .small { font-size: 15px; fill: #374151; }
+      .title { font-size: 28px; font-weight: 700; }
+      .arrow { fill: none; stroke: #1f2937; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; marker-end: url(#arrow); }
+      .dashed { stroke-dasharray: 7 7; }
+    </style>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L8,3 z" fill="#1f2937" />
+    </marker>
+  </defs>
+  <rect x="18" y="18" width="1164" height="724" rx="24" fill="#ffffff" stroke="#e5e7eb" stroke-width="2"/>
+
+  <text x="430" y="80" class="text title">AI system is not just the model</text>
+  <rect x="465" y="310" width="270" height="105" rx="18" class="box purple"/>
+  <text x="545" y="370" class="text title">AI System</text>
+
+  <rect x="90" y="125" width="200" height="82" rx="16" class="box"/>
+  <text x="154" y="174" class="text">Model</text>
+  <path d="M285 200 C365 245, 420 295, 465 335" class="arrow"/>
+
+  <rect x="500" y="125" width="200" height="82" rx="16" class="box yellow"/>
+  <text x="565" y="174" class="text">Prompt</text>
+  <path d="M600 208 C600 245, 600 282, 600 310" class="arrow"/>
+
+  <rect x="900" y="125" width="220" height="82" rx="16" class="box blue"/>
+  <text x="938" y="174" class="text">Context Window</text>
+  <path d="M900 200 C820 250, 760 295, 735 340" class="arrow"/>
+
+  <rect x="90" y="525" width="200" height="82" rx="16" class="box teal"/>
+  <text x="145" y="574" class="text">Memory</text>
+  <path d="M292 548 C365 510, 425 455, 480 390" class="arrow"/>
+
+  <rect x="390" y="585" width="200" height="82" rx="16" class="box green"/>
+  <text x="450" y="634" class="text">Tools</text>
+  <path d="M520 585 C535 520, 555 455, 575 415" class="arrow"/>
+
+  <rect x="665" y="585" width="220" height="82" rx="16" class="box orange"/>
+  <text x="730" y="634" class="text">Reasoning</text>
+  <path d="M760 585 C735 520, 710 455, 675 412" class="arrow"/>
+
+  <rect x="930" y="525" width="190" height="82" rx="16" class="box red"/>
+  <text x="980" y="574" class="text">Feedback</text>
+  <path d="M930 548 C850 510, 780 455, 720 390" class="arrow"/>
+
+  <text x="420" y="475" class="text small">model gives capability, the rest makes it useful</text>
+
+</svg>

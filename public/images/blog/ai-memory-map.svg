@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1250" height="900" viewBox="0 0 1250 900" role="img" aria-label="AI concept diagram">
+  <defs>
+    <style>
+      .box { fill: #fff; stroke: #1f2937; stroke-width: 2.5; rx: 16; }
+      .blue { fill: #e7f5ff; stroke: #1971c2; }
+      .green { fill: #ebfbee; stroke: #2f9e44; }
+      .orange { fill: #fff4e6; stroke: #e67700; }
+      .purple { fill: #f3f0ff; stroke: #7048e8; }
+      .red { fill: #fff5f5; stroke: #e03131; }
+      .yellow { fill: #fff9db; stroke: #f08c00; }
+      .teal { fill: #e6fcf5; stroke: #0ca678; }
+      .text { font-family: "Comic Sans MS", "Trebuchet MS", system-ui, sans-serif; fill: #111827; font-size: 20px; }
+      .small { font-size: 15px; fill: #374151; }
+      .title { font-size: 28px; font-weight: 700; }
+      .arrow { fill: none; stroke: #1f2937; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; marker-end: url(#arrow); }
+      .dashed { stroke-dasharray: 7 7; }
+    </style>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L8,3 z" fill="#1f2937" />
+    </marker>
+  </defs>
+  <rect x="18" y="18" width="1214" height="864" rx="24" fill="#ffffff" stroke="#e5e7eb" stroke-width="2"/>
+
+  <text x="460" y="75" class="text title">Memory and tools in an AI system</text>
+  <rect x="520" y="105" width="210" height="75" rx="16" class="box"/>
+  <text x="578" y="150" class="text">AI System</text>
+
+  <rect x="300" y="240" width="190" height="75" rx="16" class="box blue"/>
+  <text x="360" y="286" class="text">Memory</text>
+  <rect x="760" y="240" width="170" height="75" rx="16" class="box green"/>
+  <text x="820" y="286" class="text">Tools</text>
+
+  <path d="M565 180 C505 205, 455 230, 420 240" class="arrow"/>
+  <path d="M690 180 C735 205, 790 230, 820 240" class="arrow"/>
+
+  <rect x="95" y="390" width="1060" height="400" rx="28" fill="#f8fbff" stroke="#74c0fc" stroke-width="2.5"/>
+
+  <rect x="180" y="455" width="250" height="90" rx="16" class="box teal"/>
+  <text x="235" y="488" class="text">Long-term</text>
+  <text x="250" y="520" class="text">Memory</text>
+
+  <rect x="785" y="455" width="250" height="90" rx="16" class="box yellow"/>
+  <text x="850" y="488" class="text">Short-term</text>
+  <text x="868" y="520" class="text">Memory</text>
+
+  <path d="M365 315 C300 350, 285 405, 300 455" class="arrow"/>
+  <path d="M420 315 C575 340, 780 375, 890 455" class="arrow"/>
+
+  <text x="925" y="355" class="text small" fill="#c92a2a">temporary</text>
+  <text x="925" y="378" class="text small" fill="#c92a2a">limited capacity</text>
+
+  <rect x="125" y="650" width="260" height="85" rx="16" class="box red"/>
+  <text x="170" y="685" class="text">External System</text>
+  <text x="215" y="715" class="text">Memory</text>
+  <text x="105" y="825" class="text small">PDF, docs, vault, database, knowledge base</text>
+
+  <rect x="430" y="650" width="240" height="85" rx="16" class="box red"/>
+  <text x="485" y="685" class="text">Persistent</text>
+  <text x="500" y="715" class="text">Memory</text>
+  <text x="420" y="825" class="text small">context that survives across sessions</text>
+
+  <path d="M265 545 C240 585, 235 625, 255 650" class="arrow"/>
+  <path d="M360 545 C430 590, 500 620, 535 650" class="arrow"/>
+
+  <rect x="720" y="650" width="190" height="85" rx="16" class="box blue"/>
+  <text x="760" y="685" class="text">Conversation</text>
+  <text x="775" y="715" class="text">Memory</text>
+
+  <rect x="935" y="650" width="190" height="85" rx="16" class="box blue"/>
+  <text x="978" y="685" class="text">Immediate</text>
+  <text x="998" y="715" class="text">Context</text>
+
+  <rect x="900" y="790" width="210" height="75" rx="16" class="box blue"/>
+  <text x="940" y="837" class="text">Working Memory</text>
+
+  <path d="M860 545 C820 585, 800 625, 805 650" class="arrow"/>
+  <path d="M930 545 C985 585, 1015 620, 1025 650" class="arrow"/>
+  <path d="M950 545 C1030 610, 1050 730, 1015 790" class="arrow"/>
+
+  <text x="740" y="610" class="text small">injecting knowledge into prompt</text>
+  <text x="905" y="882" class="text small">related to tool/function calling</text>
+
+</svg>

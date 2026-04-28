@@ -1,0 +1,197 @@
+---
+title: "7 Komponen Dasar AI Sebelum Kita Ngomongin Agentic AI"
+date: 2026-04-28
+description: "Sebelum masuk ke agentic AI, kita perlu paham dulu komponen dasar yang bikin AI modern bekerja: model, prompt, context, memory, tools, reasoning, dan feedback."
+tags: ["ai", "agentic-ai", "llm", "automation"]
+---
+
+Ada satu hal yang menurut gue sering bikin pembahasan AI jadi kabur: kita terlalu cepat lompat ke pertanyaan "AI ini bisa apa?"
+
+Bisa bikin gambar, bisa nulis, bisa coding, bisa bantu riset, bisa bikin presentasi. Semua itu benar, tapi itu baru kelihatan dari permukaan.
+
+Kalau mau lebih ngerti AI modern, pertanyaan yang lebih enak menurut gue adalah "AI ini bekerja karena bagian apa aja?"
+
+Dari situ baru kelihatan kalau AI bukan cuma satu benda bernama model. Di belakangnya ada beberapa komponen yang saling nyambung: model, prompt, context, memory, tools, reasoning, dan feedback.
+
+Tujuh hal ini perlu kebayang dulu sebelum kita masuk ke agentic AI.
+
+![AI system components overview](/images/blog/ai-components-overview.svg)
+
+## 1. Model
+
+Model adalah bagian yang biasanya paling sering dibahas. Contohnya GPT, Claude, Gemini, Llama, Mistral, dan lain-lain.
+
+Model ini yang membaca input, memahami pola, lalu menghasilkan output. Tapi model bukan database. Ini penting.
+
+Model bisa menjawab dengan percaya diri, tapi tetap bisa salah. Model bisa terlihat seperti paham, padahal kadang cuma sedang menebak dari pola yang pernah ia pelajari.
+
+Makanya kalau ada orang bilang "AI-nya pintar", biasanya yang dimaksud adalah modelnya bagus. Tapi di sistem nyata, model bagus saja belum cukup.
+
+Contoh paling simpel: kalau kita cuma bilang "Buat artikel tentang AI", model akan tetap menjawab. Hasilnya saja biasanya generik.
+
+Kalau kita kasih arah yang lebih jelas, misalnya "Buat artikel bahasa Indonesia, gaya personal, untuk orang teknis yang baru mulai masuk ke AI, fokus ke model, prompt, context, memory, tools, reasoning, dan feedback", model yang sama bisa menghasilkan output yang jauh lebih berguna.
+
+Jadi model itu fondasi, bukan seluruh sistem.
+
+## 2. Prompt
+
+Prompt adalah instruksi yang kita kasih ke AI. Banyak orang menganggap prompt itu cuma kalimat yang kita ketik di chat. Padahal dalam sistem AI yang lebih serius, prompt biasanya berlapis.
+
+Ada prompt yang terlihat oleh user. Ada yang disiapkan oleh developer. Ada juga instruksi yang mengatur kapan AI boleh memakai tools.
+
+![Prompt layers in an AI system](/images/blog/ai-prompt-layers.svg)
+
+### System prompt
+
+System prompt adalah instruksi paling atas. Biasanya user tidak melihat ini karena isinya aturan dasar tentang bagaimana AI harus bersikap.
+
+Contoh:
+
+> Kamu adalah assistant teknis. Jawab singkat, jelas, dan jangan mengarang kalau tidak tahu.
+
+Instruksi seperti ini membentuk karakter kerja AI. Apakah dia harus formal, santai, hati-hati, agresif, detail, atau singkat.
+
+Kalau user prompt adalah permintaan spesifik, system prompt adalah aturan mainnya.
+
+### User prompt
+
+User prompt adalah instruksi yang kita ketik langsung. Misalnya "Jelaskan 7 komponen dasar AI sebelum masuk ke agentic AI."
+
+Ini permintaan utama dari user. Model akan membaca ini bersama instruksi lain yang sudah ada di sistem.
+
+### Developer prompt
+
+Developer prompt biasanya dipakai oleh pembuat aplikasi. Misalnya aplikasi customer support ingin semua jawaban AI selalu pakai format tertentu. Atau aplikasi coding assistant ingin AI selalu mengecek file dulu sebelum menjawab.
+
+Contoh:
+
+> Jika user bertanya soal order, cek database order terlebih dahulu sebelum menjawab.
+
+Prompt jenis ini penting karena AI di produk nyata tidak boleh terlalu bebas. Ia harus mengikuti workflow aplikasi.
+
+### Tool prompt
+
+Tool prompt mengatur kapan AI harus memakai tools. Contohnya "Kalau user bertanya cuaca hari ini, gunakan weather API. Jangan jawab dari pengetahuan model."
+
+Ini bedanya AI yang cuma ngobrol dengan AI yang bisa bekerja memakai data aktual.
+
+Menurut gue, prompt itu bukan trik sulap. Prompt bagus membantu, tapi tidak bisa menutup semua kekurangan.
+
+Kalau modelnya lemah, tetap ada batas. Kalau context-nya kurang, jawaban bisa meleset. Kalau tools tidak tersedia, AI cuma bisa menebak. Kalau tidak ada feedback, AI sulit memperbaiki hasil.
+
+## 3. Context / Context Window
+
+Context adalah informasi yang sedang dibawa AI saat menjawab. Kalau kita ngobrol dengan AI, isi percakapan sebelumnya, instruksi, file, hasil tool, dan data lain yang relevan akan masuk ke context.
+
+Context window adalah batas seberapa banyak informasi yang bisa ditampung dalam satu waktu. Gampangnya, context window itu seperti meja kerja.
+
+Kalau mejanya kecil, dokumen yang bisa dibuka sedikit. Kalau mejanya besar, dokumen yang bisa dibuka lebih banyak. Tapi tetap ada batas.
+
+Ini kenapa AI kadang lupa detail lama dalam percakapan panjang. Bukan karena dia malas, tapi karena ruang kerjanya terbatas atau informasinya tidak lagi masuk ke context.
+
+Context yang rapi bikin AI lebih akurat. Context yang berantakan bikin AI gampang salah fokus.
+
+Contoh: kita minta AI bantu debug project. Kalau AI cuma dapat error message tanpa file terkait, dia akan banyak menebak. Tapi kalau dia dapat error, file yang relevan, config, dan hasil test, jawabannya jauh lebih tajam.
+
+## 4. Memory
+
+Memory adalah ingatan jangka panjang. Ini beda dari context.
+
+Context itu ruang kerja sementara. Memory adalah hal yang disimpan supaya bisa dipakai lagi nanti.
+
+Contoh memory:
+
+- user suka jawaban langsung
+- project blog memakai Astro
+- gaya tulisan lebih personal, bukan corporate
+- workflow deploy lewat GitHub Actions
+
+Dengan memory, AI tidak perlu tanya ulang hal yang sama setiap sesi. Tapi memory juga bisa jadi masalah kalau disimpan sembarangan.
+
+Tidak semua hal layak masuk memory. Kalau semua percakapan disimpan, AI malah bisa membawa informasi sampah ke percakapan berikutnya.
+
+Menurut gue memory yang bagus harus selektif. Simpan yang stabil dan berguna: preferensi user, keputusan teknis, detail project yang masih berlaku, dan pola kerja yang sering dipakai.
+
+Di catatan gue, memory bisa dibagi kasar jadi dua: long-term memory dan short-term memory.
+
+Long-term memory dipakai untuk hal yang perlu bertahan lintas sesi. Misalnya persistent memory atau external memory seperti dokumen, PDF, vault, database, atau knowledge base.
+
+Short-term memory dipakai untuk hal yang sedang aktif sekarang. Misalnya conversation memory, immediate context, dan working memory yang terkait dengan function calling atau tools.
+
+![AI memory map](/images/blog/ai-memory-map.svg)
+
+## 5. Tools
+
+Tools adalah kemampuan AI untuk melakukan sesuatu di luar menjawab teks.
+
+Tanpa tools, AI cuma bisa membaca input lalu menulis output. Dengan tools, AI bisa mengambil tindakan.
+
+Misalnya membuka browser, membaca file, menjalankan command, query database, memanggil API, generate image, mengirim email, menjalankan test, atau deploy aplikasi.
+
+Ini perubahan besar.
+
+AI tanpa tools mungkin cuma bilang "Coba jalankan test." AI dengan tools bisa benar-benar menjalankan test, membaca error, memperbaiki kode, lalu menjalankan test lagi.
+
+Di titik ini AI mulai terasa bukan cuma sebagai penjawab, tapi sebagai operator.
+
+Tapi tools juga membawa risiko. Kalau AI bisa menghapus file, deploy ke production, atau mengirim email, berarti harus ada batasan yang jelas.
+
+Semakin kuat tools-nya, semakin penting kontrolnya.
+
+## 6. Reasoning
+
+Reasoning adalah kemampuan AI untuk memecah masalah dan memilih langkah berikutnya. Ini bagian yang sering terasa "magis", padahal sebenarnya bisa dilihat dari cara AI bekerja.
+
+Misalnya kita bilang "Aplikasi gue lambat."
+
+Jawaban yang buruk:
+
+> Pakai Redis.
+
+Jawaban yang lebih masuk akal:
+
+> Lambatnya di mana dulu? API response, query database, rendering frontend, atau network? Cek latency endpoint, slow query log, ukuran payload, baru tentukan perlu cache atau tidak.
+
+Reasoning membantu AI tidak langsung lompat ke solusi.
+
+Dalam workflow coding, reasoning kelihatan saat AI membaca error, mencari file terkait, membuat hipotesis, mengubah kode kecil, menjalankan test, lalu memperbaiki lagi kalau masih gagal.
+
+Tanpa reasoning, AI cuma automasi yang rapuh. Dengan reasoning yang cukup baik, AI bisa jadi partner teknis yang lumayan berguna.
+
+Tetap harus dicek. AI masih bisa salah arah, tapi reasoning adalah bagian yang membuat AI bisa bekerja lebih dari sekadar autocomplete.
+
+## 7. Feedback
+
+Feedback adalah sinyal balik. Kadang datang dari user, kadang dari sistem, kadang dari environment.
+
+Contoh dari user:
+
+> Ini terlalu formal. Bikin lebih santai.
+
+Contoh dari sistem:
+
+> Test failed.
+
+Contoh dari environment:
+
+> API returned 401 unauthorized.
+
+Feedback penting karena output pertama AI jarang langsung final.
+
+Biasanya ada loop: draft -> review -> revisi, code -> test -> error -> fix, plan -> eksekusi -> cek hasil -> adjust.
+
+Agent yang bagus bukan agent yang selalu benar dari awal. Agent yang bagus adalah agent yang bisa membaca hasil kerjanya sendiri, sadar kalau gagal, lalu memperbaiki langkah berikutnya.
+
+## Kenapa ini nyambung ke Agentic AI
+
+Kalau tujuh komponen ini digabung, agentic AI jadi lebih gampang dipahami.
+
+Model memberi kemampuan dasar. Prompt memberi arah. Context memberi ruang kerja. Memory memberi kesinambungan. Tools memberi kemampuan bertindak. Reasoning membantu memilih langkah. Feedback membantu memperbaiki hasil.
+
+Dari kombinasi itu, AI mulai bisa melakukan pekerjaan yang lebih panjang.
+
+Bukan cuma menjawab "Ini cara memperbaiki bug", tapi mulai bisa "Gue cek errornya, cari file terkait, ubah kode, jalankan test, baca hasilnya, lalu revisi sampai selesai."
+
+Itulah kenapa menurut gue sebelum ngomongin agent, autonomous workflow, atau AI worker, kita perlu pegang fondasi ini dulu.
+
+Kalau belum, agentic AI akan terdengar seperti hype. Kalau sudah, konsepnya jadi lebih sederhana: AI yang bukan cuma menjawab, tapi mulai bisa bekerja.

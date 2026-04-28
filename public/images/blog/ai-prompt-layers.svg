@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="760" viewBox="0 0 1100 760" role="img" aria-label="AI concept diagram">
+  <defs>
+    <style>
+      .box { fill: #fff; stroke: #1f2937; stroke-width: 2.5; rx: 16; }
+      .blue { fill: #e7f5ff; stroke: #1971c2; }
+      .green { fill: #ebfbee; stroke: #2f9e44; }
+      .orange { fill: #fff4e6; stroke: #e67700; }
+      .purple { fill: #f3f0ff; stroke: #7048e8; }
+      .red { fill: #fff5f5; stroke: #e03131; }
+      .yellow { fill: #fff9db; stroke: #f08c00; }
+      .teal { fill: #e6fcf5; stroke: #0ca678; }
+      .text { font-family: "Comic Sans MS", "Trebuchet MS", system-ui, sans-serif; fill: #111827; font-size: 20px; }
+      .small { font-size: 15px; fill: #374151; }
+      .title { font-size: 28px; font-weight: 700; }
+      .arrow { fill: none; stroke: #1f2937; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; marker-end: url(#arrow); }
+      .dashed { stroke-dasharray: 7 7; }
+    </style>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L8,3 z" fill="#1f2937" />
+    </marker>
+  </defs>
+  <rect x="18" y="18" width="1064" height="724" rx="24" fill="#ffffff" stroke="#e5e7eb" stroke-width="2"/>
+
+  <text x="370" y="80" class="text title">Prompt is layered</text>
+  <rect x="370" y="125" width="360" height="75" rx="16" class="box red"/>
+  <text x="485" y="170" class="text">System Prompt</text>
+
+  <rect x="370" y="235" width="360" height="75" rx="16" class="box orange"/>
+  <text x="470" y="280" class="text">Developer Prompt</text>
+
+  <rect x="370" y="345" width="360" height="75" rx="16" class="box blue"/>
+  <text x="498" y="390" class="text">User Prompt</text>
+
+  <rect x="370" y="455" width="360" height="75" rx="16" class="box green"/>
+  <text x="480" y="500" class="text">Tool Instructions</text>
+
+  <rect x="430" y="590" width="240" height="85" rx="18" class="box purple"/>
+  <text x="505" y="640" class="text">Model</text>
+
+  <path d="M550 200 L550 235" class="arrow"/>
+  <path d="M550 310 L550 345" class="arrow"/>
+  <path d="M550 420 L550 455" class="arrow"/>
+  <path d="M550 530 L550 590" class="arrow"/>
+
+  <text x="95" y="245" class="text small">not just the chat box</text>
+  <path d="M260 245 C300 210, 330 185, 370 165" class="arrow dashed"/>
+  <text x="760" y="280" class="text small">product rules live here</text>
+  <path d="M760 275 C735 275, 730 275, 730 275" class="arrow dashed"/>
+  <text x="760" y="500" class="text small">when to call APIs, files, browser, etc.</text>
+
+</svg>
