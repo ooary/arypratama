@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1250" height="900" viewBox="0 0 1250 900" role="img" aria-label="AI concept diagram">
+<svg xmlns="http://www.w3.org/2000/svg" width="1250" height="960" viewBox="0 0 1250 960" role="img" aria-label="AI concept diagram">
   <defs>
     <style>
       .box { fill: #fff; stroke: #1f2937; stroke-width: 2.5; rx: 16; }
@@ -19,7 +19,7 @@
       <path d="M0,0 L0,6 L8,3 z" fill="#1f2937" />
     </marker>
   </defs>
-  <rect x="18" y="18" width="1214" height="864" rx="24" fill="#ffffff" stroke="#e5e7eb" stroke-width="2"/>
+  <rect x="18" y="18" width="1214" height="924" rx="24" fill="#ffffff" stroke="#e5e7eb" stroke-width="2"/>
 
   <text x="460" y="75" class="text title">Memory and tools in an AI system</text>
   <rect x="520" y="105" width="210" height="75" rx="16" class="box"/>
@@ -33,7 +33,7 @@
   <path d="M565 180 C505 205, 455 230, 420 240" class="arrow"/>
   <path d="M690 180 C735 205, 790 230, 820 240" class="arrow"/>
 
-  <rect x="95" y="390" width="1060" height="400" rx="28" fill="#f8fbff" stroke="#74c0fc" stroke-width="2.5"/>
+  <rect x="95" y="390" width="1060" height="500" rx="28" fill="#f8fbff" stroke="#74c0fc" stroke-width="2.5"/>
 
   <rect x="180" y="455" width="250" height="90" rx="16" class="box teal"/>
   <text x="235" y="488" class="text">Long-term</text>
@@ -62,22 +62,22 @@
   <path d="M265 545 C240 585, 235 625, 255 650" class="arrow"/>
   <path d="M360 545 C430 590, 500 620, 535 650" class="arrow"/>
 
-  <rect x="720" y="650" width="190" height="85" rx="16" class="box blue"/>
-  <text x="760" y="685" class="text">Conversation</text>
-  <text x="775" y="715" class="text">Memory</text>
+  <rect x="700" y="650" width="190" height="85" rx="16" class="box blue"/>
+  <text x="740" y="685" class="text">Conversation</text>
+  <text x="755" y="715" class="text">Memory</text>
 
-  <rect x="935" y="650" width="190" height="85" rx="16" class="box blue"/>
-  <text x="978" y="685" class="text">Immediate</text>
-  <text x="998" y="715" class="text">Context</text>
+  <rect x="955" y="650" width="190" height="85" rx="16" class="box blue"/>
+  <text x="998" y="685" class="text">Immediate</text>
+  <text x="1018" y="715" class="text">Context</text>
 
-  <rect x="900" y="790" width="210" height="75" rx="16" class="box blue"/>
-  <text x="940" y="837" class="text">Working Memory</text>
+  <rect x="820" y="780" width="210" height="75" rx="16" class="box blue"/>
+  <text x="860" y="827" class="text">Working Memory</text>
 
-  <path d="M860 545 C820 585, 800 625, 805 650" class="arrow"/>
-  <path d="M930 545 C985 585, 1015 620, 1025 650" class="arrow"/>
-  <path d="M950 545 C1030 610, 1050 730, 1015 790" class="arrow"/>
+  <path d="M850 545 C815 585, 790 620, 795 650" class="arrow"/>
+  <path d="M970 545 C1020 585, 1045 620, 1050 650" class="arrow"/>
+  <path d="M915 545 C915 610, 925 705, 925 780" class="arrow"/>
 
   <text x="740" y="610" class="text small">injecting knowledge into prompt</text>
-  <text x="905" y="882" class="text small">related to tool/function calling</text>
+  <text x="825" y="882" class="text small">related to tool/function calling</text>
 
 </svg>
