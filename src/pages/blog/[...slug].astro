@@ -1,16 +1,17 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
+import RelatedPosts from "../../components/RelatedPosts.astro";
 import { getCollection } from "astro:content";
 
 export async function getStaticPaths() {
   const posts = await getCollection("blog");
   return posts.map((post) => ({
     params: { slug: post.slug },
-    props: { post },
+    props: { post, posts },
   }));
 }
 
-const { post } = Astro.props;
+const { post, posts } = Astro.props;
 const { Content } = await post.render();
 
 const formattedDate = post.data.date.toISOString().split("T")[0];
@@ -52,6 +53,8 @@ const formattedDate = post.data.date.toISOString().split("T")[0];
       >
         <Content />
       </div>
+
+      <RelatedPosts currentPost={post} posts={posts} />
     </article>
   </div>
 </BaseLayout>
