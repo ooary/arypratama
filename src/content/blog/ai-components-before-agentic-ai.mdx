@@ -27,13 +27,23 @@ Model bisa menjawab dengan percaya diri, tapi tetap bisa salah. Model bisa terli
 
 Makanya kalau ada orang bilang "AI-nya pintar", biasanya yang dimaksud adalah modelnya bagus. Tapi di sistem nyata, model bagus saja belum cukup.
 
-Contoh paling simpel: kalau kita cuma bilang "Buat artikel tentang AI", model akan tetap menjawab. Hasilnya saja biasanya generik.
+Contoh paling simpel:
 
-Kalau kita kasih arah yang lebih jelas, model yang sama bisa menghasilkan output yang jauh lebih berguna.
+Kalau kita cuma prompting kayak gini:
+
+> Buat artikel tentang AI.
+
+Biasanya model atau AI akan tetap menjawab, tapi jawabannya cenderung generik atau strukturnya terasa template.
+
+Kalau kita kasih prompting yang lebih jelas dengan model yang sama maka bisa menghasilkan output yang jauh lebih baik.
+
+Contohnya:
 
 > Buat artikel bahasa Indonesia, gaya personal, untuk orang teknis yang baru mulai masuk ke AI, fokus ke model, prompt, context, memory, tools, reasoning, dan feedback.
 
-Jadi model itu fondasi, bukan seluruh sistem.
+IBM mendefinisikan AI model sebagai program yang dilatih dengan data untuk mengenali pola, membuat prediksi, atau mengambil keputusan. Jadi kalau disederhanakan, model adalah bagian yang punya kemampuan dasar untuk membaca pola dan menghasilkan respons.
+
+Tapi tetap, model bukan seluruh sistem. Di aplikasi AI modern, model perlu diarahkan oleh prompt, diberi context yang relevan, dibantu memory dan tools, lalu diperbaiki lewat feedback.
 
 ## 2. Prompt
 
@@ -197,3 +207,14 @@ Bukan cuma menjawab "Ini cara memperbaiki bug", tapi mulai bisa "Gue cek errorny
 Itulah kenapa menurut gue sebelum ngomongin agent, autonomous workflow, atau AI worker, kita perlu pegang fondasi ini dulu.
 
 Kalau belum, agentic AI akan terdengar seperti hype. Kalau sudah, konsepnya jadi lebih sederhana: AI yang bukan cuma menjawab, tapi mulai bisa bekerja.
+
+## Referensi
+
+- IBM, [What Is an AI Model?](https://www.ibm.com/think/topics/ai-model)
+- IBM, [What Are AI Agents?](https://www.ibm.com/think/topics/ai-agents)
+- Anthropic, [Prompt engineering overview](https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview)
+- Anthropic, [System prompts](https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/system-prompts)
+- Anthropic, [Context windows](https://docs.anthropic.com/en/docs/build-with-claude/context-windows)
+- Anthropic, [Tool use with Claude](https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/overview)
+- OpenAI, [Model Spec](https://model-spec.openai.com/2025-09-12.html)
+- AWS, [Using the Converse API](https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference-call.html)
