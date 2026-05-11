@@ -1,0 +1,350 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const projects = [
+  {
+    no: "01",
+    title: "Sales Performance Report",
+    area: "Sales Ops",
+    role: "Sales admin / junior analyst",
+    status: "Done",
+    source: "Done - do not revisit",
+    focus: "Sales revenue, region performance, product performance, sales rep summary",
+    deliverable: "Report workbook + dashboard + portfolio case study",
+  },
+  {
+    no: "02",
+    title: "E-commerce Pivot Dashboard",
+    area: "E-commerce",
+    role: "Marketplace admin / e-commerce analyst",
+    status: "Done",
+    source: "Done - do not revisit",
+    focus: "Transaction summary, category performance, monthly sales, customer behavior",
+    deliverable: "Pivot dashboard package",
+  },
+  {
+    no: "03",
+    title: "Inventory Stock Monitoring",
+    area: "Inventory",
+    role: "Inventory admin / operations staff",
+    status: "Done",
+    source: "Done - do not revisit",
+    focus: "Stock status, reorder signal, slow-moving items, stock risk",
+    deliverable: "Monitoring workbook + business case story",
+  },
+  {
+    no: "04",
+    title: "Bank Customer Churn Analysis",
+    area: "Customer Risk",
+    role: "Junior data analyst",
+    status: "Done",
+    source: "Done - do not revisit",
+    focus: "Churn indicator, risk segment, customer profile, retention priority",
+    deliverable: "Analysis workbook + portfolio case study",
+  },
+  {
+    no: "05",
+    title: "HR Employee Attrition Analysis",
+    area: "HR Analytics",
+    role: "HR admin / people analyst",
+    status: "Done",
+    source: "Done - do not revisit",
+    focus: "Attrition risk, department pattern, overtime, job role, satisfaction",
+    deliverable: "HR analysis package",
+  },
+  {
+    no: "06",
+    title: "Customer Segmentation & Campaign Targeting",
+    area: "CRM / Marketing",
+    role: "CRM analyst / marketing ops",
+    status: "Done",
+    source: "Done - do not revisit",
+    focus: "Customer segments, campaign priority score, targeting recommendation",
+    deliverable: "Segmentation workbook + campaign targeting output",
+  },
+  {
+    no: "07",
+    title: "Finance Expense & Budget Tracking",
+    area: "Finance",
+    role: "Finance admin / budget controller",
+    status: "Next focus",
+    source: "Prefer synthetic curated office dataset",
+    focus: "Budget vs actual, variance, category spending, monthly budget control",
+    deliverable: "Expense tracker, variance report, budget control dashboard",
+  },
+  {
+    no: "08",
+    title: "Payroll & Overtime Analysis",
+    area: "HR / Payroll",
+    role: "Payroll admin / HR operations",
+    status: "Next focus",
+    source: "Synthetic recommended because payroll data is sensitive",
+    focus: "Basic salary, overtime hours, overtime pay, department payroll cost, overtime risk",
+    deliverable: "Payroll summary, overtime analysis, department cost report",
+  },
+  {
+    no: "09",
+    title: "Sales Target Achievement Dashboard",
+    area: "Sales Ops",
+    role: "Sales operations analyst",
+    status: "Next focus",
+    source: "Public/synthetic hybrid acceptable",
+    focus: "Target vs actual, achievement percentage, sales rep ranking, regional gap",
+    deliverable: "Target tracking dashboard + underperformance action list",
+  },
+  {
+    no: "10",
+    title: "Procurement Vendor Performance",
+    area: "Procurement",
+    role: "Procurement admin / operations analyst",
+    status: "Next focus",
+    source: "Synthetic recommended; real vendor data is usually private",
+    focus: "Vendor scorecard, delivery lead time, defect rate, purchase value, vendor ranking",
+    deliverable: "Vendor performance dashboard + recommended vendor list",
+  },
+  {
+    no: "11",
+    title: "Accounts Receivable Aging & Collection Priority",
+    area: "Finance",
+    role: "AR admin / finance operations",
+    status: "Backlog",
+    source: "Synthetic curated office dataset",
+    focus: "Invoice aging, overdue bucket, collection priority, customer payment risk",
+    deliverable: "AR aging report + collection priority list",
+  },
+  {
+    no: "12",
+    title: "Cash Flow Forecast & Runway Tracker",
+    area: "Finance",
+    role: "Finance analyst / small business operator",
+    status: "Backlog",
+    source: "Synthetic curated office dataset",
+    focus: "Cash in, cash out, opening balance, ending balance, monthly forecast, runway",
+    deliverable: "Cash flow tracker + forecast dashboard",
+  },
+  {
+    no: "13",
+    title: "Marketing Campaign ROI Analysis",
+    area: "Marketing",
+    role: "Marketing analyst / growth ops",
+    status: "Backlog",
+    source: "Kaggle/public possible; verify license first",
+    focus: "Campaign spend, leads, conversion, revenue, CAC, ROI, best campaign ranking",
+    deliverable: "Campaign ROI report + budget recommendation",
+  },
+  {
+    no: "14",
+    title: "Customer Support SLA & Ticket Performance",
+    area: "Customer Support",
+    role: "Support operations analyst",
+    status: "Backlog",
+    source: "Synthetic or public ticket dataset",
+    focus: "Ticket volume, response time, resolution time, SLA breach, agent performance",
+    deliverable: "SLA dashboard + breach investigation list",
+  },
+  {
+    no: "15",
+    title: "Retail Product Profitability & Margin Analysis",
+    area: "Retail Finance",
+    role: "Retail analyst / business analyst",
+    status: "Backlog",
+    source: "Public retail dataset possible; may need margin columns curated",
+    focus: "Revenue, COGS, gross margin, discount impact, product profitability ranking",
+    deliverable: "Margin analysis dashboard + product action list",
+  },
+  {
+    no: "16",
+    title: "Warehouse Order Fulfillment & Delivery Performance",
+    area: "Logistics",
+    role: "Warehouse admin / operations analyst",
+    status: "Backlog",
+    source: "Synthetic curated office dataset",
+    focus: "Order processing, late shipment, fulfillment rate, delivery status, warehouse performance",
+    deliverable: "Fulfillment dashboard + late shipment tracker",
+  },
+  {
+    no: "17",
+    title: "Project Task Timeline & Resource Utilization",
+    area: "Project Admin",
+    role: "Project coordinator / admin staff",
+    status: "Backlog",
+    source: "Synthetic curated office dataset",
+    focus: "Task progress, due date, overdue task, workload per person, utilization",
+    deliverable: "Task tracker + resource utilization report",
+  },
+  {
+    no: "18",
+    title: "Subscription Revenue & Renewal Tracker",
+    area: "SaaS / CRM",
+    role: "Revenue operations analyst",
+    status: "Backlog",
+    source: "Public SaaS-style data rare; synthetic likely cleaner",
+    focus: "MRR, renewal status, churned account, upsell, monthly recurring revenue movement",
+    deliverable: "Subscription revenue dashboard + renewal priority list",
+  },
+  {
+    no: "19",
+    title: "Recruitment Funnel & Hiring Pipeline Analysis",
+    area: "HR Recruiting",
+    role: "Recruitment admin / HR analyst",
+    status: "Backlog",
+    source: "Synthetic or public HR recruiting sample",
+    focus: "Applicants, screening, interview, offer, hired, conversion rate, time-to-hire",
+    deliverable: "Recruitment funnel dashboard + bottleneck analysis",
+  },
+  {
+    no: "20",
+    title: "Quality Control Defect & Production Performance",
+    area: "Manufacturing / QA",
+    role: "QC admin / operations analyst",
+    status: "Backlog",
+    source: "Kaggle/public manufacturing possible; verify fit/license",
+    focus: "Defect rate, production batch, pass/fail, defect category, quality score",
+    deliverable: "QC dashboard + improvement priority list",
+  },
+];
+
+const statusStyle = {
+  "Done": "border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300",
+  "Next focus": "border-blue-300 bg-blue-50 text-blue-700 dark:border-blue-700 dark:bg-blue-950/40 dark:text-blue-300",
+  "Backlog": "border-zinc-300 bg-zinc-50 text-zinc-600 dark:border-zinc-700 dark:bg-zinc-900/50 dark:text-zinc-300",
+};
+
+const counts = {
+  done: projects.filter((project) => project.status === "Done").length,
+  next: projects.filter((project) => project.status === "Next focus").length,
+  backlog: projects.filter((project) => project.status === "Backlog").length,
+  total: projects.length,
+};
+---
+
+<BaseLayout
+  title="Excel Portfolio Builder Plan | Ary Pratama"
+  description="Tracker for Excel Portfolio Builder: Real Office Projects."
+>
+  <section class="space-y-8">
+    <header class="rounded-3xl border border-zinc-300 bg-white/80 p-6 shadow-sm dark:border-zinc-700 dark:bg-dark-800/70 sm:p-8">
+      <p class="text-xs font-bold uppercase tracking-[0.28em] text-blue-600 dark:text-blue-400">
+        Product Tracker
+      </p>
+      <h1 class="mt-4 text-3xl font-bold leading-tight tracking-tight sm:text-5xl">
+        Excel Portfolio Builder: Real Office Projects
+      </h1>
+      <p class="mt-5 max-w-3xl text-sm leading-7 text-zinc-600 dark:text-zinc-300 sm:text-base">
+        Internal tracker untuk 20 project Excel berbasis kasus kerja nyata. Tujuannya simpel: jaga konteks tetap rapi, project berikutnya tetap mengikuti standar project sebelumnya, dan tiap paket terasa seperti pekerjaan kantor beneran — bukan bank soal generik.
+      </p>
+
+      <div class="mt-6 grid gap-3 sm:grid-cols-4">
+        <div class="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-900/50">
+          <p class="text-xs text-zinc-500 dark:text-zinc-400">Total target</p>
+          <p class="mt-1 text-2xl font-bold">{counts.total}</p>
+        </div>
+        <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-800 dark:bg-emerald-950/30">
+          <p class="text-xs text-emerald-700 dark:text-emerald-300">Done</p>
+          <p class="mt-1 text-2xl font-bold">{counts.done}</p>
+        </div>
+        <div class="rounded-2xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950/30">
+          <p class="text-xs text-blue-700 dark:text-blue-300">Next focus</p>
+          <p class="mt-1 text-2xl font-bold">{counts.next}</p>
+        </div>
+        <div class="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-900/50">
+          <p class="text-xs text-zinc-500 dark:text-zinc-400">Backlog</p>
+          <p class="mt-1 text-2xl font-bold">{counts.backlog}</p>
+        </div>
+      </div>
+    </header>
+
+    <section class="grid gap-4 sm:grid-cols-3">
+      <div class="rounded-2xl border border-zinc-300 bg-white/70 p-5 dark:border-zinc-700 dark:bg-dark-800/60">
+        <h2 class="font-bold">Rule utama</h2>
+        <p class="mt-3 text-sm leading-6 text-zinc-600 dark:text-zinc-300">
+          Project 01-06 dianggap selesai. Jangan bongkar ulang kecuali ada bug fatal. Fokus produksi berikutnya: Project 07-10.
+        </p>
+      </div>
+      <div class="rounded-2xl border border-zinc-300 bg-white/70 p-5 dark:border-zinc-700 dark:bg-dark-800/60">
+        <h2 class="font-bold">Dataset rule</h2>
+        <p class="mt-3 text-sm leading-6 text-zinc-600 dark:text-zinc-300">
+          Cari Kaggle/public dataset dulu, tapi jangan dipaksa. Untuk payroll, budget, vendor, cash flow, dan data sensitif lain, synthetic curated lebih aman.
+        </p>
+      </div>
+      <div class="rounded-2xl border border-zinc-300 bg-white/70 p-5 dark:border-zinc-700 dark:bg-dark-800/60">
+        <h2 class="font-bold">Quality bar</h2>
+        <p class="mt-3 text-sm leading-6 text-zinc-600 dark:text-zinc-300">
+          Tiap project harus punya business case, file latihan, file jawaban dengan formula visible, pembahasan, dataset CSV, dashboard, dan portfolio artifact.
+        </p>
+      </div>
+    </section>
+
+    <section class="rounded-3xl border border-zinc-300 bg-white/80 p-5 shadow-sm dark:border-zinc-700 dark:bg-dark-800/70 sm:p-6">
+      <div class="mb-5 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p class="text-xs font-bold uppercase tracking-[0.24em] text-zinc-500 dark:text-zinc-400">
+            Roadmap
+          </p>
+          <h2 class="mt-2 text-2xl font-bold">20 project tracker</h2>
+        </div>
+        <p class="text-xs text-zinc-500 dark:text-zinc-400">
+          Last updated: tracker baseline
+        </p>
+      </div>
+
+      <div class="space-y-3">
+        {projects.map((project) => (
+          <article class="rounded-2xl border border-zinc-200 bg-zinc-50/70 p-4 dark:border-zinc-700 dark:bg-zinc-900/40">
+            <div class="flex flex-wrap items-start justify-between gap-3">
+              <div class="min-w-0">
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="rounded-full border border-zinc-300 px-2.5 py-1 text-xs font-bold text-zinc-500 dark:border-zinc-600 dark:text-zinc-400">
+                    Project {project.no}
+                  </span>
+                  <span class={`rounded-full border px-2.5 py-1 text-xs font-bold ${statusStyle[project.status]}`}>
+                    {project.status}
+                  </span>
+                  <span class="rounded-full border border-zinc-300 px-2.5 py-1 text-xs text-zinc-500 dark:border-zinc-600 dark:text-zinc-400">
+                    {project.area}
+                  </span>
+                </div>
+                <h3 class="mt-3 text-lg font-bold leading-snug">{project.title}</h3>
+              </div>
+            </div>
+
+            <dl class="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+              <div>
+                <dt class="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">Role simulation</dt>
+                <dd class="mt-1 text-zinc-700 dark:text-zinc-200">{project.role}</dd>
+              </div>
+              <div>
+                <dt class="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">Dataset source</dt>
+                <dd class="mt-1 text-zinc-700 dark:text-zinc-200">{project.source}</dd>
+              </div>
+              <div>
+                <dt class="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">Business focus</dt>
+                <dd class="mt-1 text-zinc-700 dark:text-zinc-200">{project.focus}</dd>
+              </div>
+              <div>
+                <dt class="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">Expected output</dt>
+                <dd class="mt-1 text-zinc-700 dark:text-zinc-200">{project.deliverable}</dd>
+              </div>
+            </dl>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="rounded-3xl border border-zinc-300 bg-white/80 p-6 shadow-sm dark:border-zinc-700 dark:bg-dark-800/70">
+      <p class="text-xs font-bold uppercase tracking-[0.24em] text-zinc-500 dark:text-zinc-400">
+        Build standard
+      </p>
+      <h2 class="mt-2 text-2xl font-bold">Standard paket per project</h2>
+      <ul class="mt-5 space-y-3 text-sm leading-6 text-zinc-700 dark:text-zinc-200">
+        <li><strong>00_START_HERE_README.txt</strong> — cara pakai paket.</li>
+        <li><strong>01_Business_Case_Story_@severussheet.pdf</strong> — 3 halaman, style light orange/peach, konteks kantor realistis.</li>
+        <li><strong>02_File_Latihan.xlsx</strong> — dataset, instruksi, placeholder, dan pertanyaan per sheet.</li>
+        <li><strong>03_File_Jawaban_dan_Pembahasan.xlsx</strong> — formula visible, dashboard, pembahasan rumus, pembahasan fundamental.</li>
+        <li><strong>04_Dataset_Topic.csv</strong> — source dataset terpisah.</li>
+        <li><strong>05_Portfolio_Case_Study_Template.pdf</strong> — narasi portfolio yang bisa diadaptasi user.</li>
+        <li><strong>06_CV_Bullet_Points.txt</strong> dan <strong>07_Project_Description.txt</strong> — support untuk portfolio/job application.</li>
+      </ul>
+    </section>
+  </section>
+</BaseLayout>
