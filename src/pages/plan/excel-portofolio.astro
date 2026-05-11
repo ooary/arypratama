@@ -77,8 +77,8 @@ const projects = [
     title: "Payroll & Overtime Analysis",
     area: "HR / Payroll",
     role: "Payroll admin / HR operations",
-    status: "Done",
-    source: "Done - anonymized HR operations case dataset, no sensitive source wording in buyer files",
+    status: "Need to verify",
+    source: "Need to verify - anonymized HR operations case dataset, no sensitive source wording in buyer files",
     focus: "Overtime flag, estimated overtime pay, compensation risk, department review priority",
     deliverable: "Payroll summary, overtime risk review, department cost report",
   },
@@ -87,8 +87,8 @@ const projects = [
     title: "Sales Target Achievement Dashboard",
     area: "Sales Ops",
     role: "Sales operations analyst",
-    status: "Done",
-    source: "Done - anonymized sales operations case dataset, no sensitive source wording in buyer files",
+    status: "Need to verify",
+    source: "Need to verify - anonymized sales operations case dataset, no sensitive source wording in buyer files",
     focus: "Target vs actual, achievement percentage, sales rep ranking, regional gap",
     deliverable: "Target tracking dashboard + underperformance action list",
   },
@@ -206,12 +206,14 @@ const projects = [
 
 const statusStyle = {
   "Done": "border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300",
+  "Need to verify": "border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-300",
   "Next focus": "border-blue-300 bg-blue-50 text-blue-700 dark:border-blue-700 dark:bg-blue-950/40 dark:text-blue-300",
   "Backlog": "border-zinc-300 bg-zinc-50 text-zinc-600 dark:border-zinc-700 dark:bg-zinc-900/50 dark:text-zinc-300",
 };
 
 const counts = {
   done: projects.filter((project) => project.status === "Done").length,
+  verify: projects.filter((project) => project.status === "Need to verify").length,
   next: projects.filter((project) => project.status === "Next focus").length,
   backlog: projects.filter((project) => project.status === "Backlog").length,
   total: projects.length,
@@ -234,7 +236,7 @@ const counts = {
         Internal tracker untuk 20 project Excel berbasis kasus kerja nyata. Tujuannya simpel: jaga konteks tetap rapi, project berikutnya tetap mengikuti standar project sebelumnya, dan tiap paket terasa seperti pekerjaan kantor beneran — bukan bank soal generik.
       </p>
 
-      <div class="mt-6 grid gap-3 sm:grid-cols-4">
+      <div class="mt-6 grid gap-3 sm:grid-cols-5">
         <div class="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-900/50">
           <p class="text-xs text-zinc-500 dark:text-zinc-400">Total target</p>
           <p class="mt-1 text-2xl font-bold">{counts.total}</p>
@@ -242,6 +244,10 @@ const counts = {
         <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-800 dark:bg-emerald-950/30">
           <p class="text-xs text-emerald-700 dark:text-emerald-300">Done</p>
           <p class="mt-1 text-2xl font-bold">{counts.done}</p>
+        </div>
+        <div class="rounded-2xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950/30">
+          <p class="text-xs text-amber-700 dark:text-amber-300">Need to verify</p>
+          <p class="mt-1 text-2xl font-bold">{counts.verify}</p>
         </div>
         <div class="rounded-2xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950/30">
           <p class="text-xs text-blue-700 dark:text-blue-300">Next focus</p>
