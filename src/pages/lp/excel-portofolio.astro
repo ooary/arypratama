@@ -1,11 +1,13 @@
 ---
 import "../../styles/global.css";
 
-const testimonialImages = [
-  { src: "/lp/excel-portofolio/testimoni-1.png", alt: "Testimoni Nadia" },
-  { src: "/lp/excel-portofolio/testimoni-2.png", alt: "Testimoni Rizky" },
-  { src: "/lp/excel-portofolio/testimoni-3.png", alt: "Testimoni Aulia" },
-  { src: "/lp/excel-portofolio/testimoni-4.png", alt: "Testimoni Dimas" },
+const projectPreviews = [
+  "📦 Inventory Analyst — Stock monitoring, dead stock, reorder point",
+  "📈 Sales Performance — Target vs actual, trend, top & bottom performer",
+  "👥 Customer Segmentation — RFM, kategorisasi, churn detection",
+  "💰 Finance & Budgeting — Budget vs realisasi, variance report",
+  "🧑‍💼 HR & Attendance — Rekap absensi, overtime, turnover rate",
+  "🚚 Ops & Logistik — Lead time, delivery performance, SLA",
 ];
 ---
 
@@ -31,9 +33,9 @@ const testimonialImages = [
     <main class="mx-auto min-h-screen max-w-[460px] bg-white shadow-soft">
       <section class="bg-gradient-to-b from-blue-50 to-white px-6 pb-8 pt-10 text-center">
         <div class="inline-flex items-center rounded-full bg-blue-100 px-4 py-2 text-sm font-semibold text-blue-800">20 Project Excel by Role</div>
-        <h1 class="mt-6 text-4xl font-black leading-tight tracking-tight">Bisa Excel Aja Belum Cukup.</h1>
-        <h2 class="mt-2 text-3xl font-black leading-tight tracking-tight text-blue-700">Kamu Perlu Bukti yang Bisa Ditunjukkan.</h2>
-        <p class="mt-5 text-lg font-semibold text-slate-700">20 project Excel dalam 1 paket — buat bantu kamu latihan, bikin portofolio, dan punya bahan cerita saat interview.</p>
+        <h1 class="mt-6 text-4xl font-black leading-tight tracking-tight">Tiap Hari Ada Fresh Grad yang Gagal Interview</h1>
+        <h2 class="mt-2 text-3xl font-black leading-tight tracking-tight text-blue-700">Bukan Karena Nggak Bisa Excel. Tapi Karena Nggak Punya yang Bisa Ditunjukkan.</h2>
+        <p class="mt-5 text-lg font-semibold text-slate-700">20 simulasi project Excel by role — dikerjain, dipahami, lalu diceritain saat interview. Bukan template kosong. Bukan tutorial ke sekian.</p>
         <a href="#harga" class="mt-7 inline-flex w-full items-center justify-center rounded-2xl bg-red-600 px-6 py-4 text-lg font-black text-white shadow-lg shadow-red-200">AMBIL PAKET — Rp49.000</a>
         <p class="mt-3 text-sm text-slate-500">Sekali bayar. File bisa dipakai berkali-kali.</p>
       </section>
@@ -41,19 +43,30 @@ const testimonialImages = [
       <section class="border-t border-slate-100 px-6 py-8">
         <h2 class="text-2xl font-black leading-tight">Tutorial Excel aja sering belum cukup.</h2>
         <div class="mt-5 space-y-3 text-[17px] leading-relaxed text-slate-700">
-          <p>Kamu mungkin sudah tahu rumus.</p>
-          <p>Sudah pernah belajar Pivot Table.</p>
-          <p>Mungkin juga pernah coba bikin dashboard.</p>
-          <p>Tapi kalau ditanya, <b>“Punya contoh project Excel yang pernah kamu kerjain?”</b> masih banyak yang langsung bingung.</p>
-          <p>Karena yang bikin kamu terlihat siap bukan cuma seberapa banyak kamu belajar — tapi apakah kamu punya hasil yang bisa ditunjukkan.</p>
+          <p>Kamu udah nonton puluhan tutorial Excel. Udah hapal VLOOKUP, Pivot Table, mungkin pernah coba bikin dashboard.</p>
+          <p>Tapi pas rekruter nanya: <b>“Punya contoh project Excel yang pernah kamu kerjain?”</b></p>
+          <p>Masih diem.</p>
+          <p>Dan kamu tahu persis rasanya — ngeliat teman satu angkatan udah mulai kerja, sementara kamu masih ngerasa “kayaknya gw belum siap.”</p>
+          <p>Bukan karena kamu nggak bisa. Tapi karena kamu belum punya cara buktiin ke rekruter — dan ke diri sendiri.</p>
+          <p class="rounded-2xl bg-blue-50 p-4 font-bold text-blue-950">Belajar Excel itu gampang dicari gratis. Yang susah itu tau harus ngerjain project apa, buat role apa, dan gimana cara ngejelasinnya pas interview. Itu yang paket ini selesaikan.</p>
         </div>
       </section>
 
       <section class="mx-5 rounded-3xl bg-blue-950 px-6 py-8 text-white">
         <h2 class="text-2xl font-black">Makanya paket ini dibuat.</h2>
-        <p class="mt-4 leading-relaxed text-blue-100">Ini bukan sekadar template Excel. Ini juga bukan latihan generik.</p>
-        <p class="mt-4 leading-relaxed text-blue-100">Ini adalah 20 project Excel berbasis simulasi role — dari skenario yang dekat dengan kebutuhan kerja seperti inventory, sales, finance, customer, HR, operations, dan lainnya.</p>
-        <p class="mt-4 font-bold text-yellow-300">Kamu dapat konteks kasus, dataset, file latihan, jawaban, pembahasan, sampai panduan menjadikannya portofolio.</p>
+        <p class="mt-4 leading-relaxed text-blue-100">Di kantor, orang nggak disuruh ngerjain soal Excel acak. Mereka diminta analisis stok yang mau habis. Bikin laporan sales bulan ini. Rekap absensi karyawan.</p>
+        <p class="mt-4 leading-relaxed text-blue-100">Paket ini dibuat berdasarkan itu — simulasi real case by role, bukan latihan rumus yang nggak jelas konteksnya.</p>
+        <p class="mt-4 font-bold text-yellow-300">Kamu dapat kasusnya, datasetnya, cara ngerjainnya, sampai panduan jadiin portofolio dan kalimat buat CV.</p>
+      </section>
+
+      <section class="px-6 py-8">
+        <h2 class="text-3xl font-black leading-tight">Pilih project yang paling relevan sama posisi yang kamu incar:</h2>
+        <div class="mt-6 space-y-3">
+          {projectPreviews.map((project) => (
+            <div class="rounded-2xl border border-blue-100 bg-blue-50 p-4 text-[15px] font-bold leading-relaxed text-slate-900">{project}</div>
+          ))}
+          <div class="rounded-2xl border border-slate-200 bg-slate-950 p-4 text-[15px] font-black text-white">+ 14 project lainnya by role...</div>
+        </div>
       </section>
 
       <section class="px-6 py-8">
@@ -126,18 +139,22 @@ const testimonialImages = [
         <div class="text-center">
           <h2 class="mt-2 text-4xl font-black leading-tight">Kata Mereka</h2>
           <p class="mt-3 text-2xl font-black leading-tight text-white">Yang tadinya bingung mulai dari mana, akhirnya punya bahan buat ditunjukin.</p>
-          <p class="mt-3 text-sm text-slate-400">Mockup testimoni untuk draft. Saat live, ganti dengan screenshot asli pembeli.</p>
         </div>
         <div class="mt-7 space-y-5">
-          {testimonialImages.map((image) => (
-            <div class="rounded-[2rem] bg-white p-3 shadow-xl shadow-blue-950/40">
-              <img src={image.src} alt={image.alt} class="w-full rounded-[1.5rem]" />
-            </div>
-          ))}
+          <div class="rounded-3xl bg-white p-5 text-slate-900 shadow-xl shadow-blue-950/40">
+            <p class="text-lg">⭐️⭐️⭐️⭐️⭐️</p>
+            <p class="mt-3 text-[17px] font-bold leading-relaxed">“Gw apply 3 posisi minggu lalu. Pas interview bisa langsung cerita detail project inventory-nya.”</p>
+            <p class="mt-3 text-sm font-black text-blue-700">— Raka, fresh grad Manajemen</p>
+          </div>
+          <div class="rounded-3xl bg-white p-5 text-slate-900 shadow-xl shadow-blue-950/40">
+            <p class="text-lg">⭐️⭐️⭐️⭐️⭐️</p>
+            <p class="mt-3 text-[17px] font-bold leading-relaxed">“Yang bikin beda itu ada business case story-nya. Jadi ngerti konteks, bukan cuma ngikutin rumus.”</p>
+            <p class="mt-3 text-sm font-black text-blue-700">— Dita, career switcher ke admin finance</p>
+          </div>
         </div>
         <div class="mt-6 rounded-3xl bg-white/10 p-5 text-center ring-1 ring-white/10">
-          <p class="text-lg font-black">Bukan cuma belajar rumus.</p>
-          <p class="mt-1 text-slate-300">Targetnya: kamu punya project yang bisa dipahami, ditunjukkan, dan diceritakan.</p>
+          <p class="text-lg font-black">73.700+ followers belajar Excel bareng @severussheet di TikTok.</p>
+          <p class="mt-1 text-slate-300">Paket ini versi yang lebih dalam dari konten yang paling sering ditanyain.</p>
         </div>
       </section>
 
@@ -164,8 +181,12 @@ const testimonialImages = [
 
       <section id="harga" class="bg-blue-700 px-6 py-10 text-center text-white">
         <p class="text-lg font-semibold text-blue-100">Harga paket</p>
-        <div class="mt-2 text-5xl font-black">Rp49.000</div>
-        <p class="mt-5 text-xl font-bold">Lebih murah dari ongkos kirim lamaran yang terus ditolak.</p>
+        <div class="mt-2 flex items-end justify-center gap-3">
+          <span class="text-2xl font-black text-blue-200 line-through">Rp150.000</span>
+          <span class="text-5xl font-black">Rp49.000</span>
+        </div>
+        <p class="mt-5 text-xl font-bold">Lebih murah dari satu sesi kopi sambil scroll loker yang nggak ada hasilnya.</p>
+        <p class="mt-3 rounded-2xl bg-white/10 p-4 text-sm font-bold text-yellow-200">⏳ Harga ini berlaku sampai [TANGGAL]. Setelah itu naik jadi Rp69.000.</p>
         <div class="mt-6 rounded-3xl bg-blue-900/70 p-5">
           <p class="text-sm font-bold uppercase tracking-wide text-yellow-300">Promo bonus berakhir dalam</p>
           <div class="mt-3 grid grid-cols-4 gap-2 text-center" aria-label="Countdown promo">
@@ -192,9 +213,9 @@ const testimonialImages = [
       </section>
 
       <section class="px-6 py-8 text-center">
-        <p class="text-2xl font-black leading-tight">Rekruter mungkin nggak tahu seberapa keras kamu belajar.</p>
-        <p class="mt-3 text-slate-600">Tapi mereka bisa melihat hasil yang kamu tunjukkan.</p>
-        <p class="mt-4 font-bold text-blue-700">Mulai bangun bukti skill Excel-mu hari ini.</p>
+        <p class="text-2xl font-black leading-tight">Rekruter nggak peduli berapa jam kamu habis di tutorial.</p>
+        <p class="mt-3 text-slate-600">Mereka cuma nanya satu hal: “Ada nggak yang bisa kamu tunjukkan?”</p>
+        <p class="mt-4 font-bold text-blue-700">Paket ini bukan jalan pintas — kamu tetap harus ngerjain. Tapi untuk pertama kalinya, kamu nggak mulai dari kosong.</p>
       </section>
 
       <footer class="px-6 pb-24 pt-8 text-center text-sm text-slate-500">
