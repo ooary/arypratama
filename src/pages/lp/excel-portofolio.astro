@@ -9,6 +9,39 @@ const projectPreviews = [
   "🧑‍💼 HR & Attendance — Rekap absensi, overtime, turnover rate",
   "🚚 Ops & Logistik — Lead time, delivery performance, SLA",
 ];
+
+const packageShowcase = [
+  {
+    title: "20 Projects",
+    src: "/lp/excel-portofolio/20-projects.png",
+    alt: "Daftar 20 project Excel portfolio by role",
+    caption: "20 project siap dikerjakan, pilih yang paling relevan sama role yang kamu incar.",
+  },
+  {
+    title: "Business Case Story",
+    src: "/lp/excel-portofolio/business-case-story.png",
+    alt: "Contoh Business Case Story untuk project Sales Performance Report",
+    caption: "Setiap project dilengkapi Business Case Story biar kamu ngerti konteks bisnisnya, bukan cuma ngerjain rumus.",
+  },
+  {
+    title: "Soal Latihan Per Sheet",
+    src: "/lp/excel-portofolio/soal-latihan-per-sheet.png",
+    alt: "Contoh soal latihan Excel yang disusun per sheet",
+    caption: "Soal latihan sudah disusun per sheet — kamu tahu harus ngerjain apa, dalam urutan yang logis, persis seperti kerjaan nyata di kantor.",
+  },
+  {
+    title: "Panduan Membuat Portofolio",
+    src: "/lp/excel-portofolio/panduan-portofolio.png",
+    alt: "Contoh template portfolio case study Excel",
+    caption: "Sudah ada template portofolio-nya tinggal isi, screenshot, dan kamu punya case study yang bisa ditunjukkan ke rekruter.",
+  },
+  {
+    title: "Project Sales Dashboard",
+    src: "/lp/excel-portofolio/project-sales-dashboard.png",
+    alt: "Contoh struktur file project Sales Performance Report",
+    caption: "Setiap Project terdiri dari file yang terstruktur rapi tinggal download, buka, dan mulai kerjakan.",
+  },
+];
 ---
 
 <!doctype html>
@@ -96,28 +129,24 @@ const projectPreviews = [
 
       <section class="px-6 py-10">
         <h2 class="text-center text-4xl font-black leading-tight text-red-600">Yang Anda Dapatkan!</h2>
-        <div class="mt-7 space-y-5">
-          <div class="placeholder-grid flex min-h-[260px] flex-col items-center justify-center rounded-3xl border-2 border-dashed border-blue-300 bg-blue-50 p-5 text-center">
-            <div class="text-5xl">📊</div>
-            <p class="mt-3 text-xl font-black">SCREENSHOT DASHBOARD UTAMA</p>
-            <p class="mt-1 text-sm text-slate-600">Ganti dengan screenshot dashboard Excel terbaik</p>
-          </div>
-          <div class="placeholder-grid flex min-h-[220px] flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-300 bg-slate-50 p-5 text-center">
-            <div class="text-4xl">📝</div>
-            <p class="mt-3 text-xl font-black">SCREENSHOT FILE LATIHAN</p>
-            <p class="mt-1 text-sm text-slate-600">Instruksi, soal, dan dataset yang harus dikerjakan</p>
-          </div>
-          <div class="placeholder-grid flex min-h-[220px] flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-300 bg-slate-50 p-5 text-center">
-            <div class="text-4xl">✅</div>
-            <p class="mt-3 text-xl font-black">SCREENSHOT FILE JAWABAN</p>
-            <p class="mt-1 text-sm text-slate-600">Rumus lengkap, solusi, dan pembahasan</p>
-          </div>
+        <div class="mt-7 space-y-6">
+          {packageShowcase.map((item) => (
+            <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+              <div class="bg-slate-50 p-3">
+                <img src={item.src} alt={item.alt} class="max-h-[360px] w-full rounded-2xl object-contain" loading="lazy" />
+              </div>
+              <div class="p-5">
+                <h3 class="text-xl font-black text-slate-950">{item.title}</h3>
+                <p class="mt-2 text-[15px] font-semibold leading-relaxed text-slate-600">{item.caption}</p>
+              </div>
+            </div>
+          ))}
           <div class="rounded-3xl bg-slate-950 p-5 text-white">
             <p class="text-lg font-black">Isi paket:</p>
             <ul class="mt-3 space-y-2 text-sm leading-relaxed text-slate-200">
               <li>📊 20 Project Excel by Role</li>
               <li>📖 Business Case Story</li>
-              <li>✅ File Jawaban + Rumus Lengkap</li>
+              <li>✅ File Latihan + File Jawaban</li>
               <li>🗂️ Dataset Siap Olah</li>
               <li>📄 PDF Panduan Portofolio</li>
               <li>💼 CV Bullet Points</li>
