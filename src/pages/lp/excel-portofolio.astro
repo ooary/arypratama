@@ -245,7 +245,23 @@ const checkoutNotifications = [
             </div>
           </div>
         </div>
-        <a href="#" class="mt-7 inline-flex w-full items-center justify-center rounded-2xl bg-white px-6 py-4 text-lg font-black text-blue-800">AMBIL PROJECT — Rp49.000</a>
+        <form class="mt-7 rounded-3xl bg-white p-5 text-left text-slate-900 shadow-xl shadow-blue-950/20" action="#" method="post">
+          <div class="space-y-4">
+            <label class="block">
+              <span class="text-sm font-black text-slate-800">Nama</span>
+              <input type="text" name="nama" required class="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-base font-semibold text-slate-900 outline-none ring-red-200 transition focus:border-red-500 focus:bg-white focus:ring-4" placeholder="Nama kamu" />
+            </label>
+            <label class="block">
+              <span class="text-sm font-black text-slate-800">Email</span>
+              <input type="email" name="email" required class="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-base font-semibold text-slate-900 outline-none ring-red-200 transition focus:border-red-500 focus:bg-white focus:ring-4" placeholder="email@contoh.com" />
+            </label>
+            <label class="block">
+              <span class="text-sm font-black text-slate-800">No HP</span>
+              <input type="tel" name="no_hp" required class="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-base font-semibold text-slate-900 outline-none ring-red-200 transition focus:border-red-500 focus:bg-white focus:ring-4" placeholder="08xxxxxxxxxx" />
+            </label>
+          </div>
+          <button type="submit" class="mt-5 flex w-full items-center justify-center rounded-2xl bg-red-600 px-6 py-4 text-lg font-black text-white shadow-lg shadow-red-900/20">AMBIL PROJECT — Rp49.000</button>
+        </form>
       </section>
 
       <section class="bg-slate-50 px-6 py-9">
