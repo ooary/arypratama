@@ -1,0 +1,505 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import EntityCard from "../../components/EntityCard.astro";
+
+const title = "ERD — Core Managed Apotek";
+const description = "Entity Relationship Diagram untuk Core Managed Apotek: organization, master data, procurement, inventory ledger, POS, resep, expired handling, dan audit trail.";
+
+const coreEntities = [
+  {
+    name: "organizations",
+    tag: "Tenant",
+    fields: ["id PK", "name", "legal_name", "tax_id", "status", "created_at"],
+  },
+  {
+    name: "outlets",
+    tag: "Cabang",
+    fields: ["id PK", "organization_id FK", "name", "address", "phone", "is_default", "status"],
+  },
+  {
+    name: "warehouses",
+    tag: "Lokasi stok",
+    fields: ["id PK", "outlet_id FK", "name", "warehouse_type", "is_default", "status"],
+  },
+  {
+    name: "pharmacy_profiles",
+    tag: "Config apotek",
+    fields: ["id PK", "outlet_id FK", "pharmacist_name", "sia_no", "sipa_no", "receipt_footer", "stock_policy"],
+  },
+  {
+    name: "users",
+    tag: "Actor",
+    fields: ["id PK", "organization_id FK", "outlet_id FK", "name", "email", "password_hash", "status"],
+  },
+  {
+    name: "roles",
+    tag: "Access",
+    fields: ["id PK", "organization_id FK", "name", "scope", "status"],
+  },
+  {
+    name: "permissions",
+    tag: "Access",
+    fields: ["id PK", "code", "name", "module"],
+  },
+];
+
+const masterEntities = [
+  {
+    name: "products",
+    tag: "Obat / item jual",
+    fields: ["id PK", "organization_id FK", "category_id FK", "drug_class_id FK", "manufacturer_id FK", "default_supplier_id FK", "sku", "barcode", "name", "generic_name", "strength", "dosage_form", "requires_prescription", "min_stock_base_unit", "base_unit_id FK", "status"],
+  },
+  {
+    name: "product_units",
+    tag: "Satuan",
+    fields: ["id PK", "product_id FK", "unit_name", "unit_code", "is_base_unit", "sort_order"],
+  },
+  {
+    name: "product_unit_conversions",
+    tag: "Konversi",
+    fields: ["id PK", "product_id FK", "from_unit_id FK", "to_unit_id FK", "multiplier_to_base", "is_active"],
+  },
+  {
+    name: "product_prices",
+    tag: "Harga jual",
+    fields: ["id PK", "product_id FK", "unit_id FK", "price_type", "selling_price", "margin_target", "effective_from", "effective_to", "created_by FK"],
+  },
+  {
+    name: "suppliers",
+    tag: "PBF",
+    fields: ["id PK", "organization_id FK", "name", "legal_name", "address", "contact_name", "phone", "email", "payment_terms_days", "license_no", "status"],
+  },
+  {
+    name: "supplier_products",
+    tag: "Supplier-item",
+    fields: ["id PK", "supplier_id FK", "product_id FK", "supplier_sku", "last_purchase_price", "is_preferred"],
+  },
+  {
+    name: "product_locations",
+    tag: "Rak default",
+    fields: ["id PK", "product_id FK", "warehouse_id FK", "rack_code", "bin_code"],
+  },
+  {
+    name: "patients",
+    tag: "Pelanggan/pasien",
+    fields: ["id PK", "organization_id FK", "name", "phone", "birth_date", "address", "allergy_note"],
+  },
+  {
+    name: "doctors",
+    tag: "Dokter",
+    fields: ["id PK", "organization_id FK", "name", "sip_no", "phone", "specialization"],
+  },
+];
+
+const inventoryEntities = [
+  {
+    name: "stock_batches",
+    tag: "Source stok fisik",
+    fields: ["id PK", "outlet_id FK", "warehouse_id FK", "product_id FK", "batch_no", "expiry_date", "qty_available_base_unit", "hpp_per_base_unit", "source_type", "source_id", "status"],
+  },
+  {
+    name: "stock_movements",
+    tag: "Ledger stok",
+    fields: ["id PK", "movement_no", "outlet_id FK", "warehouse_id FK", "product_id FK", "batch_id FK", "movement_type", "qty_in_base_unit", "qty_out_base_unit", "balance_after_base_unit", "unit_id FK", "display_qty", "reference_type", "reference_id", "reason", "created_by FK", "created_at"],
+  },
+  {
+    name: "stock_opnames",
+    tag: "Stock take",
+    fields: ["id PK", "outlet_id FK", "warehouse_id FK", "opname_no", "status", "started_by FK", "posted_by FK", "posted_at"],
+  },
+  {
+    name: "stock_opname_items",
+    tag: "Opname detail",
+    fields: ["id PK", "stock_opname_id FK", "product_id FK", "batch_id FK", "system_qty_base", "physical_qty_base", "difference_qty_base", "reason"],
+  },
+  {
+    name: "stock_mutations",
+    tag: "Mutasi gudang/outlet",
+    fields: ["id PK", "mutation_no", "from_outlet_id FK", "to_outlet_id FK", "from_warehouse_id FK", "to_warehouse_id FK", "status", "created_by FK", "posted_at"],
+  },
+  {
+    name: "stock_mutation_items",
+    tag: "Mutasi detail",
+    fields: ["id PK", "stock_mutation_id FK", "product_id FK", "batch_id FK", "unit_id FK", "qty", "qty_base_unit"],
+  },
+  {
+    name: "expired_actions",
+    tag: "Expired/karantina",
+    fields: ["id PK", "batch_id FK", "action_type", "qty_base_unit", "reference_type", "reference_id", "loss_amount", "created_by FK", "created_at"],
+  },
+];
+
+const procurementEntities = [
+  {
+    name: "defecta_items",
+    tag: "Procurement queue",
+    fields: ["id PK", "outlet_id FK", "product_id FK", "suggested_supplier_id FK", "source", "requested_qty_base", "status", "reviewed_by FK", "converted_po_item_id FK"],
+  },
+  {
+    name: "purchase_orders",
+    tag: "PO header",
+    fields: ["id PK", "po_no", "outlet_id FK", "supplier_id FK", "status", "order_date", "expected_date", "created_by FK"],
+  },
+  {
+    name: "purchase_order_items",
+    tag: "PO detail",
+    fields: ["id PK", "purchase_order_id FK", "product_id FK", "unit_id FK", "qty_ordered", "qty_ordered_base", "estimated_price", "qty_received_base"],
+  },
+  {
+    name: "goods_receipts",
+    tag: "Barang masuk",
+    fields: ["id PK", "receipt_no", "outlet_id FK", "warehouse_id FK", "supplier_id FK", "purchase_order_id FK", "invoice_no", "received_at", "status", "received_by FK"],
+  },
+  {
+    name: "goods_receipt_items",
+    tag: "Barang masuk detail",
+    fields: ["id PK", "goods_receipt_id FK", "purchase_order_item_id FK", "product_id FK", "unit_id FK", "qty_received", "qty_received_base", "purchase_price", "discount_amount", "tax_amount", "batch_no", "expiry_date", "stock_batch_id FK"],
+  },
+  {
+    name: "supplier_invoices",
+    tag: "Hutang supplier",
+    fields: ["id PK", "supplier_id FK", "goods_receipt_id FK", "invoice_no", "invoice_date", "due_date", "total_amount", "paid_amount", "status"],
+  },
+  {
+    name: "supplier_payments",
+    tag: "Bayar hutang",
+    fields: ["id PK", "supplier_invoice_id FK", "payment_date", "amount", "payment_method", "reference_no", "created_by FK"],
+  },
+];
+
+const posEntities = [
+  {
+    name: "shift_schedules",
+    tag: "Jadwal shift",
+    fields: ["id PK", "outlet_id FK", "user_id FK", "scheduled_start", "scheduled_end", "status"],
+  },
+  {
+    name: "shifts",
+    tag: "Shift kasir",
+    fields: ["id PK", "outlet_id FK", "user_id FK", "schedule_id FK", "opened_at", "opening_cash", "closed_at", "system_cash", "physical_cash", "cash_difference", "status"],
+  },
+  {
+    name: "sales",
+    tag: "Transaksi POS",
+    fields: ["id PK", "sale_no", "outlet_id FK", "shift_id FK", "cashier_id FK", "patient_id FK", "prescription_id FK", "sale_type", "subtotal", "discount_total", "tax_total", "grand_total", "status", "posted_at"],
+  },
+  {
+    name: "sale_items",
+    tag: "Item jual",
+    fields: ["id PK", "sale_id FK", "product_id FK", "batch_id FK", "unit_id FK", "qty", "qty_base_unit", "unit_price", "discount_amount", "hpp_per_base_unit", "line_total"],
+  },
+  {
+    name: "payments",
+    tag: "Pembayaran",
+    fields: ["id PK", "sale_id FK", "payment_method", "amount", "reference_no", "paid_at", "created_by FK"],
+  },
+  {
+    name: "sale_returns",
+    tag: "Retur penjualan",
+    fields: ["id PK", "return_no", "sale_id FK", "outlet_id FK", "reason", "refund_amount", "status", "created_by FK", "posted_at"],
+  },
+  {
+    name: "sale_return_items",
+    tag: "Retur jual detail",
+    fields: ["id PK", "sale_return_id FK", "sale_item_id FK", "product_id FK", "batch_id FK", "unit_id FK", "qty", "qty_base_unit", "stock_disposition"],
+  },
+  {
+    name: "purchase_returns",
+    tag: "Retur supplier",
+    fields: ["id PK", "return_no", "supplier_id FK", "outlet_id FK", "goods_receipt_id FK", "reason", "status", "created_by FK", "posted_at"],
+  },
+  {
+    name: "purchase_return_items",
+    tag: "Retur supplier detail",
+    fields: ["id PK", "purchase_return_id FK", "product_id FK", "batch_id FK", "unit_id FK", "qty", "qty_base_unit", "refund_amount"],
+  },
+];
+
+const prescriptionEntities = [
+  {
+    name: "prescriptions",
+    tag: "Resep lite",
+    fields: ["id PK", "outlet_id FK", "patient_id FK", "doctor_id FK", "prescription_no", "prescription_date", "notes", "status"],
+  },
+  {
+    name: "prescription_items",
+    tag: "Item resep",
+    fields: ["id PK", "prescription_id FK", "product_id FK", "unit_id FK", "qty", "dosage_instruction", "etiket_template_id FK", "notes"],
+  },
+  {
+    name: "etiket_templates",
+    tag: "Aturan pakai",
+    fields: ["id PK", "organization_id FK", "name", "instruction_text", "is_active"],
+  },
+  {
+    name: "audit_logs",
+    tag: "Audit trail",
+    fields: ["id PK", "organization_id FK", "outlet_id FK", "actor_id FK", "action", "entity_type", "entity_id", "before_json", "after_json", "ip_address", "created_at"],
+  },
+];
+
+const relationshipGroups = [
+  {
+    title: "Foundation",
+    items: [
+      "organizations 1—N outlets",
+      "outlets 1—N warehouses",
+      "outlets 1—1 pharmacy_profiles",
+      "organizations 1—N users / roles / suppliers / products",
+      "users N—N roles, roles N—N permissions lewat tabel pivot user_roles dan role_permissions",
+    ],
+  },
+  {
+    title: "Master Data",
+    items: [
+      "products N—1 product_categories / drug_classes / manufacturers",
+      "products 1—N product_units, product_prices, product_locations",
+      "products 1—N product_unit_conversions untuk jual/beli beda satuan",
+      "suppliers N—N products lewat supplier_products",
+      "products.default_supplier_id opsional ke suppliers",
+    ],
+  },
+  {
+    title: "Inventory Ledger",
+    items: [
+      "stock_batches N—1 products, outlets, warehouses",
+      "stock_movements N—1 stock_batches dan products",
+      "semua transaksi stok menulis stock_movements dengan reference_type + reference_id",
+      "stock_opnames 1—N stock_opname_items; posting membuat movement adjustment",
+      "stock_mutations 1—N stock_mutation_items; posting membuat mutation_out dan mutation_in",
+    ],
+  },
+  {
+    title: "Procurement",
+    items: [
+      "defecta_items bisa menjadi purchase_order_items",
+      "purchase_orders 1—N purchase_order_items",
+      "goods_receipts bisa N—1 purchase_orders dan 1—N goods_receipt_items",
+      "goods_receipt_items membuat stock_batches dan stock_movements purchase_receive",
+      "supplier_invoices N—1 goods_receipts; supplier_payments N—1 supplier_invoices",
+    ],
+  },
+  {
+    title: "POS, Resep, Return",
+    items: [
+      "shifts 1—N sales; sales 1—N sale_items dan payments",
+      "sale_items N—1 products, units, batches; posting sale membuat stock_movements sale",
+      "prescriptions 1—N prescription_items dan bisa direferensikan sales",
+      "sale_returns 1—N sale_return_items; item retur wajib punya stock_disposition",
+      "purchase_returns 1—N purchase_return_items; posting membuat stock_movements purchase_return",
+    ],
+  },
+];
+
+const buildOrder = [
+  "Foundation: organization, outlet, warehouse, pharmacy profile, users, roles.",
+  "Master data: product, unit conversion, price, supplier, rak, pasien, dokter.",
+  "Inventory engine: stock batch, stock movement ledger, stock balance, FEFO deduction.",
+  "Procurement: defecta, PO, goods receipt, invoice, supplier payment.",
+  "Stock control: opname, mutation, retur, expired action.",
+  "POS & prescription lite: shift, sale, payment, return, etiket.",
+  "Audit & reporting layer: audit_logs + query/report views di atas ledger.",
+];
+---
+
+<BaseLayout title={title} description={description}>
+  <section class="space-y-6">
+    <div class="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-bold text-blue-700 dark:border-blue-900/70 dark:bg-blue-950/40 dark:text-blue-300">
+      Entity Relationship Diagram
+    </div>
+    <div class="space-y-4">
+      <h1 class="text-4xl font-bold tracking-tight text-zinc-950 dark:text-white sm:text-5xl">
+        Core Managed Apotek
+      </h1>
+      <p class="max-w-3xl text-lg leading-8 text-zinc-600 dark:text-zinc-300">
+        ERD turunan dari PRD <a href="/prd/apotek-management" class="font-bold text-blue-600 hover:text-blue-700 dark:text-blue-300">Core Managed Apotek</a>. Model ini sengaja inventory-first: stok dihitung dari batch dan stock movement ledger, bukan dari field tunggal di produk.
+      </p>
+    </div>
+    <div class="grid gap-3 sm:grid-cols-3">
+      <div class="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <div class="text-xs font-bold uppercase tracking-wide text-zinc-500">Source of truth</div>
+        <div class="mt-2 font-bold text-zinc-950 dark:text-white">stock_batches + stock_movements</div>
+      </div>
+      <div class="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <div class="text-xs font-bold uppercase tracking-wide text-zinc-500">Scope</div>
+        <div class="mt-2 font-bold text-zinc-950 dark:text-white">Core apotek multi-outlet ready</div>
+      </div>
+      <div class="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <div class="text-xs font-bold uppercase tracking-wide text-zinc-500">URL</div>
+        <div class="mt-2 font-bold text-zinc-950 dark:text-white">/erd/apotek-management</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="space-y-6">
+    <h2 class="text-2xl font-bold text-zinc-950 dark:text-white">1. High-Level ERD</h2>
+    <div class="overflow-x-auto rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+      <svg viewBox="0 0 1160 760" role="img" aria-label="High-level ERD Core Managed Apotek" class="h-auto w-full min-w-[760px]">
+        <defs>
+          <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L0,6 L9,3 z" fill="#2563eb"></path>
+          </marker>
+        </defs>
+        <rect x="24" y="30" width="190" height="92" rx="18" fill="#eff6ff" stroke="#93c5fd" />
+        <text x="44" y="65" font-size="18" font-weight="700" fill="#1e3a8a">Organization</text>
+        <text x="44" y="92" font-size="13" fill="#475569">outlets, warehouses</text>
+        <text x="44" y="112" font-size="13" fill="#475569">users, roles, config</text>
+
+        <rect x="304" y="30" width="200" height="92" rx="18" fill="#f8fafc" stroke="#cbd5e1" />
+        <text x="324" y="65" font-size="18" font-weight="700" fill="#0f172a">Master Data</text>
+        <text x="324" y="92" font-size="13" fill="#475569">products, units, prices</text>
+        <text x="324" y="112" font-size="13" fill="#475569">suppliers, patients, doctors</text>
+
+        <rect x="608" y="30" width="220" height="92" rx="18" fill="#ecfdf5" stroke="#86efac" />
+        <text x="628" y="65" font-size="18" font-weight="700" fill="#14532d">Procurement</text>
+        <text x="628" y="92" font-size="13" fill="#475569">defecta, PO</text>
+        <text x="628" y="112" font-size="13" fill="#475569">goods receipt, invoice</text>
+
+        <rect x="898" y="30" width="220" height="92" rx="18" fill="#fefce8" stroke="#fde047" />
+        <text x="918" y="65" font-size="18" font-weight="700" fill="#713f12">Stock Control</text>
+        <text x="918" y="92" font-size="13" fill="#475569">opname, mutation</text>
+        <text x="918" y="112" font-size="13" fill="#475569">return, expired action</text>
+
+        <rect x="370" y="296" width="420" height="142" rx="24" fill="#dbeafe" stroke="#2563eb" stroke-width="2" />
+        <text x="408" y="344" font-size="24" font-weight="800" fill="#1e3a8a">Inventory Ledger Core</text>
+        <text x="408" y="376" font-size="15" fill="#1f2937">stock_batches = stok fisik per batch/expiry/lokasi</text>
+        <text x="408" y="402" font-size="15" fill="#1f2937">stock_movements = semua perubahan stok, append-only</text>
+
+        <rect x="96" y="590" width="210" height="96" rx="18" fill="#fdf2f8" stroke="#f9a8d4" />
+        <text x="116" y="628" font-size="18" font-weight="700" fill="#831843">POS & Shift</text>
+        <text x="116" y="655" font-size="13" fill="#475569">sales, items, payments</text>
+        <text x="116" y="675" font-size="13" fill="#475569">cashier shift</text>
+
+        <rect x="476" y="590" width="210" height="96" rx="18" fill="#faf5ff" stroke="#d8b4fe" />
+        <text x="496" y="628" font-size="18" font-weight="700" fill="#581c87">Prescription Lite</text>
+        <text x="496" y="655" font-size="13" fill="#475569">patients, doctors</text>
+        <text x="496" y="675" font-size="13" fill="#475569">etiket templates</text>
+
+        <rect x="854" y="590" width="210" height="96" rx="18" fill="#fff7ed" stroke="#fdba74" />
+        <text x="874" y="628" font-size="18" font-weight="700" fill="#7c2d12">Audit & Reports</text>
+        <text x="874" y="655" font-size="13" fill="#475569">audit_logs</text>
+        <text x="874" y="675" font-size="13" fill="#475569">reporting views</text>
+
+        <line x1="214" y1="76" x2="304" y2="76" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)" />
+        <line x1="504" y1="76" x2="608" y2="76" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)" />
+        <line x1="828" y1="76" x2="898" y2="76" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)" />
+        <path d="M404 122 C404 190 460 234 510 296" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)" />
+        <path d="M718 122 C718 186 676 238 642 296" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)" />
+        <path d="M1008 122 C1008 245 852 284 790 340" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)" />
+        <path d="M201 590 C252 498 310 430 370 384" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)" />
+        <path d="M581 590 L581 438" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)" />
+        <path d="M854 638 C780 542 754 478 724 438" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)" />
+        <path d="M214 104 C278 194 316 272 370 334" fill="none" stroke="#94a3b8" stroke-width="2" stroke-dasharray="7 7" marker-end="url(#arrow)" />
+      </svg>
+    </div>
+    <p class="text-sm leading-7 text-zinc-600 dark:text-zinc-300">
+      Panah biru solid berarti transaksi/domain tersebut membuat atau membaca ledger stok. Garis putus-putus dari foundation berarti semua data tetap scoped ke organization/outlet/warehouse/user.
+    </p>
+  </section>
+
+  <section class="space-y-6">
+    <h2 class="text-2xl font-bold text-zinc-950 dark:text-white">2. Relationship Map</h2>
+    <div class="grid gap-4 md:grid-cols-2">
+      {relationshipGroups.map((group) => (
+        <div class="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+          <h3 class="font-bold text-zinc-950 dark:text-white">{group.title}</h3>
+          <ul class="mt-3 list-disc space-y-2 pl-5 text-sm leading-6 text-zinc-700 dark:text-zinc-300">
+            {group.items.map((item) => <li>{item}</li>)}
+          </ul>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="space-y-6">
+    <h2 class="text-2xl font-bold text-zinc-950 dark:text-white">3. Entity Groups</h2>
+
+    <div class="space-y-4">
+      <h3 class="text-xl font-bold text-zinc-950 dark:text-white">3.1 Foundation</h3>
+      <div class="grid gap-4 md:grid-cols-2">
+        {coreEntities.map((entity) => (
+          <EntityCard entity={entity} />
+        ))}
+      </div>
+    </div>
+
+    <div class="space-y-4">
+      <h3 class="text-xl font-bold text-zinc-950 dark:text-white">3.2 Master Data</h3>
+      <div class="grid gap-4 md:grid-cols-2">
+        {masterEntities.map((entity) => (
+          <EntityCard entity={entity} />
+        ))}
+      </div>
+    </div>
+
+    <div class="space-y-4">
+      <h3 class="text-xl font-bold text-zinc-950 dark:text-white">3.3 Inventory Ledger</h3>
+      <div class="grid gap-4 md:grid-cols-2">
+        {inventoryEntities.map((entity) => (
+          <EntityCard entity={entity} />
+        ))}
+      </div>
+    </div>
+
+    <div class="space-y-4">
+      <h3 class="text-xl font-bold text-zinc-950 dark:text-white">3.4 Procurement</h3>
+      <div class="grid gap-4 md:grid-cols-2">
+        {procurementEntities.map((entity) => (
+          <EntityCard entity={entity} />
+        ))}
+      </div>
+    </div>
+
+    <div class="space-y-4">
+      <h3 class="text-xl font-bold text-zinc-950 dark:text-white">3.5 POS, Shift & Return</h3>
+      <div class="grid gap-4 md:grid-cols-2">
+        {posEntities.map((entity) => (
+          <EntityCard entity={entity} />
+        ))}
+      </div>
+    </div>
+
+    <div class="space-y-4">
+      <h3 class="text-xl font-bold text-zinc-950 dark:text-white">3.6 Prescription & Audit</h3>
+      <div class="grid gap-4 md:grid-cols-2">
+        {prescriptionEntities.map((entity) => (
+          <EntityCard entity={entity} />
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="space-y-6">
+    <h2 class="text-2xl font-bold text-zinc-950 dark:text-white">4. Ledger Rules</h2>
+    <div class="rounded-3xl border border-blue-200 bg-blue-50 p-6 dark:border-blue-900/70 dark:bg-blue-950/30">
+      <ul class="list-disc space-y-2 pl-5 text-sm leading-7 text-blue-950 dark:text-blue-100">
+        <li>Jangan simpan stok utama di <code>products.stock</code>. Kalau butuh cepat, buat cache/materialized view dari <code>stock_batches</code> dan <code>stock_movements</code>.</li>
+        <li>Semua qty movement disimpan dalam base unit. Satuan jual/beli hanya display dan input UX.</li>
+        <li><code>stock_movements</code> append-only. Koreksi stok pakai reversal atau adjustment movement.</li>
+        <li>Setiap transaksi stock-affecting wajib idempotent dengan <code>reference_type</code> + <code>reference_id</code>.</li>
+        <li>Pengurangan stok memilih batch via FEFO default, tapi batch tetap tercatat eksplisit di item transaksi.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="space-y-6">
+    <h2 class="text-2xl font-bold text-zinc-950 dark:text-white">5. Build Order Schema</h2>
+    <div class="grid gap-3">
+      {buildOrder.map((item, index) => (
+        <div class="flex gap-3 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+          <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+            {index + 1}
+          </div>
+          <div class="text-sm leading-7 text-zinc-700 dark:text-zinc-300">{item}</div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="rounded-3xl border border-zinc-200 bg-zinc-50 p-6 dark:border-zinc-800 dark:bg-zinc-900/70">
+    <h2 class="text-2xl font-bold text-zinc-950 dark:text-white">Design Take</h2>
+    <p class="mt-3 leading-8 text-zinc-700 dark:text-zinc-300">
+      ERD ini sengaja agak lebih berat dari POS sederhana karena apotek gampang rusak kalau model stoknya salah. Kunci utamanya: produk tidak menyimpan stok langsung, unit conversion tidak ditempel seadanya, dan setiap aktivitas operasional yang mengubah stok harus berakhir di ledger yang bisa diaudit.
+    </p>
+  </section>
+</BaseLayout>
