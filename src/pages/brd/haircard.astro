@@ -33,9 +33,11 @@ const mvpScope = [
   "Free teaser result with one recommendation and one avoid note",
   "Paywall with name and email capture",
   "Payment checkout",
+  "Background report generation so users do not wait on a long AI request",
   "AI-generated structured report content",
   "Premium 15-page PDF generated from an HTML template",
   "Result page and email delivery",
+  "FAQ covering privacy, retention, free vs premium, report recovery, payment issues, and medical disclaimer",
   "Basic order and report status tracking",
 ];
 
@@ -159,6 +161,106 @@ const safetyRules = [
   "Do not frame the product as an objective attractiveness score.",
   "Use language like based on the photo provided, likely, appears, and best direction.",
   "Focus on practical style direction and barber/salon communication.",
+];
+
+const faqItems = [
+  ["Is my selfie safe?", "The selfie is used only to generate the HairCard teaser and paid hairstyle report. It should not be used for ads, resale, model training, or unrelated profiling."],
+  ["How long do you keep my selfie and report?", "Default retention is up to 30 days so users can recover downloads. Users should be able to delete the selfie and generated report sooner from the result page or report email."],
+  ["Is HairCard medical advice?", "No. HairCard does not diagnose hair loss, scalp conditions, alopecia, genetics, or health issues. It only gives visual styling direction based on the uploaded photo and quiz answers."],
+  ["Is this an attractiveness score?", "No. The product should avoid objective beauty or attractiveness scoring. The output is haircut direction, styling guidance, and barber/salon communication."],
+  ["What is free vs premium?", "Free gives a small teaser: likely face shape, one haircut direction, one avoid note, and a blurred report preview. Premium unlocks the full 15-page PDF."],
+  ["What if the report email does not arrive?", "Users should check the result page first, then Spam/Promotions. Support can recover the order from Order ID and payment email."],
+  ["What if payment succeeds but the report is not ready?", "The user should not pay again. The order status must be recoverable and a background job can retry or be manually reviewed."],
+  ["Can I show this to a barber or salon?", "Yes. The barber/salon brief is the key paid deliverable and should be written in practical instruction language."],
+];
+
+const architectureFlow = [
+  "Next.js app renders landing, quiz, upload, teaser, paywall, result, FAQ, and admin/support screens.",
+  "Supabase Postgres stores sessions, quiz answers, customers, orders, payment status, generation jobs, report payloads, and feedback.",
+  "Object storage stores selfies and generated PDFs with signed URLs and a 30-day lifecycle/deletion policy.",
+  "Payment webhook marks the order as paid and enqueues a report generation job.",
+  "Background worker analyzes the selfie and quiz answers with a vision LLM, validates structured JSON, renders the PDF, stores the result, and updates report status.",
+  "Result page polls or subscribes to order/report status so the user sees progress instead of waiting on a blocking AI request.",
+  "Email delivery sends the report link, Order ID, deletion link, and support instructions.",
+];
+
+const techStackOptions = [
+  {
+    area: "App framework",
+    recommendation: "Next.js",
+    rationale: "Best fit for multi-step funnel, server actions/API routes, payment webhooks, auth-less recovery links, and dynamic result pages. Astro remains fine for docs, not the paid app flow.",
+  },
+  {
+    area: "Database",
+    recommendation: "Supabase Postgres",
+    rationale: "Fast MVP path with managed Postgres, migrations, Row Level Security options, dashboard inspection, and easy connection from Next.js.",
+  },
+  {
+    area: "File storage",
+    recommendation: "Cloudflare R2 for production; Supabase Storage acceptable for fastest MVP",
+    rationale: "R2 has 10 GB free monthly storage, free egress, and cheap storage at about $0.015/GB-month. Supabase is simpler when already using Supabase but Pro includes 100 GB storage then about $0.021/GB and egress can matter. For privacy + cost, R2 is better long-term; for speed, Supabase Storage is fine in week 1.",
+  },
+  {
+    area: "Payment",
+    recommendation: "Xendit or Midtrans for Indonesia; Stripe if global-first",
+    rationale: "HairCard likely starts with Indonesian buyers, so local payment methods matter more than Stripe elegance.",
+  },
+  {
+    area: "Email",
+    recommendation: "Resend",
+    rationale: "Simple transactional emails for report ready, recovery link, deletion link, and support flow.",
+  },
+];
+
+const aiOptions = [
+  {
+    model: "Gemini 2.5 Flash",
+    fit: "Default MVP recommendation",
+    notes: "Good affordable multimodal analysis for selfie + quiz to structured JSON. Public pricing observed: about $0.30/1M input tokens for text/image/video and $2.50/1M output tokens.",
+  },
+  {
+    model: "Gemini 2.5 Flash-Lite",
+    fit: "Lowest-cost fallback / validation pass",
+    notes: "Cheaper at about $0.10/1M input tokens and $0.40/1M output tokens, but may need quality checks for nuanced hairstyle reasoning.",
+  },
+  {
+    model: "OpenAI vision / GPT model",
+    fit: "Higher-quality fallback or comparison set",
+    notes: "Use for A/B quality testing if Gemini output feels generic. Keep provider abstraction so orders can be regenerated with a different model.",
+  },
+  {
+    model: "GPT-Image-2 / Gemini image generation / Imagen",
+    fit: "Later add-on, not MVP core",
+    notes: "Useful for optional hairstyle mockup images, but risky for MVP because generated hair previews can disappoint. Written barber/salon-ready instructions should ship first.",
+  },
+  {
+    model: "Seedance / video models",
+    fit: "Not recommended for MVP",
+    notes: "Video generation is not needed for a paid PDF report and would add unnecessary cost and latency.",
+  },
+];
+
+const workerOptions = [
+  {
+    option: "Trigger.dev",
+    take: "Best Next.js-native recommendation for MVP",
+    notes: "Durable background tasks, retries, logs, concurrency, and serverless-friendly execution. Pricing observed includes a free tier with usage credits and paid plans starting around $10–$50/month depending on needs.",
+  },
+  {
+    option: "Inngest",
+    take: "Also strong for event-driven workflows",
+    notes: "Good durable execution and step functions. Pricing observed includes 50k free executions/month and Pro around $75/month. Slightly heavier cost floor than Trigger.dev for this MVP.",
+  },
+  {
+    option: "Supabase Edge Functions + cron/polling",
+    take: "Okay for first hack, not ideal long-term",
+    notes: "Works for simple jobs, but retries, observability, and long-running AI/PDF tasks get awkward fast.",
+  },
+  {
+    option: "Celery/Huey with Python worker",
+    take: "Fine if Python services are already deployed, but avoid for a pure Next.js MVP",
+    notes: "Adds Redis, worker hosting, deploy complexity, and cross-language operational burden. Use later only if PDF/AI pipeline becomes Python-heavy.",
+  },
 ];
 
 const metrics = [
@@ -329,6 +431,73 @@ const buildOrder = [
         <p class="mt-4 leading-7 text-slate-700">
           Recommended MVP pricing: one paid product at Rp49.000, with a Rp29.000 launch discount for early users. Later tiers can add hairstyle mockups or a richer reference board at Rp79.000–99.000.
         </p>
+      </div>
+    </section>
+
+    <section class="mt-12">
+      <h2 class="text-2xl font-bold text-slate-950">FAQ Requirements</h2>
+      <p class="mt-3 max-w-3xl leading-7 text-slate-700">
+        HairCard needs a FAQ from the MVP because users are uploading selfies, paying before the full artifact is ready, and receiving the report asynchronously. The FAQ should reduce privacy anxiety, payment confusion, and support tickets.
+      </p>
+      <div class="mt-5 grid gap-4 md:grid-cols-2">
+        {faqItems.map(([question, answer]) => (
+          <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h3 class="font-semibold text-slate-950">{question}</h3>
+            <p class="mt-2 text-sm leading-6 text-slate-700">{answer}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="mt-12">
+      <h2 class="text-2xl font-bold text-slate-950">MVP Architecture</h2>
+      <div class="mt-5 rounded-3xl border border-slate-200 bg-slate-50 p-6">
+        <ol class="list-decimal space-y-3 pl-5 text-slate-700">
+          {architectureFlow.map((item) => <li>{item}</li>)}
+        </ol>
+      </div>
+      <p class="mt-4 leading-7 text-slate-700">
+        The result page must not block on AI generation. After payment, it should show a progress state while a background worker generates the report. The user can leave and return through a recovery link or email.
+      </p>
+    </section>
+
+    <section class="mt-12">
+      <h2 class="text-2xl font-bold text-slate-950">Recommended Tech Stack</h2>
+      <div class="mt-5 grid gap-4 md:grid-cols-2">
+        {techStackOptions.map((item) => (
+          <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p class="text-sm font-semibold text-slate-500">{item.area}</p>
+            <h3 class="mt-1 font-semibold text-slate-950">{item.recommendation}</h3>
+            <p class="mt-2 text-sm leading-6 text-slate-700">{item.rationale}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="mt-12 grid gap-6 md:grid-cols-2">
+      <div>
+        <h2 class="text-2xl font-bold text-slate-950">AI Provider Options</h2>
+        <div class="mt-5 space-y-4">
+          {aiOptions.map((item) => (
+            <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <p class="text-sm font-semibold text-slate-500">{item.fit}</p>
+              <h3 class="mt-1 font-semibold text-slate-950">{item.model}</h3>
+              <p class="mt-2 text-sm leading-6 text-slate-700">{item.notes}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+      <div>
+        <h2 class="text-2xl font-bold text-slate-950">Background Worker Options</h2>
+        <div class="mt-5 space-y-4">
+          {workerOptions.map((item) => (
+            <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <p class="text-sm font-semibold text-slate-500">{item.take}</p>
+              <h3 class="mt-1 font-semibold text-slate-950">{item.option}</h3>
+              <p class="mt-2 text-sm leading-6 text-slate-700">{item.notes}</p>
+            </article>
+          ))}
+        </div>
       </div>
     </section>
 
