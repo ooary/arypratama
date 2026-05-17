@@ -1,582 +1,477 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 
-const title = "HairCard Report Mockup";
-const description = "Premium 15-page HairCard report mockup: English report copy, visual slots, barber-ready instructions, and social reference board.";
+const title = "HairCard Premium Report Mockup";
+const description = "FaceCard-inspired premium HairCard report mockup with comprehensive, dense, English report pages and Indonesian product notes.";
 
-const pages = [
+const reportPages = [
   {
     no: "01",
-    title: "HairCard Personal Report",
-    kicker: "Identity Snapshot",
-    purpose: "Membuat user langsung merasa report ini personalized, bukan template generik.",
-    message: "Report ini dibuat khusus dari face shape, hair type, dan grooming goal user.",
-    visuals: ["Hero portrait", "Style direction badge"],
-    layout: "cover",
+    title: "Hair Identity Snapshot",
+    label: "Personal profile",
+    purpose: "Halaman pembuka yang bikin user merasa ini bukan template. Langsung ada identity, style direction, fit score, dan visual hero.",
+    message: "This report was built around your face structure, visible hair behavior, and desired grooming direction.",
+    big: "Your best direction is clean texture, compact sides, and a natural matte finish.",
+    modules: ["Face-fit score", "Hair behavior", "Style direction", "Maintenance level"],
+    imageSlots: ["Main selfie / AI portrait", "Recommended look thumbnail"],
+    variant: "cover",
   },
   {
     no: "02",
-    title: "Executive Summary",
-    kicker: "If you only read one page",
-    purpose: "Kasih jawaban cepat: haircut terbaik, opsi backup, avoid list, dan maintenance level.",
-    message: "User langsung tahu harus minta potongan apa ke barber.",
-    visuals: ["Current look", "Recommended direction"],
-    layout: "summary",
+    title: "Executive Style Summary",
+    label: "Decision page",
+    purpose: "Versi cepat untuk user yang cuma mau jawaban. Ini harus terasa seperti stylist kasih verdict langsung.",
+    message: "If you only choose one cut, choose the textured crop with a low taper.",
+    big: "Best cut: Textured Crop + Low Taper. Backup: Natural Side Part. Avoid: heavy middle-part volume.",
+    modules: ["Best cut", "Backup option", "Avoid", "Barber risk", "Confidence level", "Effort"],
+    imageSlots: ["Current look", "Best direction", "Backup direction"],
+    variant: "score",
   },
   {
     no: "03",
-    title: "Face Shape & Proportion",
-    kicker: "Why this haircut fits",
-    purpose: "Membuat rekomendasi terasa punya alasan, bukan random dari AI.",
-    message: "Haircut harus balance struktur wajah, bukan sekadar ikut trend.",
-    visuals: ["Face outline", "Proportion markers"],
-    layout: "diagnostic",
+    title: "Face Shape & Balance Map",
+    label: "Diagnostic layer",
+    purpose: "Bikin rekomendasi credible. User harus lihat bahwa report membaca forehead, cheek width, jaw, dan face length.",
+    message: "The goal is to sharpen the frame without adding unnecessary width around the temples.",
+    big: "Oval-leaning face with soft rectangular influence. Needs controlled side volume and broken top texture.",
+    modules: ["Forehead ratio", "Cheek width", "Jaw balance", "Face length", "Temple volume", "Best silhouette"],
+    imageSlots: ["Annotated face diagram", "Silhouette comparison"],
+    variant: "diagram",
   },
   {
     no: "04",
-    title: "Hair Type & Growth Pattern",
-    kicker: "Work with your natural hair",
-    purpose: "Menjelaskan batasan rambut asli: density, texture, volume, growth pattern.",
-    message: "Style terbaik adalah yang bisa jalan dengan rambut user sehari-hari.",
-    visuals: ["Texture card", "Volume behavior diagram"],
-    layout: "hairtype",
+    title: "Hair Type & Growth Behavior",
+    label: "Texture read",
+    purpose: "Ini bikin report beda dari face-shape-only AI. Haircut gagal sering karena texture/density, bukan karena wajah.",
+    message: "Your cut should work with your natural hair direction instead of forcing a style that collapses after one hour.",
+    big: "Medium density, straight-to-slight-wave texture, natural front lift, moderate styling hold required.",
+    modules: ["Density", "Texture", "Front lift", "Side bulk", "Product fit", "Collapse risk"],
+    imageSlots: ["Hair texture crop", "Growth direction map"],
+    variant: "texture",
   },
   {
     no: "05",
-    title: "Best Haircut Recommendation",
-    kicker: "Primary cut",
-    purpose: "Halaman core product: user melihat gaya utama yang direkomendasikan.",
-    message: "Ini potongan yang paling aman dan paling cocok untuk dicoba dulu.",
-    visuals: ["Front preview", "Side preview", "Detail preview"],
-    layout: "recommendation",
+    title: "Primary Haircut Recommendation",
+    label: "Best fit",
+    purpose: "Halaman jualan utama. Harus punya visual kuat dan instruksi teknis ringkas.",
+    message: "Ask for a textured crop with a low taper. Keep it natural, not overly sharp or wet-looking.",
+    big: "Top 5–7 cm, broken texture, low taper around the ear, natural neckline, matte finish.",
+    modules: ["Top length", "Side taper", "Fringe", "Back", "Finish", "Why it works"],
+    imageSlots: ["Front AI preview", "Side AI preview", "Detail texture preview"],
+    variant: "heroPreview",
   },
   {
     no: "06",
-    title: "Alternative 1: Safe Upgrade",
-    kicker: "Low-risk option",
-    purpose: "Memberi opsi buat user yang belum siap perubahan besar.",
-    message: "Upgrade grooming tanpa terlihat terlalu styled atau terlalu trend-driven.",
-    visuals: ["Safe haircut preview"],
-    layout: "altSafe",
+    title: "Safe Upgrade Option",
+    label: "Low-risk version",
+    purpose: "User yang takut berubah tetap punya opsi. Ini menaikkan usability karena tidak semua orang mau dramatic makeover.",
+    message: "Choose this if you want to look cleaner without making the haircut feel too styled.",
+    big: "Natural side part with soft taper: professional, easy to maintain, and low barber risk.",
+    modules: ["Best for", "Risk", "Maintenance", "Work setting", "Photo setting", "Barber brief"],
+    imageSlots: ["Safe preview", "Before-to-upgrade comparison"],
+    variant: "safe",
   },
   {
     no: "07",
-    title: "Alternative 2: Trend-Aware Option",
-    kicker: "Modern but controlled",
-    purpose: "Memasukkan social trend value tanpa asal ikut TikTok/Pinterest.",
-    message: "User bisa ikut trend, tapi versi yang cocok dengan wajahnya.",
-    visuals: ["Trend preview", "Reference direction"],
-    layout: "altTrend",
+    title: "Trend-Aware Direction",
+    label: "Social reference",
+    purpose: "Masukin value sosmed tapi tetap filtered. Bukan ikut trend buta, tapi trend yang disesuaikan wajah.",
+    message: "Use the softer version of this trend, not the extreme version you see on TikTok.",
+    big: "Soft two-block inspired texture works if the fringe is lighter and the sides stay controlled.",
+    modules: ["Trend match", "Face fit", "What to copy", "What to avoid", "Maintenance", "Reference angle"],
+    imageSlots: ["Trend preview", "Reference board crop", "Face-compatible version"],
+    variant: "trend",
   },
   {
     no: "08",
     title: "Styles to Avoid",
-    kicker: "Not every popular cut works",
-    purpose: "Bikin report terasa jujur dan useful; bukan semua style dibilang cocok.",
-    message: "User tahu gaya mana yang harus dihindari dan alternatif yang lebih aman.",
-    visuals: ["Avoid card 1", "Avoid card 2", "Avoid card 3"],
-    layout: "avoid",
+    label: "Honest filter",
+    purpose: "Premium report harus berani bilang tidak. Ini bikin trust naik karena nggak semua gaya dipuji.",
+    message: "Not every popular haircut works for your face and hair behavior.",
+    big: "Avoid heavy middle parts, blunt mushroom fringe, high disconnected undercuts, and wet slick-back styling.",
+    modules: ["Adds width", "Flattens front", "Too harsh", "Too shiny", "Better alternative", "Why"],
+    imageSlots: ["Avoid style 1", "Avoid style 2", "Avoid style 3", "Better version"],
+    variant: "avoid",
   },
   {
     no: "09",
     title: "Barber Instruction Card",
-    kicker: "Show this page to your barber",
-    purpose: "Salah satu value terbesar: halaman screenshot-ready untuk ditunjukkan ke barber.",
-    message: "User tidak perlu bingung menjelaskan fade, length, texture, dan finish.",
-    visuals: ["Instruction card"],
-    layout: "barber",
+    label: "Screenshot-ready",
+    purpose: "Ini halaman yang harus bisa langsung ditunjukkan ke barber. Value praktis terbesar selain image generation.",
+    message: "Show this page to your barber and use the exact wording below.",
+    big: "I want a textured crop with a low taper. Keep the top 5–7 cm, add broken texture, avoid blunt fringe, and finish matte.",
+    modules: ["Say this", "Do", "Don't", "Length", "Finish", "Reference"],
+    imageSlots: ["Barber card", "Tiny reference image"],
+    variant: "barber",
   },
   {
     no: "10",
-    title: "Front View Guide",
-    kicker: "Shape from the front",
-    purpose: "Menjelaskan silhouette dari depan: fringe, volume, side compactness.",
-    message: "Dari depan, haircut harus membuka dan membentuk wajah, bukan menutupnya.",
-    visuals: ["Good front shape", "Bad front shape"],
-    layout: "frontGuide",
+    title: "Front View Shape Guide",
+    label: "Visual execution",
+    purpose: "Mengunci ekspektasi dari depan. Barber sering salah paham fringe dan side width.",
+    message: "From the front, the cut should create light vertical texture and keep the sides compact.",
+    big: "Good front shape: open, textured, controlled. Bad shape: wide, heavy, blunt, face-closing.",
+    modules: ["Good silhouette", "Bad silhouette", "Fringe line", "Temple width", "Volume target", "Photo check"],
+    imageSlots: ["Good front", "Bad front", "Fringe diagram"],
+    variant: "front",
   },
   {
     no: "11",
-    title: "Side Profile Guide",
-    kicker: "Keep the side clean",
-    purpose: "Menjelaskan taper height, temple area, back shape, dan neckline.",
-    message: "Side profile harus clean dan compact, bukan bulky atau disconnected.",
-    visuals: ["Side profile preview", "Taper arrows"],
-    layout: "sideGuide",
+    title: "Side Profile & Taper Guide",
+    label: "Barber precision",
+    purpose: "Taper/fade height harus jelas. Ini bikin hasil potong lebih reliable.",
+    message: "Keep the taper low and gradual. Do not disconnect the side wall from the top.",
+    big: "Low taper point near the ear, compact temple, natural neckline, no aggressive high fade.",
+    modules: ["Taper point", "Temple", "Side wall", "Neckline", "Back shape", "Fade warning"],
+    imageSlots: ["Side AI preview", "Taper arrow map"],
+    variant: "side",
   },
   {
     no: "12",
-    title: "Styling Routine",
-    kicker: "Make it look like the preview",
-    purpose: "Mengurangi gap antara hasil potong dan hasil styling sehari-hari.",
-    message: "User tahu produk apa yang dipakai dan cara styling tanpa overdo.",
-    visuals: ["Product icons", "Step cards"],
-    layout: "routine",
+    title: "Styling Routine & Products",
+    label: "Daily repeatability",
+    purpose: "Mencegah user kecewa karena haircut bagus tapi styling salah. Ini bikin report lebih useful setelah potong.",
+    message: "The goal is a natural matte finish with controlled texture, not a stiff or wet look.",
+    big: "Towel dry, blow dry forward/up, apply small matte clay, break texture with fingers, avoid heavy gel.",
+    modules: ["Morning routine", "Product type", "Amount", "Technique", "Avoid", "Fix flat hair"],
+    imageSlots: ["Product cards", "Step-by-step icons"],
+    variant: "routine",
   },
   {
     no: "13",
-    title: "Maintenance Plan",
-    kicker: "How this cut grows out",
-    purpose: "Memberi lifecycle: kapan rambut mulai bulky dan kapan perlu cleanup.",
-    message: "User punya jadwal realistis supaya haircut tetap rapi.",
-    visuals: ["Week timeline", "Maintenance meter"],
-    layout: "maintenance",
+    title: "Maintenance Timeline",
+    label: "Grow-out plan",
+    purpose: "Bikin user tahu kapan harus cleanup dan apa yang berubah dari minggu ke minggu.",
+    message: "This cut looks best in weeks 1–3. By week 4, side bulk will start to show.",
+    big: "Book taper cleanup every 3–4 weeks. Full reshape around week 5 if the top loses texture.",
+    modules: ["Week 1", "Week 2–3", "Week 4", "Week 5+", "Cleanup", "Reshape"],
+    imageSlots: ["Timeline", "Growth behavior mini chart"],
+    variant: "timeline",
   },
   {
     no: "14",
     title: "Social Reference Board",
-    kicker: "Trend-aware inspiration",
-    purpose: "Menghubungkan report ke referensi sosmed/current style tanpa klaim trend palsu.",
-    message: "Gunakan referensi sebagai direction, bukan exact copy.",
-    visuals: ["6 reference cards", "Fit labels"],
-    layout: "reference",
+    label: "Curated inspiration",
+    purpose: "Menjawab kebutuhan user soal trend/reference dari sosmed, tapi aman karena curated dan face-matched.",
+    message: "Use these references as direction, not exact copies. Choose the cleaner, softer version.",
+    big: "Reference direction: clean Korean texture, modern textured crop, soft taper, natural fringe, smart casual finish.",
+    modules: ["Best match", "Good inspiration", "Use caution", "Do not copy", "Barber angle", "Photo pose"],
+    imageSlots: ["6 reference cards", "Fit labels", "Trend tags"],
+    variant: "board",
   },
   {
     no: "15",
     title: "Final Action Plan",
-    kicker: "What to do next",
-    purpose: "Menutup report dengan checklist yang bisa langsung dieksekusi.",
-    message: "User tahu next step: haircut, referensi, produk, dan jadwal maintenance.",
-    visuals: ["Final look", "Checklist"],
-    layout: "action",
+    label: "Next step",
+    purpose: "Tutup dengan checklist. User nggak cuma impressed, tapi tahu harus ngapain besok.",
+    message: "Save the barber card, pick one reference, ask for low taper, use matte product, and schedule cleanup in 3–4 weeks.",
+    big: "Your next cut: textured crop, low taper, broken top texture, natural matte styling.",
+    modules: ["Show barber", "Pick reference", "Ask for", "Avoid", "Buy product", "Book cleanup"],
+    imageSlots: ["Final look", "Checklist card"],
+    variant: "final",
   },
 ];
 
-const copyBlocks = {
-  cover: [
-    "Prepared for: Sample Client",
-    "Style Direction: Clean, structured, modern",
-    "Best Fit: Textured crop with soft taper",
-    "Report Date: June 2026",
-  ],
-  summary: [
-    "Your best direction is a textured crop with a low taper.",
-    "This works because your face benefits from controlled sides and natural top texture.",
-    "Avoid heavy side volume, blunt fringe, and overly shiny styling.",
-  ],
-  diagnostic: [
-    "Your face reads as oval-leaning with mild width around the cheek area.",
-    "The goal is to keep the sides compact and add controlled texture on top.",
-  ],
-  hairtype: [
-    "Visible hair type: medium density, straight to slightly wavy.",
-    "Best product direction: matte clay, texture powder, or sea salt spray.",
-    "Risk: the front section may fall flat without light shaping.",
-  ],
-  recommendation: [
-    "Recommended Cut: Textured Crop with Low Taper",
-    "Top: 5–7 cm, broken texture, point cut",
-    "Sides: low taper, not a high skin fade",
-    "Finish: matte and natural, no wet shine",
-  ],
-  altSafe: [
-    "Safe Upgrade: Natural Side Part with Soft Taper",
-    "Best for: work, campus, interviews, and first grooming upgrade.",
-    "This improves structure without making the haircut feel too styled.",
-  ],
-  altTrend: [
-    "Trend-Aware Option: Soft Two-Block Inspired Texture",
-    "Use the cleaner version of the trend, not the extreme version.",
-    "Keep the sides lighter and the fringe less heavy.",
-  ],
-  avoid: [
-    "Avoid: Heavy middle part — adds width around the temples.",
-    "Avoid: Blunt mushroom fringe — closes the face too much.",
-    "Avoid: High disconnected undercut — creates harsh contrast.",
-  ],
-  barber: [
-    "I want a textured crop with a low taper.",
-    "Keep the top around 5–7 cm with natural texture.",
-    "Do not make the fringe too blunt. Avoid a high skin fade.",
-    "Finish matte and natural, not shiny or slick.",
-  ],
-  frontGuide: [
-    "From the front, keep the shape slightly vertical and textured.",
-    "Avoid a wide, heavy fringe that makes the face look shorter.",
-  ],
-  sideGuide: [
-    "The side profile should stay compact around the temple.",
-    "Taper gradually near the ear and keep the back natural.",
-  ],
-  routine: [
-    "Towel dry, then blow dry forward and slightly upward.",
-    "Apply a small amount of matte clay from back to front.",
-    "Break the fringe with your fingers. Do not comb it too flat.",
-  ],
-  maintenance: [
-    "Week 1: sharpest shape.",
-    "Week 2–3: still clean and easy to style.",
-    "Week 4: side bulk starts to show.",
-    "Week 5+: book a reshape or taper cleanup.",
-  ],
-  reference: [
-    "Use these references as direction, not exact copies.",
-    "Your best version is cleaner on the sides, softer on the fringe, and more natural in texture.",
-  ],
-  action: [
-    "Save the barber instruction card.",
-    "Pick one primary reference image from this report.",
-    "Ask for low taper, not high fade.",
-    "Use matte clay or texture powder.",
-    "Book cleanup in 3–4 weeks.",
-  ],
-};
+const heroMetrics = ["15-page premium report", "20+ visual slots", "Barber-ready brief", "Trend-aware references"];
+const sampleModules = ["Face Shape", "Hair Type", "Best Cut", "Avoid Styles", "Barber Card", "Routine", "Maintenance", "References"];
 ---
 
 <BaseLayout title={title} description={description}>
-  <section class="space-y-6">
-    <div class="inline-flex items-center rounded-full border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-bold text-amber-800 dark:border-amber-900/70 dark:bg-amber-950/40 dark:text-amber-200">
-      Premium Report Mockup
-    </div>
-    <div class="space-y-4">
-      <h1 class="text-4xl font-bold tracking-tight text-zinc-950 dark:text-white sm:text-5xl">HairCard Report Mockup</h1>
-      <p class="max-w-3xl text-lg leading-8 text-zinc-600 dark:text-zinc-300">
-        A visual-first draft for the 15-page HairCard PDF. The report copy is intentionally in English to keep the tone premium, direct, and less AI-slop. The notes under each page explain the function in Indonesian.
-      </p>
-    </div>
-    <div class="grid gap-3 sm:grid-cols-3">
-      <div class="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-        <div class="text-xs font-bold uppercase tracking-wide text-zinc-500">Core value</div>
-        <div class="mt-2 font-bold text-zinc-950 dark:text-white">Personalized visual haircut direction</div>
+  <section class="hc-shell">
+    <div class="hc-phone">
+      <header class="hc-nav">
+        <div class="hc-logo"><span>✦</span> HairCard</div>
+        <a href="#report-pages">Pages</a>
+      </header>
+
+      <div class="hc-hero-grid">
+        <div class="hc-copy">
+          <p class="eyebrow">AI Hair Report</p>
+          <h1>Find your HairCard cut.</h1>
+          <p class="lead">Get a personalized haircut report from your selfie — face-shape analysis, AI hairstyle previews, barber instructions, and curated social references.</p>
+          <div class="hero-metrics">
+            {heroMetrics.map((metric) => <span>{metric}</span>)}
+          </div>
+        </div>
+
+        <div class="premium-preview" aria-label="Premium report preview">
+          <div class="preview-paper">
+            <div class="paper-top">
+              <span>HAIRCARD REPORT</span>
+              <strong>05 / 15</strong>
+            </div>
+            <div class="paper-title-row">
+              <div>
+                <p>Best Fit</p>
+                <h2>Primary Haircut Recommendation</h2>
+              </div>
+              <div class="fit-score"><span>92</span><small>fit score</small></div>
+            </div>
+            <div class="paper-layout">
+              <div class="main-portrait"><span>AI hairstyle preview</span></div>
+              <div class="analysis-stack">
+                <div><span>Recommended cut</span><strong>Textured crop + low taper</strong></div>
+                <div><span>Why it works</span><p>Sharpens the frame, controls side width, keeps top movement natural.</p></div>
+                <div><span>Barber note</span><p>Top 5–7 cm · broken texture · low taper · matte finish.</p></div>
+              </div>
+            </div>
+            <div class="dense-grid">
+              {sampleModules.map((item) => <div><span>{item}</span><strong>Included</strong></div>)}
+            </div>
+            <div class="mini-board">
+              <div></div><div></div><div></div><div></div><div></div><div></div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-        <div class="text-xs font-bold uppercase tracking-wide text-zinc-500">Action value</div>
-        <div class="mt-2 font-bold text-zinc-950 dark:text-white">Barber-ready instruction card</div>
-      </div>
-      <div class="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-        <div class="text-xs font-bold uppercase tracking-wide text-zinc-500">Trend layer</div>
-        <div class="mt-2 font-bold text-zinc-950 dark:text-white">Curated social reference board</div>
+
+      <div class="hc-cta-row">
+        <button type="button">Get my HairCard <span>→</span></button>
+        <p>Private by default. Photos are used to generate your report and can be deleted after delivery.</p>
       </div>
     </div>
   </section>
 
-  <section class="space-y-8">
-    {pages.map((page) => (
-      <article class="overflow-hidden rounded-[2rem] border border-zinc-200 bg-zinc-100 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-        <div class="grid gap-0 lg:grid-cols-[1.05fr_0.95fr]">
-          <div class={`report-page report-${page.layout}`}>
-            <div class="report-topbar">
-              <span>HAIRCARD</span>
-              <span>{page.no}/15</span>
-            </div>
+  <section class="brief-card">
+    <p class="eyebrow">Design direction</p>
+    <h2>Lebih dekat ke FaceCard: landing simple, report preview-nya yang padat.</h2>
+      <p>
+      Versi ini sengaja dibuat lebih comprehensive dan premium: halaman report kelihatan seperti real deliverable, bukan cuma wireframe. Copy report tetap English; catatan fungsi tetap Indonesia supaya gampang review produk.
+    </p>
+    <a class="review-cta" href="#report-pages">Review 15 report pages <span>↓</span></a>
+  </section>
 
-            {page.layout === "cover" && (
-              <div class="cover-layout">
-                <div class="portrait-frame hero-portrait">
-                  <span>AI portrait slot</span>
-                </div>
-                <div>
-                  <p class="report-kicker">{page.kicker}</p>
-                  <h2>{page.title}</h2>
-                  <div class="copy-list">
-                    {copyBlocks[page.layout].map((copy) => <p>{copy}</p>)}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {page.layout !== "cover" && (
-              <div class="standard-layout">
-                <div>
-                  <p class="report-kicker">{page.kicker}</p>
-                  <h2>{page.title}</h2>
-                  <div class="copy-list">
-                    {copyBlocks[page.layout].map((copy) => <p>{copy}</p>)}
-                  </div>
-                </div>
-
-                {page.layout === "summary" && (
-                  <div class="visual-grid two">
-                    <div class="portrait-frame"><span>Current</span></div>
-                    <div class="portrait-frame accent"><span>Recommended</span></div>
-                  </div>
-                )}
-
-                {page.layout === "diagnostic" && (
-                  <div class="diagram-card face-map">
-                    <div class="face-oval"></div>
-                    <span class="marker marker-a">forehead</span>
-                    <span class="marker marker-b">cheek width</span>
-                    <span class="marker marker-c">jaw balance</span>
-                  </div>
-                )}
-
-                {page.layout === "hairtype" && (
-                  <div class="metric-grid">
-                    <div><span>Density</span><strong>Medium</strong></div>
-                    <div><span>Texture</span><strong>Straight / slight wave</strong></div>
-                    <div><span>Volume</span><strong>Medium front lift</strong></div>
-                  </div>
-                )}
-
-                {page.layout === "recommendation" && (
-                  <div class="visual-grid three">
-                    <div class="portrait-frame"><span>Front</span></div>
-                    <div class="portrait-frame accent"><span>Side</span></div>
-                    <div class="portrait-frame"><span>Detail</span></div>
-                  </div>
-                )}
-
-                {page.layout === "altSafe" && (
-                  <div class="single-preview"><div class="portrait-frame accent"><span>Safe upgrade preview</span></div></div>
-                )}
-
-                {page.layout === "altTrend" && (
-                  <div class="visual-grid two">
-                    <div class="portrait-frame accent"><span>Trend fit</span></div>
-                    <div class="reference-mini"><span>Popular reference direction</span></div>
-                  </div>
-                )}
-
-                {page.layout === "avoid" && (
-                  <div class="avoid-grid">
-                    {['Heavy middle part', 'Blunt fringe', 'High disconnect'].map((item) => (
-                      <div class="avoid-card"><span>Avoid</span><strong>{item}</strong></div>
-                    ))}
-                  </div>
-                )}
-
-                {page.layout === "barber" && (
-                  <div class="barber-card">
-                    <span>SHOW THIS TO YOUR BARBER</span>
-                    <strong>Textured crop with low taper</strong>
-                    <p>Top 5–7 cm · Broken texture · Low taper · Matte finish</p>
-                  </div>
-                )}
-
-                {page.layout === "frontGuide" && (
-                  <div class="compare-grid">
-                    <div class="shape-card good">Good<br />vertical texture</div>
-                    <div class="shape-card bad">Avoid<br />heavy width</div>
-                  </div>
-                )}
-
-                {page.layout === "sideGuide" && (
-                  <div class="side-diagram"><span>low taper point</span><span>compact temple</span><span>natural neckline</span></div>
-                )}
-
-                {page.layout === "routine" && (
-                  <div class="steps-grid">
-                    {['Towel dry', 'Blow dry', 'Matte clay', 'Finger texture'].map((step, index) => (
-                      <div><span>0{index + 1}</span><strong>{step}</strong></div>
-                    ))}
-                  </div>
-                )}
-
-                {page.layout === "maintenance" && (
-                  <div class="timeline">
-                    {['W1', 'W2–3', 'W4', 'W5+'].map((week) => <span>{week}</span>)}
-                  </div>
-                )}
-
-                {page.layout === "reference" && (
-                  <div class="reference-board">
-                    {['Best match', 'Good inspiration', 'Use with caution', 'Clean texture', 'Soft taper', 'Natural fringe'].map((label) => (
-                      <div><span>{label}</span></div>
-                    ))}
-                  </div>
-                )}
-
-                {page.layout === "action" && (
-                  <div class="action-layout">
-                    <div class="portrait-frame accent"><span>Final look</span></div>
-                    <div class="check-card">✓ Barber card<br />✓ Main reference<br />✓ Matte product<br />✓ Cleanup in 3–4 weeks</div>
-                  </div>
-                )}
-              </div>
-            )}
+  <section id="report-pages" class="report-gallery">
+    {reportPages.map((page) => (
+      <article class={`report-card variant-${page.variant}`}>
+        <div class="report-sheet">
+          <div class="sheet-header">
+            <div><span>HAIRCARD</span><small>{page.label}</small></div>
+            <strong>{page.no} / 15</strong>
           </div>
 
-          <div class="space-y-5 bg-white p-6 dark:bg-zinc-900">
-            <div>
-              <div class="text-xs font-bold uppercase tracking-[0.2em] text-amber-600 dark:text-amber-300">Page {page.no}</div>
-              <h3 class="mt-2 text-2xl font-bold text-zinc-950 dark:text-white">{page.title}</h3>
-            </div>
-            <div class="space-y-4 text-sm leading-7 text-zinc-600 dark:text-zinc-300">
-              <div>
-                <strong class="text-zinc-950 dark:text-white">Fungsi:</strong> {page.purpose}
-              </div>
-              <div>
-                <strong class="text-zinc-950 dark:text-white">Yang disampaikan ke user:</strong> {page.message}
-              </div>
-              <div>
-                <strong class="text-zinc-950 dark:text-white">Visual slot:</strong>
-                <ul class="mt-2 list-disc space-y-1 pl-5">
-                  {page.visuals.map((visual) => <li>{visual}</li>)}
-                </ul>
+          <div class="sheet-title">
+            <p>{page.label}</p>
+            <h2>{page.title}</h2>
+          </div>
+
+          <div class="sheet-body">
+            <div class="visual-zone">
+              <div class="visual-main"><span>{page.imageSlots[0]}</span></div>
+              <div class="visual-strip">
+                {page.imageSlots.slice(1, 5).map((slot) => <div><span>{slot}</span></div>)}
               </div>
             </div>
+
+            <div class="insight-zone">
+              <div class="verdict">
+                <span>Stylist verdict</span>
+                <strong>{page.big}</strong>
+              </div>
+              <div class="module-grid">
+                {page.modules.map((module, index) => (
+                  <div>
+                    <small>{String(index + 1).padStart(2, "0")}</small>
+                    <strong>{module}</strong>
+                    <span>{index % 2 === 0 ? "personalized" : "barber-ready"}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div class="sheet-footer">
+            <p>{page.message}</p>
+            <span>Premium hair report · English copy draft</span>
           </div>
         </div>
+
+        <aside class="page-notes">
+          <div>
+            <p class="eyebrow">Page {page.no}</p>
+            <h3>{page.title}</h3>
+          </div>
+          <p><strong>Fungsi:</strong> {page.purpose}</p>
+          <p><strong>Yang disampaikan ke user:</strong> {page.message}</p>
+          <div>
+            <strong>Visual slot:</strong>
+            <ul>
+              {page.imageSlots.map((slot) => <li>{slot}</li>)}
+            </ul>
+          </div>
+        </aside>
       </article>
     ))}
   </section>
 
-  <section class="rounded-[2rem] border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-    <h2 class="text-2xl font-bold text-zinc-950 dark:text-white">Design note</h2>
-    <div class="mt-4 space-y-3 text-sm leading-7 text-zinc-600 dark:text-zinc-300">
-      <p>
-        Mockup ini sengaja masih pakai placeholder visual. Next step yang masuk akal: generate 8–12 sample hairstyle visuals dulu, lalu masukkan ke page 1, 2, 5, 6, 7, 8, 10, 11, 14, dan 15. Jangan langsung 40–60 visual sebelum layout dan promise-nya enak.
-      </p>
-      <p>
-        Tone report harus tetap direct: stylist/grooming consultant, bukan motivational AI. Report harus terasa bisa dibawa ke barber, bukan cuma dibaca sekali lalu dilupakan.
-      </p>
-    </div>
+  <section class="brief-card final-note">
+    <p class="eyebrow">Next iteration</p>
+    <h2>Kalau direction ini oke, next step-nya bukan nambah copy — tapi masukin real visual.</h2>
+    <p>
+      Gue akan generate sample visual untuk 8–12 slot kunci: cover portrait, current vs recommended, 3 best haircut previews, 3 avoid styles, side/front guide, dan social reference board. Baru setelah itu kita judge apakah perceived value-nya sudah FaceCard-level.
+    </p>
   </section>
 </BaseLayout>
 
 <style>
-  .report-page {
-    min-height: 720px;
-    background:
-      radial-gradient(circle at top left, rgba(245, 158, 11, 0.18), transparent 34%),
-      linear-gradient(145deg, #16110d 0%, #27211b 46%, #f2eadf 46.2%, #f8f3ec 100%);
-    color: #1f1710;
-    padding: 28px;
-    position: relative;
-  }
+  :global(main) { max-width: 1180px; }
 
-  .report-topbar {
-    display: flex;
-    justify-content: space-between;
-    color: rgba(255,255,255,0.85);
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    margin-bottom: 38px;
-  }
-
-  .report-kicker {
-    font-size: 11px;
-    font-weight: 900;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: #b7791f;
-    margin-bottom: 10px;
-  }
-
-  .report-page h2 {
-    font-size: clamp(30px, 5vw, 54px);
-    line-height: 0.95;
-    max-width: 520px;
-    font-weight: 900;
-    letter-spacing: -0.06em;
-    color: #22170f;
-  }
-
-  .cover-layout,
-  .standard-layout {
-    display: grid;
-    gap: 28px;
-  }
-
-  .cover-layout {
-    grid-template-columns: 0.9fr 1.1fr;
-    align-items: end;
-    min-height: 590px;
-  }
-
-  .copy-list {
-    display: grid;
-    gap: 10px;
-    margin-top: 24px;
-    max-width: 520px;
-  }
-
-  .copy-list p {
-    background: rgba(255,255,255,0.7);
-    border: 1px solid rgba(120, 88, 55, 0.18);
-    border-radius: 18px;
-    padding: 12px 14px;
-    font-size: 13px;
-    line-height: 1.55;
-    font-weight: 700;
-  }
-
-  .portrait-frame,
-  .reference-mini,
-  .single-preview,
-  .diagram-card {
-    border: 1px solid rgba(120, 88, 55, 0.2);
-    border-radius: 28px;
-    background:
-      linear-gradient(160deg, rgba(255,255,255,0.34), rgba(255,255,255,0.05)),
-      repeating-linear-gradient(135deg, rgba(35, 26, 17, 0.12) 0 8px, rgba(255,255,255,0.14) 8px 16px);
-    min-height: 210px;
+  .hc-shell {
+    min-height: 860px;
     display: grid;
     place-items: center;
-    color: rgba(35, 26, 17, 0.62);
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    font-size: 11px;
-    font-weight: 900;
+    padding: 20px 0 10px;
+    background:
+      radial-gradient(circle at 9% 16%, rgba(216, 153, 86, 0.25), transparent 18%),
+      radial-gradient(circle at 93% 8%, rgba(116, 75, 42, 0.18), transparent 18%),
+      #f5eee2;
+    border: 1px solid rgba(40, 28, 19, 0.12);
+    border-radius: 42px;
+  }
+
+  .hc-phone {
+    width: min(100%, 520px);
+    min-height: 790px;
+    border: 2px solid #1f1710;
+    border-radius: 42px;
+    background: #fff8ec;
+    box-shadow: 14px 16px 0 #1f1710;
+    padding: 24px;
+    position: relative;
     overflow: hidden;
   }
 
-  .hero-portrait { min-height: 480px; background-color: rgba(255,255,255,0.15); color: rgba(255,255,255,0.86); }
-  .accent { background-color: rgba(180, 117, 46, 0.18); }
+  .hc-phone::before,
+  .hc-phone::after {
+    content: "✦";
+    position: absolute;
+    color: #c87934;
+    font-size: 38px;
+    opacity: 0.85;
+  }
+  .hc-phone::before { left: 28px; top: 210px; transform: rotate(-14deg); }
+  .hc-phone::after { right: 32px; top: 126px; transform: rotate(18deg); }
 
-  .visual-grid { display: grid; gap: 16px; }
-  .visual-grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .visual-grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .hc-nav { display: flex; align-items: center; justify-content: space-between; gap: 16px; position: relative; z-index: 2; }
+  .hc-logo { display: inline-flex; align-items: center; gap: 9px; font-weight: 900; letter-spacing: -0.04em; color: #1f1710; }
+  .hc-logo span { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 12px; background: #d08a43; border: 2px solid #1f1710; }
+  .hc-nav a { border: 1.5px solid #1f1710; border-radius: 999px; padding: 8px 14px; color: #1f1710; font-size: 13px; font-weight: 800; text-decoration: none; background: rgba(255,255,255,0.55); }
 
-  .face-map { position: relative; min-height: 330px; background: rgba(255,255,255,0.42); }
-  .face-oval { width: 140px; height: 210px; border: 3px solid rgba(39, 31, 23, 0.5); border-radius: 48% 48% 44% 44%; }
-  .marker { position: absolute; background: #24180f; color: #fff; border-radius: 999px; padding: 7px 10px; font-size: 10px; font-weight: 900; text-transform: uppercase; }
-  .marker-a { top: 74px; left: 58px; } .marker-b { top: 170px; right: 56px; } .marker-c { bottom: 70px; left: 80px; }
+  .hc-hero-grid { display: grid; gap: 24px; margin-top: 44px; position: relative; z-index: 1; }
+  .eyebrow { color: #a05e22; text-transform: uppercase; font-size: 11px; letter-spacing: 0.18em; font-weight: 900; }
+  .hc-copy h1 { margin: 8px 0 14px; font-size: clamp(52px, 12vw, 78px); line-height: 0.84; letter-spacing: -0.085em; color: #1f1710; text-wrap: balance; }
+  .lead { max-width: 410px; color: #4f4034; font-weight: 700; line-height: 1.55; }
+  .hero-metrics { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+  .hero-metrics span { border: 1px solid rgba(31, 23, 16, 0.18); background: #fff; border-radius: 999px; padding: 8px 10px; font-size: 11px; font-weight: 900; color: #2c2118; }
 
-  .metric-grid,
-  .steps-grid,
-  .avoid-grid,
-  .reference-board,
-  .compare-grid,
-  .action-layout {
+  .premium-preview { perspective: 1200px; }
+  .preview-paper {
+    background: #fffdf8;
+    border: 2px solid #1f1710;
+    border-radius: 24px;
+    padding: 16px;
+    box-shadow: 8px 10px 0 rgba(31, 23, 16, 0.9);
+    transform: rotate(-1.5deg);
+  }
+  .paper-top, .sheet-header { display: flex; justify-content: space-between; align-items: start; gap: 18px; border-bottom: 1px solid rgba(31, 23, 16, 0.13); padding-bottom: 10px; }
+  .paper-top span, .sheet-header span { font-size: 10px; font-weight: 900; letter-spacing: 0.18em; color: #a05e22; }
+  .paper-top strong, .sheet-header strong { font-size: 12px; color: #1f1710; }
+  .paper-title-row { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; margin: 16px 0; }
+  .paper-title-row p, .sheet-title p { margin: 0 0 5px; color: #a05e22; font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.14em; }
+  .paper-title-row h2, .sheet-title h2 { margin: 0; font-size: 27px; line-height: 0.95; letter-spacing: -0.06em; color: #1f1710; }
+  .fit-score { display: grid; place-items: center; width: 76px; height: 76px; border: 2px solid #1f1710; border-radius: 50%; background: #f3c981; }
+  .fit-score span { font-size: 30px; font-weight: 900; line-height: 1; }
+  .fit-score small { font-size: 9px; font-weight: 900; text-transform: uppercase; }
+  .paper-layout { display: grid; grid-template-columns: 1fr 0.9fr; gap: 12px; }
+  .main-portrait, .visual-main, .visual-strip div, .mini-board div {
+    background:
+      linear-gradient(140deg, rgba(31,23,16,0.10), rgba(208,138,67,0.14)),
+      repeating-linear-gradient(135deg, rgba(31,23,16,0.14) 0 7px, rgba(255,255,255,0.3) 7px 14px);
+    border: 1px solid rgba(31,23,16,0.18);
+    border-radius: 18px;
     display: grid;
-    gap: 14px;
+    place-items: center;
+    min-height: 210px;
+    text-align: center;
+    color: rgba(31,23,16,0.56);
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .analysis-stack { display: grid; gap: 9px; }
+  .analysis-stack div, .dense-grid div { border: 1px solid rgba(31,23,16,0.13); border-radius: 14px; padding: 10px; background: #fff6e6; }
+  .analysis-stack span, .dense-grid span { display: block; color: #a05e22; font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 4px; }
+  .analysis-stack strong { font-size: 13px; line-height: 1.1; color: #1f1710; }
+  .analysis-stack p { margin: 0; font-size: 10px; line-height: 1.35; color: #4f4034; font-weight: 700; }
+  .dense-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; margin-top: 12px; }
+  .dense-grid strong { font-size: 10px; }
+  .mini-board { display: grid; grid-template-columns: repeat(6, 1fr); gap: 7px; margin-top: 12px; }
+  .mini-board div { min-height: 54px; border-radius: 14px; }
+  .hc-cta-row { margin-top: 26px; display: grid; gap: 12px; position: relative; z-index: 2; }
+  .hc-cta-row button { border: 2px solid #1f1710; border-radius: 999px; background: #1f1710; color: #fff8ec; padding: 16px 20px; font-weight: 900; font-size: 16px; box-shadow: 0 4px 0 #000; cursor: pointer; }
+  .hc-cta-row p { margin: 0; text-align: center; font-size: 12px; color: #67564a; font-weight: 700; }
+
+  .brief-card { border: 1px solid rgba(31, 23, 16, 0.12); border-radius: 34px; background: #fffaf1; padding: 28px; box-shadow: 0 18px 50px rgba(31, 23, 16, 0.06); }
+  .brief-card h2 { margin: 8px 0 12px; color: #1f1710; font-size: clamp(30px, 5vw, 52px); line-height: 0.95; letter-spacing: -0.065em; max-width: 820px; }
+  .brief-card p:not(.eyebrow) { margin: 0; color: #5b4a3b; font-size: 17px; line-height: 1.75; font-weight: 700; max-width: 850px; }
+  .review-cta { display: inline-flex; align-items: center; gap: 10px; margin-top: 22px; border: 2px solid #1f1710; border-radius: 999px; background: #1f1710; color: #fff8ec; padding: 14px 18px; font-weight: 900; text-decoration: none; box-shadow: 0 4px 0 #000; }
+
+  .report-gallery { display: grid; gap: 34px; }
+  .report-card { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr); gap: 22px; align-items: stretch; padding: 18px; border: 1px solid rgba(31,23,16,0.12); border-radius: 34px; background: linear-gradient(145deg, #f7efe2, #fffaf1); box-shadow: 0 24px 70px rgba(31, 23, 16, 0.08); }
+  .report-sheet { border: 2px solid #23170f; border-radius: 28px; background: #fffdf8; padding: 22px; box-shadow: 9px 11px 0 rgba(31,23,16,0.9); min-height: 620px; display: grid; grid-template-rows: auto auto 1fr auto; gap: 18px; position: relative; overflow: hidden; }
+  .report-sheet::before { content: ""; position: absolute; inset: auto -70px -90px auto; width: 240px; height: 240px; border-radius: 50%; background: rgba(208, 138, 67, 0.14); pointer-events: none; }
+  .sheet-header small { display: block; margin-top: 3px; color: #6c5847; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+  .sheet-title h2 { max-width: 620px; font-size: clamp(34px, 4.2vw, 58px); }
+  .sheet-body { display: grid; grid-template-columns: 0.95fr 1.05fr; gap: 18px; position: relative; z-index: 1; }
+  .visual-zone { display: grid; gap: 12px; align-content: start; }
+  .visual-main { min-height: 320px; }
+  .visual-strip { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+  .visual-strip div { min-height: 88px; border-radius: 15px; padding: 8px; }
+  .insight-zone { display: grid; gap: 14px; align-content: start; }
+  .verdict { border: 1px solid rgba(31,23,16,0.14); border-radius: 22px; background: #281b12; color: #fff7e9; padding: 18px; }
+  .verdict span { display: block; color: #f1c581; text-transform: uppercase; letter-spacing: 0.14em; font-size: 10px; font-weight: 900; margin-bottom: 8px; }
+  .verdict strong { display: block; font-size: 18px; line-height: 1.35; }
+  .module-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .module-grid div { min-height: 92px; border: 1px solid rgba(31,23,16,0.12); border-radius: 18px; background: #fff4df; padding: 12px; }
+  .module-grid small { display: block; color: #b06828; font-weight: 900; margin-bottom: 7px; }
+  .module-grid strong { display: block; color: #1f1710; font-size: 15px; line-height: 1.12; }
+  .module-grid span { display: inline-block; margin-top: 8px; color: #6c5847; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; }
+  .sheet-footer { display: flex; justify-content: space-between; gap: 18px; align-items: end; border-top: 1px solid rgba(31,23,16,0.12); padding-top: 14px; position: relative; z-index: 1; }
+  .sheet-footer p { margin: 0; max-width: 560px; color: #4f4034; font-size: 13px; line-height: 1.5; font-weight: 800; }
+  .sheet-footer span { white-space: nowrap; color: #a05e22; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.12em; }
+
+  .page-notes { border: 1px solid rgba(31,23,16,0.12); border-radius: 26px; background: rgba(255,255,255,0.7); padding: 22px; display: grid; align-content: start; gap: 18px; }
+  .page-notes h3 { margin: 6px 0 0; color: #1f1710; font-size: 28px; line-height: 1; letter-spacing: -0.05em; }
+  .page-notes p { margin: 0; color: #5b4a3b; line-height: 1.72; font-size: 15px; font-weight: 750; }
+  .page-notes strong { color: #1f1710; }
+  .page-notes ul { margin: 10px 0 0; padding-left: 18px; color: #5b4a3b; line-height: 1.7; font-size: 15px; font-weight: 750; }
+
+  .variant-cover .visual-main { min-height: 390px; }
+  .variant-score .module-grid div:nth-child(1), .variant-heroPreview .module-grid div:nth-child(1), .variant-final .module-grid div:nth-child(1) { background: #f2c981; border-color: #1f1710; }
+  .variant-barber .verdict { background: #111; }
+  .variant-avoid .verdict { background: #3a1510; }
+  .variant-board .visual-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .variant-board .visual-strip div { min-height: 112px; }
+  .final-note { background: #21170f; }
+  .final-note h2, .final-note p:not(.eyebrow) { color: #fff7e9; }
+  .final-note .eyebrow { color: #f1c581; }
+
+  @media (max-width: 980px) {
+    .report-card { grid-template-columns: 1fr; }
+    .sheet-body { grid-template-columns: 1fr; }
+    .hc-shell { border-radius: 28px; padding: 12px; }
   }
 
-  .metric-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .metric-grid div,
-  .steps-grid div,
-  .avoid-card,
-  .shape-card,
-  .check-card {
-    border-radius: 22px;
-    background: rgba(255,255,255,0.74);
-    border: 1px solid rgba(120, 88, 55, 0.18);
-    padding: 18px;
-    min-height: 120px;
-  }
-  .metric-grid span, .steps-grid span, .avoid-card span { display: block; color: #9a651d; font-size: 11px; font-weight: 900; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 10px; }
-  .metric-grid strong, .steps-grid strong, .avoid-card strong { display: block; color: #23170f; font-size: 18px; line-height: 1.15; }
-
-  .avoid-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .barber-card { border-radius: 30px; background: #23170f; color: #fff; padding: 28px; min-height: 280px; display: grid; align-content: center; gap: 18px; }
-  .barber-card span { color: #f5c16d; font-size: 11px; font-weight: 900; letter-spacing: 0.2em; }
-  .barber-card strong { font-size: 34px; line-height: 1; }
-  .barber-card p { color: rgba(255,255,255,0.72); }
-
-  .compare-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .shape-card.good { border-color: rgba(22, 163, 74, 0.35); }
-  .shape-card.bad { border-color: rgba(220, 38, 38, 0.35); }
-
-  .side-diagram { border-radius: 28px; min-height: 280px; padding: 22px; display: flex; justify-content: space-around; align-items: center; background: rgba(255,255,255,0.58); }
-  .side-diagram span { border-radius: 999px; background: #23170f; color: #fff; padding: 8px 12px; font-size: 10px; font-weight: 900; text-transform: uppercase; }
-
-  .steps-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  .timeline { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; align-items: center; min-height: 230px; }
-  .timeline span { display: grid; place-items: center; height: 80px; border-radius: 999px; background: #23170f; color: #f5c16d; font-weight: 900; }
-  .reference-board { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .reference-board div { min-height: 145px; border-radius: 24px; display: grid; align-items: end; padding: 14px; background: linear-gradient(160deg, rgba(35, 23, 15, 0.72), rgba(188, 126, 50, 0.22)), repeating-linear-gradient(135deg, rgba(255,255,255,0.2) 0 8px, transparent 8px 16px); color: #fff; }
-  .reference-board span { font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; }
-  .action-layout { grid-template-columns: 0.9fr 1.1fr; align-items: stretch; }
-  .check-card { font-size: 18px; line-height: 2; font-weight: 900; }
-
-  @media (max-width: 720px) {
-    .report-page { min-height: auto; padding: 20px; }
-    .cover-layout, .visual-grid.two, .visual-grid.three, .metric-grid, .avoid-grid, .steps-grid, .reference-board, .compare-grid, .action-layout { grid-template-columns: 1fr; }
-    .hero-portrait { min-height: 260px; }
-    .report-page h2 { font-size: 34px; }
+  @media (max-width: 620px) {
+    :global(main) { padding-left: 14px; padding-right: 14px; }
+    .hc-phone { border-radius: 30px; padding: 18px; box-shadow: 8px 10px 0 #1f1710; }
+    .paper-layout, .dense-grid { grid-template-columns: 1fr; }
+    .mini-board { grid-template-columns: repeat(3, 1fr); }
+    .report-card { padding: 10px; border-radius: 26px; }
+    .report-sheet { padding: 16px; border-radius: 22px; box-shadow: 5px 7px 0 rgba(31,23,16,0.9); }
+    .module-grid, .visual-strip { grid-template-columns: 1fr; }
+    .sheet-footer { display: grid; }
+    .sheet-footer span { white-space: normal; }
   }
 </style>
