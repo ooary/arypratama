@@ -1,0 +1,384 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import EntityCard from "../../components/EntityCard.astro";
+
+const title = "ERD — HairCard";
+const description = "Entity Relationship Diagram for HairCard: funnel sessions, quiz answers, selfie uploads, teaser results, orders, payments, AI generation, PDF reports, delivery, feedback, privacy, and analytics.";
+
+const funnelEntities = [
+  {
+    name: "customers",
+    tag: "Buyer / lead",
+    fields: ["id PK", "name", "email unique", "phone", "locale", "marketing_consent", "created_at", "updated_at"],
+  },
+  {
+    name: "haircard_sessions",
+    tag: "Funnel session",
+    fields: ["id PK", "customer_id FK nullable", "session_token unique", "source", "utm_json", "status", "started_at", "last_seen_at", "completed_at"],
+  },
+  {
+    name: "quiz_answers",
+    tag: "Consultation input",
+    fields: ["id PK", "session_id FK", "question_key", "answer_value_json", "step_index", "answered_at"],
+  },
+  {
+    name: "consent_records",
+    tag: "Privacy consent",
+    fields: ["id PK", "session_id FK", "customer_id FK nullable", "consent_type", "version", "accepted", "accepted_at", "ip_address"],
+  },
+];
+
+const uploadEntities = [
+  {
+    name: "photo_uploads",
+    tag: "Selfie input",
+    fields: ["id PK", "session_id FK", "customer_id FK nullable", "upload_type", "storage_key", "mime_type", "file_size", "width", "height", "status", "created_at", "deleted_at"],
+  },
+  {
+    name: "photo_quality_checks",
+    tag: "Upload validation",
+    fields: ["id PK", "photo_upload_id FK", "face_detected", "frontal_score", "lighting_score", "blur_score", "rejection_reason", "checked_at"],
+  },
+  {
+    name: "teaser_results",
+    tag: "Free result",
+    fields: ["id PK", "session_id FK", "photo_upload_id FK", "probable_face_shape", "recommended_direction", "avoid_note", "preview_payload_json", "created_at"],
+  },
+];
+
+const commerceEntities = [
+  {
+    name: "orders",
+    tag: "Paid report order",
+    fields: ["id PK", "order_no unique", "session_id FK", "customer_id FK", "teaser_result_id FK", "status", "currency", "subtotal_amount", "discount_amount", "total_amount", "created_at", "paid_at"],
+  },
+  {
+    name: "payments",
+    tag: "Checkout payment",
+    fields: ["id PK", "order_id FK", "provider", "provider_checkout_id", "provider_payment_id", "status", "amount", "currency", "paid_at", "raw_payload_json"],
+  },
+  {
+    name: "coupons",
+    tag: "Pricing promo",
+    fields: ["id PK", "code unique", "discount_type", "discount_value", "starts_at", "ends_at", "max_redemptions", "status"],
+  },
+  {
+    name: "coupon_redemptions",
+    tag: "Applied promo",
+    fields: ["id PK", "coupon_id FK", "order_id FK", "customer_id FK", "discount_amount", "redeemed_at"],
+  },
+];
+
+const generationEntities = [
+  {
+    name: "ai_generation_jobs",
+    tag: "Report generation job",
+    fields: ["id PK", "order_id FK", "session_id FK", "photo_upload_id FK", "status", "model_provider", "model_name", "prompt_version", "attempt_count", "error_message", "started_at", "finished_at"],
+  },
+  {
+    name: "report_payloads",
+    tag: "Structured AI output",
+    fields: ["id PK", "generation_job_id FK", "order_id FK", "schema_version", "payload_json", "safety_status", "review_status", "created_at"],
+  },
+  {
+    name: "reports",
+    tag: "PDF report",
+    fields: ["id PK", "order_id FK", "report_payload_id FK", "status", "report_version", "pdf_storage_key", "public_token unique", "generated_at", "expires_at"],
+  },
+  {
+    name: "report_pages",
+    tag: "15-page sections",
+    fields: ["id PK", "report_id FK", "page_no", "page_key", "title", "content_json", "render_status"],
+  },
+];
+
+const deliveryEntities = [
+  {
+    name: "email_deliveries",
+    tag: "Result email",
+    fields: ["id PK", "customer_id FK", "order_id FK", "report_id FK", "email", "template_key", "status", "provider_message_id", "sent_at", "opened_at"],
+  },
+  {
+    name: "report_downloads",
+    tag: "PDF download event",
+    fields: ["id PK", "report_id FK", "customer_id FK nullable", "download_token", "ip_address", "user_agent", "downloaded_at"],
+  },
+  {
+    name: "feedback_responses",
+    tag: "Usefulness feedback",
+    fields: ["id PK", "report_id FK", "customer_id FK", "rating", "would_show_to_barber", "comment", "created_at"],
+  },
+  {
+    name: "support_requests",
+    tag: "Order support",
+    fields: ["id PK", "customer_id FK", "order_id FK nullable", "category", "message", "status", "created_at", "resolved_at"],
+  },
+];
+
+const opsEntities = [
+  {
+    name: "analytics_events",
+    tag: "Funnel tracking",
+    fields: ["id PK", "session_id FK nullable", "customer_id FK nullable", "event_name", "event_properties_json", "occurred_at"],
+  },
+  {
+    name: "audit_logs",
+    tag: "Operational audit",
+    fields: ["id PK", "actor_type", "actor_id", "action", "entity_type", "entity_id", "before_json", "after_json", "created_at"],
+  },
+  {
+    name: "data_deletion_requests",
+    tag: "Privacy ops",
+    fields: ["id PK", "customer_id FK", "email", "status", "requested_at", "completed_at", "notes"],
+  },
+];
+
+const relationshipGroups = [
+  {
+    title: "Funnel and Identity",
+    items: [
+      "customers 1—N haircard_sessions after name/email is captured at paywall.",
+      "haircard_sessions 1—N quiz_answers for the lightweight consultation flow.",
+      "haircard_sessions 1—N consent_records for selfie processing, terms, privacy, and marketing opt-in.",
+      "analytics_events can reference either anonymous sessions or known customers.",
+    ],
+  },
+  {
+    title: "Upload and Free Teaser",
+    items: [
+      "haircard_sessions 1—N photo_uploads, but MVP requires one clear front selfie.",
+      "photo_uploads 1—1 photo_quality_checks for face visibility and image quality validation.",
+      "teaser_results N—1 haircard_sessions and photo_uploads; teaser is generated before payment.",
+      "orders reference teaser_results to preserve the exact free result that converted the user.",
+    ],
+  },
+  {
+    title: "Commerce",
+    items: [
+      "customers 1—N orders; orders are the commercial source of truth.",
+      "orders 1—N payments because retries, failed attempts, or webhook duplicates can happen.",
+      "coupons N—N orders through coupon_redemptions.",
+      "Only paid orders should trigger full report generation.",
+    ],
+  },
+  {
+    title: "Generation and Reports",
+    items: [
+      "orders 1—N ai_generation_jobs to support retries and prompt/schema version changes.",
+      "ai_generation_jobs 1—1 report_payloads for validated structured AI output.",
+      "report_payloads 1—N reports when PDFs need regeneration or visual template updates.",
+      "reports 1—N report_pages; each generated PDF maps to the 15-page HairCard structure.",
+    ],
+  },
+  {
+    title: "Delivery, Feedback, and Privacy",
+    items: [
+      "reports 1—N email_deliveries and report_downloads.",
+      "reports 1—N feedback_responses to measure usefulness and barber/salon readiness.",
+      "customers 1—N support_requests for failed generation, payment, refund, or download issues.",
+      "data_deletion_requests coordinate deletion/anonymization across customers, sessions, uploads, reports, and analytics.",
+    ],
+  },
+];
+
+const statusRules = [
+  "haircard_sessions.status: started, quiz_in_progress, uploaded, teaser_ready, paywall_viewed, converted, abandoned.",
+  "orders.status: draft, checkout_started, paid, generating, ready, failed, refunded.",
+  "payments.status: pending, paid, failed, expired, refunded.",
+  "ai_generation_jobs.status: queued, running, succeeded, failed, cancelled.",
+  "reports.status: pending, rendering, ready, failed, expired, deleted.",
+  "photo_uploads.status: uploaded, accepted, rejected, deleted.",
+];
+
+const buildOrder = [
+  "Start with haircard_sessions, quiz_answers, photo_uploads, teaser_results, customers, orders, payments, reports.",
+  "Add ai_generation_jobs and report_payloads when structured AI automation starts.",
+  "Add report_pages when the PDF template needs per-page rendering/debugging.",
+  "Add email_deliveries, report_downloads, and feedback_responses for delivery and quality loops.",
+  "Add privacy and audit tables before scaling paid traffic or storing photos longer than the minimum needed.",
+];
+---
+
+<BaseLayout title={title} description={description}>
+  <section class="space-y-6">
+    <div class="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-bold text-blue-700 dark:border-blue-900/70 dark:bg-blue-950/40 dark:text-blue-300">
+      Entity Relationship Diagram
+    </div>
+    <div class="space-y-4">
+      <h1 class="text-4xl font-bold tracking-tight text-zinc-950 dark:text-white sm:text-5xl">HairCard</h1>
+      <p class="max-w-3xl text-lg leading-8 text-zinc-600 dark:text-zinc-300">
+        ERD derived from the <a href="/brd/haircard" class="font-bold text-blue-600 hover:text-blue-700 dark:text-blue-300">HairCard BRD</a>. This model is conversion-first: the funnel captures enough context to create a free teaser, then only paid orders trigger the full AI-generated 15-page PDF report.
+      </p>
+    </div>
+    <div class="grid gap-3 sm:grid-cols-3">
+      <div class="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <div class="text-xs font-bold uppercase tracking-wide text-zinc-500">Source of truth</div>
+        <div class="mt-2 font-bold text-zinc-950 dark:text-white">orders + reports</div>
+      </div>
+      <div class="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <div class="text-xs font-bold uppercase tracking-wide text-zinc-500">MVP scope</div>
+        <div class="mt-2 font-bold text-zinc-950 dark:text-white">One-time paid PDF report</div>
+      </div>
+      <div class="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <div class="text-xs font-bold uppercase tracking-wide text-zinc-500">URL</div>
+        <div class="mt-2 font-bold text-zinc-950 dark:text-white">/erd/haircard</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="space-y-6">
+    <h2 class="text-2xl font-bold text-zinc-950 dark:text-white">1. High-Level ERD</h2>
+    <div class="overflow-x-auto rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+      <svg viewBox="0 0 1180 780" role="img" aria-label="High-level ERD HairCard" class="h-auto w-full min-w-[760px]">
+        <defs>
+          <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L0,6 L9,3 z" fill="#2563eb"></path>
+          </marker>
+        </defs>
+
+        <rect x="40" y="42" width="210" height="98" rx="18" fill="#eff6ff" stroke="#93c5fd" />
+        <text x="62" y="78" font-size="18" font-weight="700" fill="#1e3a8a">Funnel Session</text>
+        <text x="62" y="105" font-size="13" fill="#475569">sessions, answers</text>
+        <text x="62" y="125" font-size="13" fill="#475569">consent, analytics</text>
+
+        <rect x="344" y="42" width="220" height="98" rx="18" fill="#f8fafc" stroke="#cbd5e1" />
+        <text x="366" y="78" font-size="18" font-weight="700" fill="#0f172a">Selfie + Teaser</text>
+        <text x="366" y="105" font-size="13" fill="#475569">uploads, quality checks</text>
+        <text x="366" y="125" font-size="13" fill="#475569">free teaser result</text>
+
+        <rect x="662" y="42" width="220" height="98" rx="18" fill="#ecfdf5" stroke="#86efac" />
+        <text x="684" y="78" font-size="18" font-weight="700" fill="#14532d">Commerce</text>
+        <text x="684" y="105" font-size="13" fill="#475569">customers, orders</text>
+        <text x="684" y="125" font-size="13" fill="#475569">payments, coupons</text>
+
+        <rect x="520" y="306" width="260" height="118" rx="24" fill="#dbeafe" stroke="#2563eb" stroke-width="2" />
+        <text x="548" y="350" font-size="23" font-weight="800" fill="#1e3a8a">Paid Order Core</text>
+        <text x="548" y="380" font-size="15" fill="#1f2937">orders trigger generation</text>
+        <text x="548" y="404" font-size="15" fill="#1f2937">reports are paid deliverables</text>
+
+        <rect x="900" y="270" width="220" height="98" rx="18" fill="#fefce8" stroke="#fde047" />
+        <text x="922" y="306" font-size="18" font-weight="700" fill="#713f12">AI Generation</text>
+        <text x="922" y="333" font-size="13" fill="#475569">jobs, payloads</text>
+        <text x="922" y="353" font-size="13" fill="#475569">schema validation</text>
+
+        <rect x="900" y="514" width="220" height="98" rx="18" fill="#faf5ff" stroke="#d8b4fe" />
+        <text x="922" y="550" font-size="18" font-weight="700" fill="#581c87">PDF Report</text>
+        <text x="922" y="577" font-size="13" fill="#475569">reports, pages</text>
+        <text x="922" y="597" font-size="13" fill="#475569">download token</text>
+
+        <rect x="502" y="610" width="230" height="98" rx="18" fill="#fdf2f8" stroke="#f9a8d4" />
+        <text x="524" y="646" font-size="18" font-weight="700" fill="#831843">Delivery + Feedback</text>
+        <text x="524" y="673" font-size="13" fill="#475569">email, download</text>
+        <text x="524" y="693" font-size="13" fill="#475569">ratings, support</text>
+
+        <rect x="92" y="610" width="230" height="98" rx="18" fill="#fff7ed" stroke="#fdba74" />
+        <text x="114" y="646" font-size="18" font-weight="700" fill="#7c2d12">Privacy + Ops</text>
+        <text x="114" y="673" font-size="13" fill="#475569">deletion requests</text>
+        <text x="114" y="693" font-size="13" fill="#475569">audit logs</text>
+
+        <line x1="250" y1="91" x2="344" y2="91" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)" />
+        <line x1="564" y1="91" x2="662" y2="91" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)" />
+        <path d="M772 140 C772 204 732 250 684 306" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)" />
+        <path d="M780 365 C820 330 856 318 900 318" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)" />
+        <path d="M1010 368 L1010 514" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)" />
+        <path d="M900 562 C824 596 770 626 732 650" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)" />
+        <path d="M520 366 C408 438 296 540 207 610" fill="none" stroke="#94a3b8" stroke-width="2" stroke-dasharray="7 7" marker-end="url(#arrow)" />
+        <path d="M145 140 C126 306 145 486 184 610" fill="none" stroke="#94a3b8" stroke-width="2" stroke-dasharray="7 7" marker-end="url(#arrow)" />
+        <path d="M454 140 C484 206 528 260 570 306" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)" />
+      </svg>
+    </div>
+    <p class="text-sm leading-7 text-zinc-600 dark:text-zinc-300">
+      Solid arrows show the main conversion path. Dashed arrows show cross-cutting privacy, audit, and deletion concerns that must apply to selfie and report data.
+    </p>
+  </section>
+
+  <section class="space-y-6">
+    <h2 class="text-2xl font-bold text-zinc-950 dark:text-white">2. Relationship Map</h2>
+    <div class="grid gap-4 md:grid-cols-2">
+      {relationshipGroups.map((group) => (
+        <div class="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+          <h3 class="font-bold text-zinc-950 dark:text-white">{group.title}</h3>
+          <ul class="mt-3 list-disc space-y-2 pl-5 text-sm leading-6 text-zinc-700 dark:text-zinc-300">
+            {group.items.map((item) => <li>{item}</li>)}
+          </ul>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="space-y-6">
+    <h2 class="text-2xl font-bold text-zinc-950 dark:text-white">3. Entity Groups</h2>
+
+    <div class="space-y-4">
+      <h3 class="text-xl font-bold text-zinc-950 dark:text-white">3.1 Funnel and Identity</h3>
+      <div class="grid gap-4 md:grid-cols-2">
+        {funnelEntities.map((entity) => <EntityCard entity={entity} />)}
+      </div>
+    </div>
+
+    <div class="space-y-4">
+      <h3 class="text-xl font-bold text-zinc-950 dark:text-white">3.2 Upload and Teaser</h3>
+      <div class="grid gap-4 md:grid-cols-2">
+        {uploadEntities.map((entity) => <EntityCard entity={entity} />)}
+      </div>
+    </div>
+
+    <div class="space-y-4">
+      <h3 class="text-xl font-bold text-zinc-950 dark:text-white">3.3 Commerce</h3>
+      <div class="grid gap-4 md:grid-cols-2">
+        {commerceEntities.map((entity) => <EntityCard entity={entity} />)}
+      </div>
+    </div>
+
+    <div class="space-y-4">
+      <h3 class="text-xl font-bold text-zinc-950 dark:text-white">3.4 AI Generation and Report</h3>
+      <div class="grid gap-4 md:grid-cols-2">
+        {generationEntities.map((entity) => <EntityCard entity={entity} />)}
+      </div>
+    </div>
+
+    <div class="space-y-4">
+      <h3 class="text-xl font-bold text-zinc-950 dark:text-white">3.5 Delivery and Feedback</h3>
+      <div class="grid gap-4 md:grid-cols-2">
+        {deliveryEntities.map((entity) => <EntityCard entity={entity} />)}
+      </div>
+    </div>
+
+    <div class="space-y-4">
+      <h3 class="text-xl font-bold text-zinc-950 dark:text-white">3.6 Analytics, Privacy, and Audit</h3>
+      <div class="grid gap-4 md:grid-cols-2">
+        {opsEntities.map((entity) => <EntityCard entity={entity} />)}
+      </div>
+    </div>
+  </section>
+
+  <section class="space-y-6">
+    <h2 class="text-2xl font-bold text-zinc-950 dark:text-white">4. Status Rules</h2>
+    <div class="rounded-3xl border border-blue-200 bg-blue-50 p-6 dark:border-blue-900/70 dark:bg-blue-950/30">
+      <ul class="list-disc space-y-2 pl-5 text-sm leading-7 text-blue-950 dark:text-blue-100">
+        {statusRules.map((rule) => <li>{rule}</li>)}
+      </ul>
+    </div>
+  </section>
+
+  <section class="space-y-6">
+    <h2 class="text-2xl font-bold text-zinc-950 dark:text-white">5. Build Order Schema</h2>
+    <div class="grid gap-3">
+      {buildOrder.map((item, index) => (
+        <div class="flex gap-3 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+          <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+            {index + 1}
+          </div>
+          <div class="text-sm leading-7 text-zinc-700 dark:text-zinc-300">{item}</div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="rounded-3xl border border-zinc-200 bg-zinc-50 p-6 dark:border-zinc-800 dark:bg-zinc-900/70">
+    <h2 class="text-2xl font-bold text-zinc-950 dark:text-white">Design Take</h2>
+    <p class="mt-3 leading-8 text-zinc-700 dark:text-zinc-300">
+      Do not start with a heavy user-account model. HairCard's MVP should treat the session as the main funnel object, the order as the commercial source of truth, and the report as the paid deliverable. Keep photos and generated PDFs explicitly trackable so privacy deletion, regeneration, and support recovery do not become messy later.
+    </p>
+  </section>
+</BaseLayout>

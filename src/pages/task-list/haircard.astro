@@ -1,0 +1,142 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const title = "Task List — HairCard";
+const description = "Implementation task list for HairCard, an AI-powered personalized hairstyle report product.";
+
+const phases = [
+  {
+    title: "Phase 1 — Product Foundation",
+    objective: "Turn the BRD into concrete MVP decisions before building screens.",
+    tasks: [
+      ["Define MVP offer", "Confirm product name, promise, price, free teaser, paid report scope, and primary campaign angle.", "P0"],
+      ["Write screen-level copy", "Draft landing, quiz, upload, teaser, paywall, generation, and delivery copy.", "P0"],
+      ["Define report content schema", "Create the structured JSON fields needed for the 15-page PDF.", "P0"],
+      ["Define safety rules", "Lock non-medical, non-beauty-score language rules and disclaimers.", "P0"],
+      ["Define analytics events", "Track landing view, quiz start, upload, teaser view, checkout click, payment success, report generated, download, feedback.", "P1"],
+    ],
+  },
+  {
+    title: "Phase 2 — Funnel UX",
+    objective: "Build the user journey from landing page to free teaser.",
+    tasks: [
+      ["Build landing page", "Hero, sample report preview, benefits, privacy reassurance, FAQ, and CTA.", "P0"],
+      ["Build quiz shell", "Single-question screen pattern with progress, back button, answer persistence, and mobile-first layout.", "P0"],
+      ["Build identity and confidence steps", "Collect gender/style preference and current hair satisfaction.", "P0"],
+      ["Build hair diagnosis steps", "Collect main hair problem, current length, visible texture, maintenance level, style direction, and desired improvement.", "P0"],
+      ["Build upload screen", "Accept image upload, validate file type/size, preview selfie, allow reupload, and show photo guidance.", "P0"],
+      ["Build free teaser screen", "Show probable face shape, one haircut direction, one avoid note, and blurred report preview.", "P0"],
+    ],
+  },
+  {
+    title: "Phase 3 — Commerce and Order Capture",
+    objective: "Convert qualified users after they see personalized value.",
+    tasks: [
+      ["Build paywall", "Name/email capture, benefits, report preview, price, refund/support note, and checkout CTA.", "P0"],
+      ["Integrate payment provider", "Create checkout session, receive payment status, and map payment to order.", "P0"],
+      ["Create order recovery", "Allow users to reopen generation/download page from email or payment redirect.", "P0"],
+      ["Handle failed or abandoned checkout", "Store status and support/debug details without losing quiz/upload context.", "P1"],
+    ],
+  },
+  {
+    title: "Phase 4 — AI Report Generation",
+    objective: "Generate useful, safe, structured report content from quiz answers and selfie.",
+    tasks: [
+      ["Create AI prompt contract", "Define input payload, output JSON schema, safety constraints, and fallback rules.", "P0"],
+      ["Build generation job", "Queue report generation, store status, errors, model metadata, and generated JSON.", "P0"],
+      ["Implement moderation and validation", "Reject unclear photos, validate JSON completeness, and prevent medical/beauty-score wording.", "P0"],
+      ["Add manual review fallback", "For early MVP orders, allow manual fix/regeneration before PDF delivery.", "P1"],
+    ],
+  },
+  {
+    title: "Phase 5 — PDF and Delivery",
+    objective: "Turn report data into a premium, barber/salon-ready output.",
+    tasks: [
+      ["Design 15-page PDF template", "Create mobile-readable pages for summary, face shape, recommended cuts, avoid list, barber brief, routine, products, and maintenance.", "P0"],
+      ["Generate PDF from HTML", "Render report HTML to PDF, store file URL, and support regeneration.", "P0"],
+      ["Build report delivery page", "Show report status, download button, barber/salon brief highlight, and support link.", "P0"],
+      ["Send email delivery", "Email report link and backup instructions after successful generation.", "P0"],
+      ["Collect usefulness feedback", "Ask whether the user would show the report to a barber/salon and what felt generic.", "P1"],
+    ],
+  },
+  {
+    title: "Phase 6 — Launch and Iteration",
+    objective: "Validate demand and improve conversion/report quality before scaling automation.",
+    tasks: [
+      ["Run first 10–20 paid orders", "Use semi-automated generation if needed to validate report usefulness.", "P0"],
+      ["Review funnel metrics", "Measure drop-off from landing to quiz, upload, paywall, checkout, and report download.", "P1"],
+      ["Improve recommendations", "Use buyer feedback to make barber briefs more specific and less generic.", "P1"],
+      ["Package sample reports", "Create anonymized samples for landing and paid preview.", "P1"],
+      ["Decide next feature", "Choose between virtual hairstyle mockups, richer reference board, referral, or salon/barber partnership.", "P2"],
+    ],
+  },
+];
+
+const acceptanceCriteria = [
+  "A user can move from landing page to quiz start on mobile without account creation.",
+  "A user can complete the MVP flow, upload a selfie, see a teaser, pay, and receive a PDF link.",
+  "Every paid order has a recoverable order status: pending, paid, generating, ready, failed, or refunded.",
+  "Generated report content follows the safety rules and does not make medical or attractiveness-score claims.",
+  "The 15-page report includes a practical barber/salon brief users can show directly.",
+];
+
+const links = [
+  ["BRD", "/brd/haircard"],
+  ["ERD", "/erd/haircard"],
+];
+---
+
+<BaseLayout title={title} description={description}>
+  <main class="mx-auto max-w-5xl px-6 py-16 sm:py-20">
+    <p class="text-sm font-semibold uppercase tracking-[0.25em] text-slate-500">Implementation Task List</p>
+    <h1 class="mt-3 text-4xl font-bold tracking-tight text-slate-950 dark:text-white sm:text-5xl">HairCard</h1>
+    <p class="mt-5 max-w-3xl text-lg leading-8 text-slate-700 dark:text-slate-300">{description}</p>
+
+    <div class="mt-8 flex flex-wrap gap-3">
+      {links.map(([label, href]) => (
+        <a href={href} class="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm hover:border-slate-400 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200">
+          {label}
+        </a>
+      ))}
+    </div>
+
+    <section class="mt-10 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <h2 class="text-2xl font-bold text-slate-950 dark:text-white">Execution Principle</h2>
+      <p class="mt-4 leading-7 text-slate-700 dark:text-slate-300">
+        Build the narrowest paid funnel first: landing, lightweight consultation flow, selfie upload, free teaser, checkout, generated PDF, and delivery. Avoid building a full account dashboard or virtual try-on until users prove the paid report is valuable.
+      </p>
+    </section>
+
+    <section class="mt-12 space-y-6">
+      {phases.map((phase, phaseIndex) => (
+        <article class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p class="text-sm font-semibold text-slate-500">Phase {phaseIndex + 1}</p>
+              <h2 class="mt-1 text-2xl font-bold text-slate-950 dark:text-white">{phase.title}</h2>
+              <p class="mt-2 leading-7 text-slate-700 dark:text-slate-300">{phase.objective}</p>
+            </div>
+          </div>
+          <div class="mt-5 space-y-3">
+            {phase.tasks.map(([task, detail, priority]) => (
+              <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950/60">
+                <div class="flex flex-wrap items-center gap-2">
+                  <h3 class="font-semibold text-slate-950 dark:text-white">{task}</h3>
+                  <span class="rounded-full bg-slate-900 px-2.5 py-1 text-xs font-bold text-white dark:bg-slate-100 dark:text-slate-900">{priority}</span>
+                </div>
+                <p class="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-300">{detail}</p>
+              </div>
+            ))}
+          </div>
+        </article>
+      ))}
+    </section>
+
+    <section class="mt-12 rounded-3xl border border-slate-950 bg-slate-950 p-6 text-white dark:border-slate-700">
+      <h2 class="text-2xl font-bold">MVP Acceptance Criteria</h2>
+      <ul class="mt-4 space-y-3 text-slate-200">
+        {acceptanceCriteria.map((item) => <li>• {item}</li>)}
+      </ul>
+    </section>
+  </main>
+</BaseLayout>
