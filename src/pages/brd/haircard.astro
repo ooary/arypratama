@@ -1,0 +1,307 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const title = "BRD — HairCard";
+const description = "Business Requirements Document for HairCard, an AI-powered personalized hairstyle report that turns a selfie and short quiz into a barber-ready 15-page PDF.";
+
+const objectives = [
+  "Validate whether users will pay for a personalized hairstyle report before a haircut or salon visit.",
+  "Build a simple consumer funnel: landing page, short quiz, selfie upload, free teaser, paid PDF unlock.",
+  "Position the product around practical haircut confidence, not beauty scoring.",
+  "Collect early buyer feedback to improve the report template, pricing, and acquisition angle.",
+];
+
+const personas = [
+  {
+    name: "Men, 18–35",
+    description: "Users who want to look cleaner, sharper, more mature, more attractive, or more professional but usually tell the barber to just trim it.",
+    pains: ["Cannot explain the haircut they want", "Fear of a bad haircut", "Confused by fade, fringe, crop, middle part, comma hair, and similar trends"],
+    outcomes: ["Know which haircut direction fits", "Get a clear barber brief", "Feel more confident for photos, work, dating, and daily life"],
+  },
+  {
+    name: "Women, 18–35",
+    description: "Users considering a new cut, layer, bangs, color, or face-framing direction but unsure whether the reference will fit their face and hair.",
+    pains: ["Fear that a cut will make the face look wider or shorter", "Unsure whether bangs, layers, or color will work", "Pinterest references feel generic"],
+    outcomes: ["Know which cut direction is safer", "Know what to avoid", "Bring a clearer brief to the salon"],
+  },
+];
+
+const mvpScope = [
+  "Landing page with sample report preview and privacy reassurance",
+  "Single-question quiz flow with progress indicator",
+  "Selfie upload with preview and clear/reupload action",
+  "Free teaser result with one recommendation and one avoid note",
+  "Paywall with name and email capture",
+  "Payment checkout",
+  "AI-generated structured report content",
+  "Premium 15-page PDF generated from an HTML template",
+  "Result page and email delivery",
+  "Basic order and report status tracking",
+];
+
+const outOfScope = [
+  "Native mobile app",
+  "Real-time virtual try-on as the core MVP",
+  "Barber or salon marketplace",
+  "Salon booking",
+  "Full user account dashboard",
+  "Medical hair or scalp diagnosis",
+  "Automated affiliate product marketplace",
+];
+
+const quiz = [
+  ["Which one are you?", ["Male", "Female", "Prefer not to say / style-neutral"]],
+  ["How satisfied are you with your current hair?", ["Scale 1–10", "needs help → fully confident"]],
+  ["What is your main hair problem?", ["Too flat", "Too puffy", "Hard to style", "Hair looks thin", "Forehead balance", "Face shape feels off", "Not sure what haircut to choose"]],
+  ["What is your current hair length?", ["Very short", "Short", "Medium", "Long", "Very long"]],
+  ["What is your hair texture?", ["Straight", "Wavy", "Curly", "Coily", "Not sure — read from photo"]],
+  ["How much effort are you comfortable with?", ["Low maintenance", "3–5 minutes daily", "Okay with products", "Okay with tools / blow dryer"]],
+  ["What style direction do you want?", ["Clean / professional", "Korean / soft", "Sharp / masculine", "Elegant / feminine", "Edgy / expressive", "Natural everyday"]],
+  ["What do you want your haircut to improve most?", ["Look more professional", "Look more attractive in photos", "Balance forehead", "Make face look slimmer", "Make jawline look sharper", "Look younger / fresher"]],
+  ["Upload selfie", ["Front selfie required", "Side profile optional in a later version"]],
+];
+
+const reportPages = [
+  ["HairCard Summary", "Overall direction, confidence score, and top recommendation."],
+  ["Face Shape & Proportion", "Face shape, forehead, jaw, and cheekbone balance."],
+  ["Hair Type & Texture Read", "Visible texture, density assumption, and volume behavior."],
+  ["Best Haircut Direction", "Main style category and why it fits."],
+  ["Top 3 Recommended Hairstyles", "Style name, fit rationale, and maintenance level."],
+  ["Styles to Avoid", "Cuts and shapes that may hurt proportion or maintenance."],
+  ["Barber / Salon Brief", "Exact instruction the user can show to a barber or salon."],
+  ["Front View Guide", "Fringe, top volume, face-framing, and front silhouette."],
+  ["Side Profile Guide", "Sideburn, taper, fade, layers, neckline, and ear area."],
+  ["Daily Styling Routine", "3-minute, 5-minute, and event-mode styling."],
+  ["Product Match", "Clay, pomade, cream, mousse, sea salt, gel, and heat protectant guidance."],
+  ["Color Direction", "Natural tone, warm/cool direction, and highlight safety."],
+  ["Occasion Looks", "Daily, work/interview, date, event, and photo modes."],
+  ["Maintenance Plan", "Trim schedule, next appointment instruction, and growth plan."],
+  ["Reference Board & Checklist", "Reference keywords, product list, and barber checklist."],
+];
+
+const functionalRequirements = [
+  {
+    title: "Landing page",
+    items: ["Show product positioning clearly", "Start quiz from a primary CTA", "Show sample report preview", "Include privacy reassurance and FAQ"],
+  },
+  {
+    title: "Quiz",
+    items: ["Single question per screen", "Progress indicator", "Auto-advance for single choice", "Manual next for multi-choice", "Back button", "Session answer storage"],
+  },
+  {
+    title: "Upload",
+    items: ["Accept JPG, PNG, WEBP, and HEIC/HEIF if feasible", "Validate file size", "Show preview", "Allow reupload", "Require a clear front selfie"],
+  },
+  {
+    title: "AI generation",
+    items: ["Use quiz answers and selfie to produce structured JSON", "Ground output in visible cues and stated preferences", "Avoid body-shaming language", "Include non-medical disclaimer"],
+  },
+  {
+    title: "PDF and delivery",
+    items: ["Generate from HTML template", "Look premium and mobile-readable", "Include page numbers", "Provide result page and email download link"],
+  },
+];
+
+const safetyRules = [
+  "Do not diagnose medical hair or scalp conditions.",
+  "Do not claim certainty about genetics, health, or ethnicity.",
+  "Do not frame the product as an objective attractiveness score.",
+  "Use language like based on the photo provided, likely, appears, and best direction.",
+  "Focus on practical style direction and barber/salon communication.",
+];
+
+const metrics = [
+  "Landing to quiz-start rate",
+  "Quiz-start to upload rate",
+  "Upload to paywall-view rate",
+  "Paywall to checkout-click rate",
+  "Checkout to paid-conversion rate",
+  "Payment to successful-report-generation rate",
+  "Report usefulness rating",
+  "Would you show this to your barber/salon?",
+];
+
+const risks = [
+  ["Generic recommendations", "Use specific quiz answers, personalized avoid lists, and concrete barber/salon instructions."],
+  ["Poor photo quality", "Give clear upload instructions and ask for reupload when the face is not visible."],
+  ["Unrealistic hairstyle previews", "Keep virtual try-on out of the MVP core; use written instructions and references first."],
+  ["Sensitive appearance feedback", "Use supportive language and avoid beauty-score framing."],
+  ["Medical expectation", "Add clear disclaimers and avoid scalp or hair-loss diagnosis."],
+];
+
+const buildOrder = [
+  "Landing page and sample report preview",
+  "Quiz UI",
+  "Upload and paywall",
+  "Manual or semi-automated report generation for the first 10–20 orders",
+  "Structured AI generation and PDF template automation",
+  "Payment and result recovery",
+  "Report quality improvements from buyer feedback",
+];
+---
+
+<BaseLayout title={title} description={description}>
+  <main class="mx-auto max-w-5xl px-6 py-16 sm:py-20">
+    <p class="text-sm font-semibold uppercase tracking-[0.25em] text-slate-500">Business Requirements Document</p>
+    <h1 class="mt-3 text-4xl font-bold tracking-tight text-slate-950 sm:text-5xl">HairCard</h1>
+    <p class="mt-5 max-w-3xl text-lg leading-8 text-slate-700">{description}</p>
+
+    <section class="mt-10 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+      <h2 class="text-2xl font-bold text-slate-950">Product Summary</h2>
+      <p class="mt-4 leading-7 text-slate-700">
+        HairCard is an AI personalized hairstyle report that helps users choose a better haircut from a selfie, a short preference quiz, and a practical target outcome. The paid product is a premium 15-page PDF with face-shape analysis, haircut direction, avoid list, barber or salon instructions, styling routine, product guidance, and maintenance plan.
+      </p>
+      <blockquote class="mt-5 border-l-4 border-slate-950 pl-4 text-lg font-semibold text-slate-950">
+        Stop guessing your next haircut. Upload a selfie and get a barber-ready hairstyle report.
+      </blockquote>
+    </section>
+
+    <section class="mt-12 grid gap-6 md:grid-cols-2">
+      <div class="rounded-3xl border border-slate-200 bg-slate-50 p-6">
+        <h2 class="text-xl font-bold text-slate-950">Business Objectives</h2>
+        <ul class="mt-4 space-y-3 text-slate-700">
+          {objectives.map((item) => <li>• {item}</li>)}
+        </ul>
+      </div>
+      <div class="rounded-3xl border border-slate-200 bg-slate-50 p-6">
+        <h2 class="text-xl font-bold text-slate-950">Core Value Proposition</h2>
+        <p class="mt-4 leading-7 text-slate-700">
+          HairCard gives users a practical haircut direction and an exact way to communicate it to a barber or salon. The product should feel useful enough to bring to an appointment, not just entertaining enough to share.
+        </p>
+      </div>
+    </section>
+
+    <section class="mt-12">
+      <h2 class="text-2xl font-bold text-slate-950">Target Users</h2>
+      <div class="mt-5 grid gap-6 md:grid-cols-2">
+        {personas.map((persona) => (
+          <article class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h3 class="text-xl font-semibold text-slate-950">{persona.name}</h3>
+            <p class="mt-3 text-slate-700">{persona.description}</p>
+            <h4 class="mt-5 font-semibold text-slate-950">Pain points</h4>
+            <ul class="mt-2 space-y-2 text-slate-700">{persona.pains.map((item) => <li>• {item}</li>)}</ul>
+            <h4 class="mt-5 font-semibold text-slate-950">Desired outcomes</h4>
+            <ul class="mt-2 space-y-2 text-slate-700">{persona.outcomes.map((item) => <li>• {item}</li>)}</ul>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="mt-12 grid gap-6 md:grid-cols-2">
+      <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 class="text-2xl font-bold text-slate-950">MVP Scope</h2>
+        <ul class="mt-4 space-y-2 text-slate-700">{mvpScope.map((item) => <li>• {item}</li>)}</ul>
+      </div>
+      <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 class="text-2xl font-bold text-slate-950">Out of Scope</h2>
+        <ul class="mt-4 space-y-2 text-slate-700">{outOfScope.map((item) => <li>• {item}</li>)}</ul>
+      </div>
+    </section>
+
+    <section class="mt-12">
+      <h2 class="text-2xl font-bold text-slate-950">MVP Quiz Flow</h2>
+      <div class="mt-5 space-y-4">
+        {quiz.map(([question, options], index) => (
+          <article class="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+            <p class="text-sm font-semibold text-slate-500">Step {index + 1}</p>
+            <h3 class="mt-1 text-lg font-semibold text-slate-950">{question}</h3>
+            <p class="mt-2 text-slate-700">{options.join(" · ")}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="mt-12">
+      <h2 class="text-2xl font-bold text-slate-950">Free vs Paid Result</h2>
+      <div class="mt-5 grid gap-6 md:grid-cols-2">
+        <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h3 class="text-xl font-semibold text-slate-950">Free Teaser</h3>
+          <ul class="mt-4 space-y-2 text-slate-700">
+            <li>• Probable face shape</li>
+            <li>• One recommended haircut direction</li>
+            <li>• One thing to avoid</li>
+            <li>• Blurred preview of the full report</li>
+          </ul>
+        </div>
+        <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h3 class="text-xl font-semibold text-slate-950">Paid Report</h3>
+          <ul class="mt-4 space-y-2 text-slate-700">
+            <li>• Full 15-page PDF</li>
+            <li>• Top 3 hairstyles</li>
+            <li>• Avoid list</li>
+            <li>• Barber / salon instruction card</li>
+            <li>• Styling, product, and maintenance plan</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="mt-12">
+      <h2 class="text-2xl font-bold text-slate-950">15-Page Report Structure</h2>
+      <div class="mt-5 grid gap-4 md:grid-cols-3">
+        {reportPages.map(([pageTitle, body], index) => (
+          <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p class="text-sm font-semibold text-slate-500">Page {index + 1}</p>
+            <h3 class="mt-1 font-semibold text-slate-950">{pageTitle}</h3>
+            <p class="mt-2 text-sm leading-6 text-slate-700">{body}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="mt-12">
+      <h2 class="text-2xl font-bold text-slate-950">Functional Requirements</h2>
+      <div class="mt-5 grid gap-6 md:grid-cols-2">
+        {functionalRequirements.map((group) => (
+          <article class="rounded-3xl border border-slate-200 bg-slate-50 p-6">
+            <h3 class="text-lg font-semibold text-slate-950">{group.title}</h3>
+            <ul class="mt-3 space-y-2 text-slate-700">{group.items.map((item) => <li>• {item}</li>)}</ul>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="mt-12 grid gap-6 md:grid-cols-2">
+      <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 class="text-2xl font-bold text-slate-950">Safety and Privacy</h2>
+        <ul class="mt-4 space-y-2 text-slate-700">{safetyRules.map((item) => <li>• {item}</li>)}</ul>
+      </div>
+      <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 class="text-2xl font-bold text-slate-950">Pricing Hypothesis</h2>
+        <p class="mt-4 leading-7 text-slate-700">
+          Recommended MVP pricing: one paid product at Rp49.000, with a Rp29.000 launch discount for early users. Later tiers can add hairstyle mockups or a richer reference board at Rp79.000–99.000.
+        </p>
+      </div>
+    </section>
+
+    <section class="mt-12 grid gap-6 md:grid-cols-2">
+      <div class="rounded-3xl border border-slate-200 bg-slate-50 p-6">
+        <h2 class="text-2xl font-bold text-slate-950">Success Metrics</h2>
+        <ul class="mt-4 space-y-2 text-slate-700">{metrics.map((item) => <li>• {item}</li>)}</ul>
+      </div>
+      <div class="rounded-3xl border border-slate-200 bg-slate-50 p-6">
+        <h2 class="text-2xl font-bold text-slate-950">Build Order</h2>
+        <ol class="mt-4 list-decimal space-y-2 pl-5 text-slate-700">{buildOrder.map((item) => <li>{item}</li>)}</ol>
+      </div>
+    </section>
+
+    <section class="mt-12">
+      <h2 class="text-2xl font-bold text-slate-950">Risks and Mitigations</h2>
+      <div class="mt-5 space-y-4">
+        {risks.map(([risk, mitigation]) => (
+          <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h3 class="font-semibold text-slate-950">{risk}</h3>
+            <p class="mt-2 text-slate-700">{mitigation}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="mt-12 rounded-3xl border border-slate-950 bg-slate-950 p-6 text-white">
+      <h2 class="text-2xl font-bold">Recommendation</h2>
+      <p class="mt-4 leading-7 text-slate-200">
+        Start with HairCard as the broad product name, but run the first campaign around the clearest use case: “Get a barber-ready haircut report from your selfie.” This keeps the product practical, reduces cringe, and makes the paid PDF feel immediately useful.
+      </p>
+    </section>
+  </main>
+</BaseLayout>
