@@ -73,14 +73,14 @@ const reportPages = [
   },
   {
     no: "07",
-    title: "Trend-Aware Direction",
-    label: "Social reference",
-    purpose: "Masukin value sosmed tapi tetap filtered. Bukan ikut trend buta, tapi trend yang disesuaikan wajah.",
-    message: "Use the softer version of this trend, not the extreme version you see on TikTok.",
-    big: "Soft two-block inspired texture works if the fringe is lighter and the sides stay controlled.",
-    modules: ["Trend match", "Face fit", "What to copy", "What to avoid", "Maintenance", "Reference angle"],
-    imageSlots: ["Trend preview", "Reference board crop", "Face-compatible version"],
-    variant: "trend",
+    title: "Outfit & Activity Fit",
+    label: "Complete look",
+    purpose: "Menghubungkan haircut ke konteks hidup user: kerja, LinkedIn photo, date, hangout, dan daily casual. Ini bikin user kebayang complete look, bukan rambut doang.",
+    message: "Your haircut should match the situations you actually show up in — professional, social, and casual.",
+    big: "This cut works best with clean structure: crisp shirts for professional settings, smart-casual layers for social events, and simple relaxed pieces for daily wear.",
+    modules: ["Work fit", "LinkedIn photo", "Smart casual", "Informal day", "Outfit avoid", "Photo note"],
+    imageSlots: ["Professional outfit pairing", "LinkedIn photo look", "Informal casual look", "Haircut + outfit moodboard"],
+    variant: "outfit",
   },
   {
     no: "08",
@@ -172,8 +172,8 @@ const reportPages = [
   },
 ];
 
-const heroMetrics = ["15-page premium report", "20+ visual slots", "Barber-ready brief", "Trend-aware references"];
-const sampleModules = ["Face Shape", "Hair Type", "Best Cut", "Avoid Styles", "Barber Card", "Routine", "Maintenance", "References"];
+const heroMetrics = ["15-page premium report", "20+ visual slots", "Barber-ready brief", "Outfit/activity fit"];
+const sampleModules = ["Face Shape", "Hair Type", "Best Cut", "Avoid Styles", "Barber Card", "Outfits", "Maintenance", "References"];
 ---
 
 <BaseLayout title={title} description={description}>
@@ -188,7 +188,7 @@ const sampleModules = ["Face Shape", "Hair Type", "Best Cut", "Avoid Styles", "B
         <div class="hc-copy">
           <p class="eyebrow">AI Hair Report</p>
           <h1>Find your HairCard cut.</h1>
-          <p class="lead">Get a personalized haircut report from your selfie — face-shape analysis, AI hairstyle previews, barber instructions, and curated social references.</p>
+          <p class="lead">Get a personalized haircut report from your selfie — matched to your face shape, hair behavior, outfits, and the activities you actually show up in: work, LinkedIn photos, dates, and casual life.</p>
           <div class="hero-metrics">
             {heroMetrics.map((metric) => <span>{metric}</span>)}
           </div>
@@ -236,7 +236,7 @@ const sampleModules = ["Face Shape", "Hair Type", "Best Cut", "Avoid Styles", "B
     <p class="eyebrow">Design direction</p>
     <h2>Lebih dekat ke FaceCard: landing simple, report preview-nya yang padat.</h2>
       <p>
-      Versi ini sengaja dibuat lebih comprehensive dan premium: halaman report kelihatan seperti real deliverable, bukan cuma wireframe. Copy report tetap English; catatan fungsi tetap Indonesia supaya gampang review produk.
+      Versi ini sengaja dibuat lebih comprehensive dan premium: halaman report kelihatan seperti real deliverable, bukan cuma wireframe. Promise MVP sekarang bukan trend chasing, tapi haircut yang cocok dengan face shape, hair behavior, dan konteks aktivitas user seperti kerja, LinkedIn photo, date, dan casual life.
     </p>
     <a class="review-cta" href="#report-pages">Review 15 report pages <span>↓</span></a>
   </section>
@@ -308,7 +308,7 @@ const sampleModules = ["Face Shape", "Hair Type", "Best Cut", "Avoid Styles", "B
     <p class="eyebrow">Next iteration</p>
     <h2>Kalau direction ini oke, next step-nya bukan nambah copy — tapi masukin real visual.</h2>
     <p>
-      Gue akan generate sample visual untuk 8–12 slot kunci: cover portrait, current vs recommended, 3 best haircut previews, 3 avoid styles, side/front guide, dan social reference board. Baru setelah itu kita judge apakah perceived value-nya sudah FaceCard-level.
+      Gue akan generate sample visual untuk 8–12 slot kunci: cover portrait, current vs recommended, 3 best haircut previews, 3 avoid styles, side/front guide, dan outfit/activity pairing untuk professional, LinkedIn photo, dan casual look. Baru setelah itu kita judge apakah perceived value-nya sudah FaceCard-level.
     </p>
   </section>
 </BaseLayout>
@@ -453,6 +453,10 @@ const sampleModules = ["Face Shape", "Hair Type", "Best Cut", "Avoid Styles", "B
   .variant-avoid .verdict { background: #3a1510; }
   .variant-board .visual-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .variant-board .visual-strip div { min-height: 112px; }
+  .variant-outfit .visual-main { min-height: 360px; background:
+      linear-gradient(140deg, rgba(31,23,16,0.16), rgba(208,138,67,0.22)),
+      repeating-linear-gradient(90deg, rgba(31,23,16,0.10) 0 5px, rgba(255,255,255,0.34) 5px 11px); }
+  .variant-outfit .module-grid div:nth-child(1), .variant-outfit .module-grid div:nth-child(2), .variant-outfit .module-grid div:nth-child(3) { background: #f2c981; border-color: rgba(31,23,16,0.42); }
   .final-note { background: #21170f; }
   .final-note h2, .final-note p:not(.eyebrow) { color: #fff7e9; }
   .final-note .eyebrow { color: #f1c581; }
