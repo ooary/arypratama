@@ -49,16 +49,67 @@ const outOfScope = [
   "Automated affiliate product marketplace",
 ];
 
-const quiz = [
-  ["Which one are you?", ["Male", "Female", "Prefer not to say / style-neutral"]],
-  ["How satisfied are you with your current hair?", ["Scale 1–10", "needs help → fully confident"]],
-  ["What is your main hair problem?", ["Too flat", "Too puffy", "Hard to style", "Hair looks thin", "Forehead balance", "Face shape feels off", "Not sure what haircut to choose"]],
-  ["What is your current hair length?", ["Very short", "Short", "Medium", "Long", "Very long"]],
-  ["What is your hair texture?", ["Straight", "Wavy", "Curly", "Coily", "Not sure — read from photo"]],
-  ["How much effort are you comfortable with?", ["Low maintenance", "3–5 minutes daily", "Okay with products", "Okay with tools / blow dryer"]],
-  ["What style direction do you want?", ["Clean / professional", "Korean / soft", "Sharp / masculine", "Elegant / feminine", "Edgy / expressive", "Natural everyday"]],
-  ["What do you want your haircut to improve most?", ["Look more professional", "Look more attractive in photos", "Balance forehead", "Make face look slimmer", "Make jawline look sharper", "Look younger / fresher"]],
-  ["Upload selfie", ["Front selfie required", "Side profile optional in a later version"]],
+const uxUserFlow = [
+  {
+    title: "Landing page",
+    userIntent: "Understand the promise quickly and decide whether it is worth trying.",
+    screen: "Hero, sample report preview, privacy line, FAQ link, and primary CTA: Find my haircut.",
+    productPurpose: "Create trust and make the outcome concrete: a barber-ready hairstyle report, not a beauty score.",
+  },
+  {
+    title: "Start quiz",
+    userIntent: "Give lightweight context without feeling like a long form.",
+    screen: "Single-question screens with progress indicator, back button, and auto-advance for simple choices.",
+    productPurpose: "Build commitment while collecting enough preference data to make the report feel personal.",
+  },
+  {
+    title: "Identity and current confidence",
+    userIntent: "Tell the product what kind of styling direction is relevant.",
+    screen: "Gender/style preference and current hair satisfaction scale from needs help to fully confident.",
+    productPurpose: "Set tone, pronouns/style assumptions, and baseline confidence for the report summary.",
+  },
+  {
+    title: "Hair problem diagnosis",
+    userIntent: "Explain what feels wrong with the current hair.",
+    screen: "Main hair problem, current hair length, and hair texture questions.",
+    productPurpose: "Identify constraints such as flatness, puffiness, thin appearance, forehead balance, or styling difficulty.",
+  },
+  {
+    title: "Preference and lifestyle fit",
+    userIntent: "Make sure recommendations match daily effort and desired vibe.",
+    screen: "Maintenance level, style direction, and desired improvement questions.",
+    productPurpose: "Avoid recommending high-effort or off-vibe hairstyles that users will not actually maintain.",
+  },
+  {
+    title: "Selfie upload",
+    userIntent: "Provide the visual input needed for face-shape and proportion analysis.",
+    screen: "Front selfie upload with preview, clear/reupload action, and clear photo guidance. Side profile is optional for later versions.",
+    productPurpose: "Connect quiz context with visible cues: face shape, forehead balance, jawline, hair volume, and current cut.",
+  },
+  {
+    title: "Free teaser result",
+    userIntent: "See immediate value before paying.",
+    screen: "Probable face shape, one best haircut direction, one avoid note, and blurred premium report preview.",
+    productPurpose: "Prove personalization and create a natural reason to unlock the full report.",
+  },
+  {
+    title: "Paywall and checkout",
+    userIntent: "Decide whether the full 15-page report is worth buying.",
+    screen: "Name/email form, premium report benefits, price, trust line, and payment CTA.",
+    productPurpose: "Convert after the user has invested effort and seen a useful teaser.",
+  },
+  {
+    title: "Report generation",
+    userIntent: "Wait with confidence that the report is being prepared.",
+    screen: "Result page with generation status, expected timing, support note, and recovery link behavior.",
+    productPurpose: "Reduce anxiety after payment and prevent duplicate payments or support confusion.",
+  },
+  {
+    title: "Report delivery and next action",
+    userIntent: "Use the report before visiting a barber or salon.",
+    screen: "Downloadable 15-page PDF, barber/salon brief, checklist, and email backup link.",
+    productPurpose: "Make the output actionable and collect feedback on whether the user would show it to a barber/salon.",
+  },
 ];
 
 const reportPages = [
@@ -199,13 +250,20 @@ const buildOrder = [
     </section>
 
     <section class="mt-12">
-      <h2 class="text-2xl font-bold text-slate-950">MVP Quiz Flow</h2>
+      <h2 class="text-2xl font-bold text-slate-950">MVP UX User Flow</h2>
+      <p class="mt-3 max-w-3xl leading-7 text-slate-700">
+        The MVP flow should feel like a lightweight guided consultation, not a questionnaire. Each step must either build trust, collect a useful styling constraint, or move the user closer to a barber-ready report.
+      </p>
       <div class="mt-5 space-y-4">
-        {quiz.map(([question, options], index) => (
+        {uxUserFlow.map((step, index) => (
           <article class="rounded-2xl border border-slate-200 bg-slate-50 p-5">
             <p class="text-sm font-semibold text-slate-500">Step {index + 1}</p>
-            <h3 class="mt-1 text-lg font-semibold text-slate-950">{question}</h3>
-            <p class="mt-2 text-slate-700">{options.join(" · ")}</p>
+            <h3 class="mt-1 text-lg font-semibold text-slate-950">{step.title}</h3>
+            <div class="mt-3 grid gap-3 text-sm leading-6 text-slate-700 md:grid-cols-3">
+              <p><span class="font-semibold text-slate-950">User intent:</span> {step.userIntent}</p>
+              <p><span class="font-semibold text-slate-950">Screen:</span> {step.screen}</p>
+              <p><span class="font-semibold text-slate-950">Product purpose:</span> {step.productPurpose}</p>
+            </div>
           </article>
         ))}
       </div>
