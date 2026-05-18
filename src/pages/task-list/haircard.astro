@@ -34,8 +34,8 @@ const phases = [
     title: "Phase 2 — Database and Core Backend",
     objective: "Build the persistence layer for anonymous funnel sessions, paid orders, async generation, and recovery links.",
     tasks: [
-      ["2.1", "Create sessions table", "Store anonymous session token, source/UTM, status, started_at, last_seen_at, and completed_at.", "P0", "Not Started"],
-      ["2.2", "Create quiz answers table", "Store question_key, answer_value_json, step_index, and answered_at per session.", "P0", "Not Started"],
+      ["2.1", "Create sessions table", "Added migration, RLS-locked table design, typed status/token validation, service-role helpers, tests, and database docs for anonymous funnel sessions. Hosted Supabase migration is pending real SUPABASE_DB_URL/database password.", "P0", "In Progress"],
+      ["2.2", "Create quiz answers table", "Added migration, session-scoped upsert design, typed answer validation, service-role helpers, tests, and docs for incremental quiz answers. Hosted Supabase migration is pending real SUPABASE_DB_URL/database password.", "P0", "In Progress"],
       ["2.3", "Create customers table", "Store name, email, locale, consent fields, and timestamps after paywall capture.", "P0", "Not Started"],
       ["2.4", "Create uploads table", "Track selfie storage_key, mime_type, file_size, dimensions, status, and deleted_at.", "P0", "Not Started"],
       ["2.5", "Create photo quality checks table", "Store face_detected, frontal_score, lighting_score, blur_score, and rejection_reason.", "P1", "Not Started"],
