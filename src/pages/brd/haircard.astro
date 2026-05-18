@@ -61,14 +61,14 @@ const uxUserFlow = [
   {
     title: "Start quiz",
     userIntent: "Give lightweight context without feeling like a long form.",
-    screen: "Single-question screens with progress indicator, back button, and auto-advance for simple choices. Required inputs: front selfie, gender/style lane, current problem, current length, hair texture, maintenance level, desired outcome, lifestyle context, risk level, and hard-no styles.",
+    screen: "Single-question screens with progress indicator, back button, and auto-advance for simple choices. First question after start must be gender/style lane because the following questions and Page 02/Page 06 report logic branch from it. Required inputs: front selfie, gender/style lane, current problem, current length, hair texture, maintenance level, desired outcome, lifestyle context, risk level, and hard-no styles.",
     productPurpose: "Build commitment while collecting enough preference data to make the report feel personal.",
   },
   {
     title: "Identity and current confidence",
     userIntent: "Tell the product what kind of styling direction is relevant.",
-    screen: "Gender/style preference and current hair satisfaction scale from needs help to fully confident.",
-    productPurpose: "Set tone, pronouns/style assumptions, and baseline confidence for the report summary.",
+    screen: "Gender/style lane as first branching question: masculine/barber-style, feminine/salon-style, androgynous, or not sure. Then ask current hair satisfaction.",
+    productPurpose: "Route the rest of the quiz and report prompt: taper/fade/barber logic for masculine lane; layers/bangs/length/color/salon logic for feminine lane; neutral shortness-comfort logic for androgynous/unsure.",
   },
   {
     title: "Hair problem diagnosis",
@@ -116,11 +116,11 @@ const uxUserFlow = [
 
 const reportPages = [
   ["Baseline Input", "Original uploaded selfie, photo quality notes, and the source image used for analysis."],
-  ["Executive Summary", "Fast verdict: fit score, primary direction, backup option, and key warnings."],
+  ["Executive Summary", "Fast verdict branched by gender/style lane: barber-style cut logic, salon-style shape/layer/bangs logic, or neutral androgynous direction."],
   ["Face Shape & Proportion", "Face shape, forehead, jaw, cheekbone balance, and side-width risk."],
   ["Hair Type & Behavior", "Visible texture, density assumption, growth behavior, and styling constraint."],
   ["Primary Haircut Recommendation", "Main style direction with top length, side treatment, fringe/front, neckline/back, and finish."],
-  ["Safe Upgrade Option", "Conservative version for users who want a cleaner look without dramatic change."],
+  ["Safe Upgrade Option", "Gender/style-aware conservative version: cleanup/taper for barber lane, length-preserving layers/lob/bangs decisions for salon lane, neutral option for androgynous/unsure."],
   ["Outfit & Activity Fit", "Work, LinkedIn, weekend, and social-context fit based on user lifestyle."],
   ["Styles to Avoid", "Bad-fit popular styles and why they conflict with face/hair behavior."],
   ["Barber Instruction Card", "Screenshot-ready barber/salon script, do/don't, length, finish, and reference note."],
@@ -139,7 +139,7 @@ const functionalRequirements = [
   },
   {
     title: "Quiz",
-    items: ["Single question per screen", "Progress indicator", "Auto-advance for single choice", "Manual next for multi-choice", "Back button", "Session answer storage", "Ask only questions that map to report pages", "Include occasion, risk level, and hard-no styles"],
+    items: ["Single question per screen", "Progress indicator", "Auto-advance for single choice", "Manual next for multi-choice", "Back button", "Session answer storage", "Ask gender/style lane first", "Branch next questions by gender/style lane", "Ask only questions that map to report pages", "Include occasion, risk level, and hard-no styles"],
   },
   {
     title: "Upload",
@@ -147,7 +147,7 @@ const functionalRequirements = [
   },
   {
     title: "AI generation",
-    items: ["Use quiz answers and selfie to produce structured JSON", "Ground output in visible cues and stated preferences", "Avoid body-shaming language", "Include non-medical disclaimer"],
+    items: ["Use quiz answers and selfie to produce structured JSON", "Apply gender/style-lane branch before generating Page 02 and Page 06", "Ground output in visible cues and stated preferences", "Avoid body-shaming language", "Include non-medical disclaimer"],
   },
   {
     title: "PDF and delivery",

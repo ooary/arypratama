@@ -9,8 +9,9 @@ const coverImage = "/references/haircard/cover-reference.png";
 
 const mvpDecision = {
   keep: [
+    "Gender / style lane must be the first question after start, before hair-problem questions.",
     "Front selfie as the required visual input.",
-    "Gender / style preference, because copy tone and hairstyle category depend on it.",
+    "Next questions branch by gender/style lane, because men/barber, women/salon, and androgynous paths need different recommendation logic.",
     "Current hair problem, because the report has to solve a felt pain, not only describe face shape.",
     "Current length + texture/density self-report, because the photo may not reveal true hair behavior.",
     "Maintenance tolerance, because a good recommendation is useless if the user will not style it.",
@@ -32,7 +33,7 @@ const mvpDecision = {
 
 const requiredInputs = [
   ["selfie_front", "Required", "Primary image for face proportion, visible hairline, volume, forehead, jaw/cheek balance, current cut."],
-  ["gender_style_lane", "Required", "Narrows hairstyle universe and report language: men/women/androgynous/unsure."],
+  ["gender_style_lane", "Required first", "First branching question: Masculine / barber-style, Feminine / salon-style, Androgynous, or Not sure. It controls all next questions and report language."],
   ["current_problem", "Required", "Anchors recommendation to the user pain: flat, puffy, messy, too young, too old, hard to style, etc."],
   ["current_length", "Required", "Prevents impossible recommendations and drives barber length instructions."],
   ["hair_texture", "Required", "Model can guess from photo, but self-report reduces bad advice for wavy/curly/thin/thick hair."],
@@ -63,9 +64,9 @@ const pageContract = [
   {
     no: "02",
     title: "Executive Summary",
-    purpose: "Fast answer: best direction, score, key warnings, and why.",
-    inputs: ["all core quiz answers", "selfie analysis"],
-    promptNeeds: "Produce concise verdict, fit score rationale, best cut, backup cut, and avoid headline.",
+    purpose: "Fast answer: best direction, score, key warnings, and why. This page must branch by gender/style lane, not default to male barber language.",
+    inputs: ["gender_style_lane", "all core quiz answers", "selfie analysis"],
+    promptNeeds: "For masculine/barber lane: best cut, backup cut, fade/taper warning if relevant. For feminine/salon lane: best shape/cut, backup length/layer option, bangs/color/volume warning if relevant. For androgynous/unsure: neutral options and ask comfort with shortness. Never force taper/fade language for female/salon users.",
   },
   {
     no: "03",
@@ -91,9 +92,9 @@ const pageContract = [
   {
     no: "06",
     title: "Safe Upgrade Option",
-    purpose: "Reduce anxiety for users who want improvement without a dramatic change.",
-    inputs: ["risk_level", "current_length", "desired_outcome"],
-    promptNeeds: "Generate conservative alternative with lower barber risk and clear tradeoff vs primary cut.",
+    purpose: "Reduce anxiety for users who want improvement without a dramatic change. This page is especially gender/style-lane sensitive.",
+    inputs: ["gender_style_lane", "risk_level", "current_length", "desired_outcome"],
+    promptNeeds: "Masculine/barber: conservative cleanup, natural side part, low taper only if compatible. Feminine/salon: safer shape like soft lob/bob, long layers, face-framing, curtain/wispy bangs only if accepted, length-preserving option. Androgynous/unsure: low-risk neutral cut with explicit shortness boundary. Do not output taper as default for feminine lane.",
   },
   {
     no: "07",
@@ -161,6 +162,7 @@ const pageContract = [
 ];
 
 const promptArchitecture = [
+  "Start with gender_style_lane before every other quiz branch; treat it as style-direction routing, not biological judgment.",
   "Use one multimodal analysis step to read the selfie and produce a normalized visual_analysis object.",
   "Merge visual_analysis with quiz answers into one report_context object.",
   "Generate each page from the same report_context, but with page-specific instructions and strict JSON schema.",
@@ -205,8 +207,8 @@ const promptArchitecture = [
 
   <section id="input-contract" class="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm md:p-8">
     <p class="text-xs font-bold uppercase tracking-[0.2em] text-amber-700">MVP quiz decision</p>
-    <h2 class="mt-3 text-3xl font-black tracking-tight text-slate-950">Pertanyaan MVP: 8 required + 3 add, sisanya jangan dulu.</h2>
-    <p class="mt-4 max-w-3xl leading-7 text-slate-700">Rule-nya simpel: kalau jawaban tidak mengubah rekomendasi, barber card, routine, avoid list, atau lifestyle fit, jangan ditanya di onboarding.</p>
+    <h2 class="mt-3 text-3xl font-black tracking-tight text-slate-950">Pertanyaan MVP: gender/style lane wajib paling awal, lalu branch.</h2>
+    <p class="mt-4 max-w-3xl leading-7 text-slate-700">Rule-nya simpel: gender/style lane ditanya di awal karena Page 02 dan Page 06 berubah total antara barber-style, salon-style, androgynous, dan unsure. Setelah itu, kalau jawaban tidak mengubah rekomendasi, barber/salon card, routine, avoid list, atau lifestyle fit, jangan ditanya di onboarding.</p>
     <div class="mt-6 grid gap-4">
       {requiredInputs.map(([key, status, note]) => (
         <article class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
