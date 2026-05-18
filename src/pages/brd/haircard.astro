@@ -114,6 +114,77 @@ const uxUserFlow = [
   },
 ];
 
+const userJourneyDiagram = [
+  {
+    stage: "01",
+    title: "Discover promise",
+    userAction: "User lands on HairCard, sees sample report, privacy line, and CTA.",
+    appResponse: "Explains the outcome: a barber/salon-ready PDF, not a beauty score.",
+  },
+  {
+    stage: "02",
+    title: "Start guided quiz",
+    userAction: "User taps Find my haircut and answers one question per screen.",
+    appResponse: "Creates an anonymous session, saves answers, and shows progress/back controls.",
+  },
+  {
+    stage: "03",
+    title: "Choose style lane first",
+    userAction: "User selects masculine/barber-style, feminine/salon-style, androgynous, or not sure.",
+    appResponse: "Routes the rest of the quiz and prompt system so barber terms do not leak into salon users, and vice versa.",
+  },
+  {
+    stage: "04",
+    title: "Share hair problem and goal",
+    userAction: "User answers current problem, current length, texture confirmation, desired outcome, maintenance, lifestyle, occasion, risk level, and hard-no styles.",
+    appResponse: "Maps each answer into report variables used by Pages 02, 04, 05, 06, 08, 09, 12, 13, and 15.",
+  },
+  {
+    stage: "05",
+    title: "Upload selfie",
+    userAction: "User uploads a clear front selfie, previews it, and can reupload if needed.",
+    appResponse: "Runs photo validation and vision analysis for face shape, forehead, jaw, cheek width, density, texture, growth pattern, and scalp visibility.",
+  },
+  {
+    stage: "06",
+    title: "Receive free teaser",
+    userAction: "User sees likely face shape, one best haircut direction, one avoid note, and a blurred premium preview.",
+    appResponse: "Combines quiz variables and vision output into a low-latency teaser while keeping the full 15-page prompt pipeline behind the paywall.",
+  },
+  {
+    stage: "07",
+    title: "Unlock paid report",
+    userAction: "User enters name/email, reviews benefits and price, then completes checkout.",
+    appResponse: "Creates customer/order records, handles payment redirect/webhook, and shows a recoverable generating state after payment.",
+  },
+  {
+    stage: "08",
+    title: "Wait while report generates",
+    userAction: "User stays on the result page or leaves and comes back from email/recovery link.",
+    appResponse: "Background worker runs one prompt per report page, stores each page JSON in the database, passes selected previous-page outputs into later prompts for chaining, validates the combined report, renders the 15-page PDF, retries failures, and updates status.",
+  },
+  {
+    stage: "09",
+    title: "Use the report",
+    userAction: "User downloads the PDF, saves the barber/salon instruction card, and brings it to the appointment.",
+    appResponse: "Sends email backup, exposes delete-files action, tracks download/feedback, and supports report recovery by Order ID.",
+  },
+];
+
+const journeyBranches = [
+  ["Masculine / barber-style", "Use fade, taper, crop, fringe, neckline, matte clay/pomade/wax, and barber instruction card."],
+  ["Feminine / salon-style", "Use layers, bangs, bob/lob, face-framing, color/gloss/toner language, and salon/hairstylist instruction card."],
+  ["Androgynous / not sure", "Use neutral shape/length comfort language and avoid forcing gendered style labels."],
+];
+
+const pageGenerationChain = [
+  ["Foundation", "Vision analysis + quiz answers", "Stored once as report context: visible cues, gender/style lane, goals, constraints, hard-no styles, and safety flags."],
+  ["Core analysis", "Pages 02–04", "Generate executive summary, face/proportion read, and hair behavior first because later recommendations depend on these facts."],
+  ["Recommendation", "Pages 05–08", "Use core analysis as context to generate primary recommendation, safe upgrade, outfit/activity fit, and avoid list without contradicting earlier pages."],
+  ["Instruction", "Pages 09–13", "Use selected recommendation outputs to produce barber/salon card, front/side guide, styling routine, and maintenance timeline."],
+  ["Wrap-up", "Pages 14–15", "Use all approved prior outputs to create reference direction board and final action plan."],
+];
+
 const reportPages = [
   ["Baseline Input", "Original uploaded selfie, photo quality notes, and the source image used for analysis."],
   ["Executive Summary", "Fast verdict branched by gender/style lane: barber-style cut logic, salon-style shape/layer/bangs logic, or neutral androgynous direction."],
@@ -147,7 +218,7 @@ const functionalRequirements = [
   },
   {
     title: "AI generation",
-    items: ["Use quiz answers and selfie to produce structured JSON", "Apply gender/style-lane branch before generating Page 02 and Page 06", "Ground output in visible cues and stated preferences", "Avoid body-shaming language", "Include non-medical disclaimer"],
+    items: ["Use quiz answers and selfie to produce structured JSON", "Run one prompt per report page instead of generating all 15 pages in one call", "Store every page output in the database with page_number, prompt_version, model, status, raw_output, validated_json, and dependency metadata", "Allow chained context: later page prompts may read selected validated outputs from earlier pages so recommendations stay consistent", "Apply gender/style-lane branch before generating Page 02 and Page 06", "Ground output in visible cues and stated preferences", "Avoid body-shaming language", "Include non-medical disclaimer"],
   },
   {
     title: "PDF and delivery",
@@ -380,6 +451,52 @@ const buildOrder = [
             </div>
           </article>
         ))}
+      </div>
+    </section>
+
+    <section class="mt-12">
+      <h2 class="text-2xl font-bold text-slate-950">User Journey Flow Diagram</h2>
+      <p class="mt-3 max-w-3xl leading-7 text-slate-700">
+        This is the practical path a user runs through the app, aligned with the prompt system. The key product rule: collect the style lane first, then use quiz answers plus selfie vision analysis to drive both teaser and paid report generation.
+      </p>
+      <div class="mt-6 rounded-3xl border border-slate-200 bg-slate-950 p-5 text-white shadow-sm">
+        <div class="grid gap-3 md:grid-cols-3">
+          {userJourneyDiagram.map((step, index) => (
+            <article class="relative rounded-2xl border border-white/10 bg-white/8 p-4">
+              <div class="flex items-center justify-between gap-3">
+                <span class="rounded-full bg-amber-300 px-2.5 py-1 text-xs font-bold text-slate-950">{step.stage}</span>
+                {index < userJourneyDiagram.length - 1 && <span class="hidden text-amber-200 md:block">→</span>}
+              </div>
+              <h3 class="mt-3 text-base font-bold text-white">{step.title}</h3>
+              <p class="mt-2 text-sm leading-6 text-slate-300"><span class="font-semibold text-white">User:</span> {step.userAction}</p>
+              <p class="mt-2 text-sm leading-6 text-amber-100"><span class="font-semibold text-white">App:</span> {step.appResponse}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+      <div class="mt-5 grid gap-4 md:grid-cols-3">
+        {journeyBranches.map(([lane, rule]) => (
+          <article class="rounded-2xl border border-amber-200 bg-amber-50 p-5">
+            <h3 class="font-semibold text-slate-950">{lane}</h3>
+            <p class="mt-2 text-sm leading-6 text-slate-700">{rule}</p>
+          </article>
+        ))}
+      </div>
+      <div class="mt-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h3 class="text-xl font-bold text-slate-950">Page prompt chaining model</h3>
+        <p class="mt-3 max-w-3xl leading-7 text-slate-700">
+          The paid report should not be one giant generation request. Generate per page, persist each validated output, then pass only the relevant previous outputs into later prompts. This keeps the report coherent, debuggable, retryable, and cheaper to regenerate page-by-page.
+        </p>
+        <div class="mt-5 grid gap-4 md:grid-cols-5">
+          {pageGenerationChain.map(([stage, source, rule], index) => (
+            <article class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <p class="text-sm font-semibold text-slate-500">Chain {index + 1}</p>
+              <h4 class="mt-1 font-semibold text-slate-950">{stage}</h4>
+              <p class="mt-2 text-sm font-semibold text-amber-700">{source}</p>
+              <p class="mt-2 text-sm leading-6 text-slate-700">{rule}</p>
+            </article>
+          ))}
+        </div>
       </div>
     </section>
 
