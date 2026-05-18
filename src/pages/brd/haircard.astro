@@ -61,7 +61,7 @@ const uxUserFlow = [
   {
     title: "Start quiz",
     userIntent: "Give lightweight context without feeling like a long form.",
-    screen: "Single-question screens with progress indicator, back button, and auto-advance for simple choices.",
+    screen: "Single-question screens with progress indicator, back button, and auto-advance for simple choices. Required inputs: front selfie, gender/style lane, current problem, current length, hair texture, maintenance level, desired outcome, lifestyle context, risk level, and hard-no styles.",
     productPurpose: "Build commitment while collecting enough preference data to make the report feel personal.",
   },
   {
@@ -73,19 +73,19 @@ const uxUserFlow = [
   {
     title: "Hair problem diagnosis",
     userIntent: "Explain what feels wrong with the current hair.",
-    screen: "Main hair problem, current hair length, and hair texture questions.",
+    screen: "Main hair problem, current hair length, hair texture, visible styling constraints, growth/problem area, and hard-no styles.",
     productPurpose: "Identify constraints such as flatness, puffiness, thin appearance, forehead balance, or styling difficulty.",
   },
   {
     title: "Preference and lifestyle fit",
     userIntent: "Make sure recommendations match daily effort and desired vibe.",
-    screen: "Maintenance level, style direction, and desired improvement questions.",
+    screen: "Maintenance level, style direction, desired improvement, upcoming occasion, lifestyle context, and safe-vs-noticeable-change risk level.",
     productPurpose: "Avoid recommending high-effort or off-vibe hairstyles that users will not actually maintain.",
   },
   {
     title: "Selfie upload",
     userIntent: "Provide the visual input needed for face-shape and proportion analysis.",
-    screen: "Front selfie upload with preview, clear/reupload action, and clear photo guidance. Side profile is optional for later versions.",
+    screen: "Front selfie upload with preview, clear/reupload action, and clear photo guidance. Side profile is optional for later versions; do not require it in MVP.",
     productPurpose: "Connect quiz context with visible cues: face shape, forehead balance, jawline, hair volume, and current cut.",
   },
   {
@@ -115,21 +115,21 @@ const uxUserFlow = [
 ];
 
 const reportPages = [
-  ["HairCard Summary", "Overall direction, confidence score, and top recommendation."],
-  ["Face Shape & Proportion", "Face shape, forehead, jaw, and cheekbone balance."],
-  ["Hair Type & Texture Read", "Visible texture, density assumption, and volume behavior."],
-  ["Best Haircut Direction", "Main style category and why it fits."],
-  ["Top 3 Recommended Hairstyles", "Style name, fit rationale, and maintenance level."],
-  ["Styles to Avoid", "Cuts and shapes that may hurt proportion or maintenance."],
-  ["Barber / Salon Brief", "Exact instruction the user can show to a barber or salon."],
-  ["Front View Guide", "Fringe, top volume, face-framing, and front silhouette."],
-  ["Side Profile Guide", "Sideburn, taper, fade, layers, neckline, and ear area."],
-  ["Daily Styling Routine", "3-minute, 5-minute, and event-mode styling."],
-  ["Product Match", "Clay, pomade, cream, mousse, sea salt, gel, and heat protectant guidance."],
-  ["Color Direction", "Natural tone, warm/cool direction, and highlight safety."],
-  ["Occasion Looks", "Daily, work/interview, date, event, and photo modes."],
-  ["Maintenance Plan", "Trim schedule, next appointment instruction, and growth plan."],
-  ["Reference Board & Checklist", "Reference keywords, product list, and barber checklist."],
+  ["Baseline Input", "Original uploaded selfie, photo quality notes, and the source image used for analysis."],
+  ["Executive Summary", "Fast verdict: fit score, primary direction, backup option, and key warnings."],
+  ["Face Shape & Proportion", "Face shape, forehead, jaw, cheekbone balance, and side-width risk."],
+  ["Hair Type & Behavior", "Visible texture, density assumption, growth behavior, and styling constraint."],
+  ["Primary Haircut Recommendation", "Main style direction with top length, side treatment, fringe/front, neckline/back, and finish."],
+  ["Safe Upgrade Option", "Conservative version for users who want a cleaner look without dramatic change."],
+  ["Outfit & Activity Fit", "Work, LinkedIn, weekend, and social-context fit based on user lifestyle."],
+  ["Styles to Avoid", "Bad-fit popular styles and why they conflict with face/hair behavior."],
+  ["Barber Instruction Card", "Screenshot-ready barber/salon script, do/don't, length, finish, and reference note."],
+  ["Front View Shape Guide", "Good vs bad front silhouette, fringe line, temple width, and volume target."],
+  ["Side Profile & Taper Guide", "Taper height, side wall, sideburn, neckline, and fade warning."],
+  ["Styling Routine & Products", "Repeatable routine, product type, amount, technique, and avoid notes."],
+  ["Maintenance Timeline", "Best photo window, cleanup trigger, weekly grow-out notes, and next appointment timing."],
+  ["Reference Direction Board", "Curated reference keywords and visual direction rules, not exact-copy references."],
+  ["Final Action Plan", "Checklist for barber card, reference choice, styling routine, avoid list, and cleanup schedule."],
 ];
 
 const functionalRequirements = [
@@ -139,7 +139,7 @@ const functionalRequirements = [
   },
   {
     title: "Quiz",
-    items: ["Single question per screen", "Progress indicator", "Auto-advance for single choice", "Manual next for multi-choice", "Back button", "Session answer storage"],
+    items: ["Single question per screen", "Progress indicator", "Auto-advance for single choice", "Manual next for multi-choice", "Back button", "Session answer storage", "Ask only questions that map to report pages", "Include occasion, risk level, and hard-no styles"],
   },
   {
     title: "Upload",
@@ -307,6 +307,18 @@ const buildOrder = [
       <blockquote class="mt-5 border-l-4 border-slate-950 pl-4 text-lg font-semibold text-slate-950">
         Stop guessing your next haircut. Upload a selfie and get a barber-ready hairstyle report.
       </blockquote>
+    </section>
+
+    <section class="mt-6 rounded-3xl border border-amber-200 bg-amber-50 p-6 shadow-sm">
+      <p class="text-sm font-semibold uppercase tracking-[0.2em] text-amber-700">Canonical report reference</p>
+      <h2 class="mt-2 text-2xl font-bold text-slate-950">Final sample report is the product contract.</h2>
+      <p class="mt-3 leading-7 text-slate-700">
+        Use the report reference page as the source of truth for MVP UX, quiz inputs, page-specific system prompts, structured JSON schema, and PDF rendering rules. Every onboarding question must map to at least one report page.
+      </p>
+      <div class="mt-4 flex flex-wrap gap-3">
+        <a class="rounded-full bg-slate-950 px-4 py-2 text-sm font-bold text-white" href="/report/haircard">Open report reference</a>
+        <a class="rounded-full border border-amber-300 bg-white px-4 py-2 text-sm font-bold text-slate-900" href="/references/haircard/haircard-report-v3-reference.pdf">Open PDF</a>
+      </div>
     </section>
 
     <section class="mt-12 grid gap-6 md:grid-cols-2">
