@@ -26,7 +26,7 @@ const phases = [
       ["1.7", "Define structured report schema", "Added Zod source-of-truth schemas in the HairCard app for gender_lane, visual_analysis, quiz_context, shared items/stats, and core report pages 02/05/06/09/15 with runtime validation tests. Remaining non-core page schemas can be expanded after first generation loop.", "P0", "Done"],
       ["1.8", "Define page-by-page prompt contract", "Added typed prompt-contract map derived from /prompt/haircard: all 15 pages are registered with source ids, required variables, branch mode, shared safety/system prompt, and core page prompts/schemas for 02/05/06/09/15.", "P0", "Done"],
       ["1.9", "Define AI provider abstraction", "Added minimal OpenAI-first/Gemini-ready structured-output provider layer with shared generateStructuredObject input, provider adapters, and Zod as the final validation gate before report JSON is accepted.", "P0", "Done"],
-      ["1.10", "Define safety and FAQ copy", "Lock medical disclaimer, privacy line, retention policy, free vs premium explanation, and payment/report recovery FAQ.", "P0", "Not Started"],
+      ["1.10", "Define safety and FAQ copy", "Added centralized hardcoded MVP copy contract in the HairCard app for medical disclaimer, privacy line, 30-day retention, AI uncertainty, free vs premium explanation, and payment/report recovery FAQ, with docs and tests. No DB storage for product copy.", "P0", "Done"],
     ],
   },
   {
