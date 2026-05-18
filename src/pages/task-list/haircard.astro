@@ -36,9 +36,9 @@ const phases = [
     tasks: [
       ["2.1", "Create sessions table", "Applied hosted Supabase migration via session pooler, verified service-role REST insert/delete, RLS-locked sessions table, typed token/status helpers, tests, and database docs for anonymous funnel sessions.", "P0", "Done"],
       ["2.2", "Create quiz answers table", "Applied hosted Supabase migration via session pooler, verified quiz answer insert and cascade delete, session-scoped upsert design, typed answer validation, service-role helpers, tests, and docs.", "P0", "Done"],
-      ["2.3", "Create customers table", "Store name, email, locale, consent fields, and timestamps after paywall capture.", "P0", "Not Started"],
-      ["2.4", "Create uploads table", "Track selfie storage_key, mime_type, file_size, dimensions, status, and deleted_at.", "P0", "Not Started"],
-      ["2.5", "Create photo quality checks table", "Store face_detected, frontal_score, lighting_score, blur_score, and rejection_reason.", "P1", "Not Started"],
+      ["2.3", "Create customers table", "Applied hosted Supabase migration for customers with name/email/locale/consent fields, RLS locked down, typed service-role upsert/get helpers, tests, and live REST verification.", "P0", "Done"],
+      ["2.4", "Create uploads table", "Applied hosted Supabase migration for private storage metadata: storage_bucket, storage_key, mime_type, file_size, dimensions, status, uploaded_at/deleted_at, helpers, tests, and live REST verification.", "P0", "Done"],
+      ["2.5", "Create photo quality checks table", "Applied hosted Supabase migration for selfie quality gate results: face_detected, frontal/lighting/blur scores, decision, rejection_reason, helpers, tests, and live REST verification.", "P1", "Done"],
       ["2.6", "Create teaser results table", "Store probable face shape, one recommended direction, one avoid note, and preview_payload_json.", "P0", "Not Started"],
       ["2.7", "Create orders table", "Store order_no, session/customer references, amount, currency, status, paid_at, and recovery token.", "P0", "Not Started"],
       ["2.8", "Create payments table", "Store provider IDs, payment status, amount, currency, raw webhook payload, and paid_at.", "P0", "Not Started"],
