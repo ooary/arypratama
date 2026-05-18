@@ -513,7 +513,7 @@
 <span class="k">Cheek width:</span> <span class="v">{{cheek_read}}</span>
 <span class="k">Hair density (visible):</span> <span class="v">{{density}}</span> <span class="c">// "low" | "medium" | "high"</span>
 <span class="k">Hair texture (visible):</span> <span class="v">{{texture}}</span> <span class="c">// "straight" | "slight-wave" | "wavy" | "curly" | "coily"</span>
-<span class="k">Current length:</span> <span class="v">{{current_length}}</span>
+<span class="k">Current length (inferred from selfie):</span> <span class="v">{{current_length}}</span> <span class="c">// do not ask user to classify exact hair length</span>
 <span class="k">Growth pattern:</span> <span class="v">{{growth_pattern}}</span> <span class="c">// e.g. "front lift", "cowlick at crown", "even"</span>
 <span class="k">Scalp visibility:</span> <span class="v">{{scalp_visible}}</span> <span class="c">// "yes" | "no" | "slightly"</span>
 
@@ -765,7 +765,7 @@ Required output schema:
   "hair_texture": string,       // "straight" | "slight-wave" | "wavy" | "curly" | "coily"
   "hair_density": string,       // "low" | "medium" | "high"
   "hair_color": string,         // general color descriptor, e.g. "dark brown", "black", "light brown", "blonde", "grey"
-  "current_length": string,     // "buzz" | "short" | "medium-short" | "medium" | "medium-long" | "long"
+  "current_length": string,     // inferred from selfie: "buzz" | "short" | "medium-short" | "medium" | "medium-long" | "long" | "unclear"
   "growth_pattern": string,     // "even" | "front-lift" | "cowlick-crown" | "receding-temples" | "unclear"
   "scalp_visible": string,      // "yes" | "no" | "slightly"
   "thinning_detected": boolean, // true only if clearly visible thinning or receding areas
@@ -803,7 +803,7 @@ Required output schema:
   "hair_texture": string,       // "straight" | "slight-wave" | "wavy" | "curly" | "coily"
   "hair_density": string,       // "low" | "medium" | "high"
   "hair_color": string,         // general color descriptor, e.g. "dark brown", "black", "light brown", "blonde", "grey"
-  "current_length": string,     // "pixie" | "bob" | "lob" | "shoulder" | "collarbone" | "chest-length" | "long" | "unclear"
+  "current_length": string,     // inferred from selfie: "pixie" | "bob" | "lob" | "shoulder" | "collarbone" | "chest-length" | "long" | "unclear"
   "parting": string,            // "middle" | "side" | "off-center" | "no-clear-part" | "unclear"
   "bangs_or_fringe": string,    // "none" | "curtain" | "wispy" | "blunt" | "side-swept" | "covered/unclear"
   "layer_visibility": string,   // "none-visible" | "subtle" | "clear" | "heavy" | "unclear"

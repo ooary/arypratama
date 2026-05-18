@@ -61,7 +61,7 @@ const uxUserFlow = [
   {
     title: "Start quiz",
     userIntent: "Give lightweight context without feeling like a long form.",
-    screen: "Single-question screens with progress indicator, back button, and auto-advance for simple choices. First question after start must be gender/style lane because the following questions and Page 02/Page 06 report logic branch from it. Required inputs: front selfie, gender/style lane, current problem, current length, hair texture, maintenance level, desired outcome, lifestyle context, risk level, and hard-no styles.",
+    screen: "Single-question screens with progress indicator, back button, and auto-advance for simple choices. First question after start must be gender/style lane because the following questions and Page 02/Page 06 report logic branch from it. Required inputs: front selfie, gender/style lane, current problem, current hair situation, hair texture confirmation, maintenance level, desired outcome, lifestyle context, risk level, and hard-no styles. Do not ask users to classify exact hair length; infer current length from the selfie during vision analysis.",
     productPurpose: "Build commitment while collecting enough preference data to make the report feel personal.",
   },
   {
@@ -73,7 +73,7 @@ const uxUserFlow = [
   {
     title: "Hair problem diagnosis",
     userIntent: "Explain what feels wrong with the current hair.",
-    screen: "Main hair problem, current hair length, hair texture, visible styling constraints, growth/problem area, and hard-no styles.",
+    screen: "Main hair problem, current hair situation, hair texture confirmation, visible styling constraints, growth/problem area, and hard-no styles. Current length should be inferred from the selfie, not asked as a standalone user question.",
     productPurpose: "Identify constraints such as flatness, puffiness, thin appearance, forehead balance, or styling difficulty.",
   },
   {
@@ -136,7 +136,7 @@ const userJourneyDiagram = [
   {
     stage: "04",
     title: "Share hair problem and goal",
-    userAction: "User answers current problem, current length, texture confirmation, desired outcome, maintenance, lifestyle, occasion, risk level, and hard-no styles.",
+    userAction: "User answers current problem, current hair situation, texture confirmation, desired outcome, maintenance, lifestyle, occasion, risk level, and hard-no styles. Exact current length is inferred from the selfie.",
     appResponse: "Maps each answer into report variables used by Pages 02, 04, 05, 06, 08, 09, 12, 13, and 15.",
   },
   {
