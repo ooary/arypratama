@@ -1,0 +1,37 @@
+---
+const title = "HairCard Prompt Master Page";
+const description = "Prompt architecture and page-by-page prompt system for the HairCard AI report application.";
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+    <style is:global>
+      html,
+      body {
+        margin: 0;
+        width: 100%;
+        min-height: 100%;
+        background: #fffcf5;
+      }
+
+      .prompt-frame {
+        width: 100%;
+        min-height: 100vh;
+        border: 0;
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <iframe
+      class="prompt-frame"
+      src="/references/haircard-prompt/index.html"
+      title="HairCard Prompt Master Page"
+    ></iframe>
+  </body>
+</html>

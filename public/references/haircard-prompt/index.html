@@ -1,0 +1,2301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HairCard — Prompt System v1</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FFFCF5;
+    --surface: #FFF6E8;
+    --surface2: #F5ECD8;
+    --border: #E0D0B8;
+    --amber: #F0A830;
+    --amber-dark: #A85C0A;
+    --text: #2A1A08;
+    --text-muted: #8A7258;
+    --green-bg: #EBF7EF;
+    --green: #2E8C58;
+    --green-border: #82C49A;
+    --blue-bg: #EEF5FC;
+    --blue: #2C5C80;
+    --blue-border: #7AAAC8;
+    --red-bg: #FFF2F0;
+    --red: #C03020;
+    --red-border: #FFCCC8;
+    --purple-bg: #F5EEFF;
+    --purple: #6030A0;
+    --purple-border: #C0A0E8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── LAYOUT ── */
+  .shell { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    background: var(--surface2);
+    border-right: 1px solid var(--border);
+    padding: 32px 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    flex-shrink: 0;
+  }
+
+  .sidebar-brand {
+    padding: 0 24px 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+
+  .sidebar-brand-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--amber-dark);
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .sidebar-brand-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 900;
+    color: var(--text);
+  }
+
+  .sidebar-section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--amber-dark);
+    padding: 12px 24px 6px;
+    display: block;
+  }
+
+  .sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 24px;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-left: 2px solid transparent;
+    transition: all 0.15s;
+    text-decoration: none;
+  }
+
+  .sidebar-item:hover { color: var(--text); background: rgba(240,168,48,0.06); }
+  .sidebar-item.active { color: var(--amber-dark); border-left-color: var(--amber); background: rgba(240,168,48,0.08); font-weight: 600; }
+
+  .page-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 8.5px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 5px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+
+  .sidebar-item.active .page-badge { background: var(--amber); border-color: var(--amber); color: var(--text); }
+
+  /* ── MAIN ── */
+  .main { padding: 48px 56px; max-width: 900px; }
+
+  /* ── GENDER TOGGLE ── */
+  .gender-toggle {
+    display: inline-flex;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 4px;
+    gap: 4px;
+    margin-bottom: 40px;
+  }
+
+  .gender-btn {
+    padding: 8px 20px;
+    border-radius: 7px;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: transparent;
+    color: var(--text-muted);
+  }
+
+  .gender-btn.active-m { background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue-border); }
+  .gender-btn.active-f { background: var(--purple-bg); color: var(--purple); border: 1px solid var(--purple-border); }
+  .gender-btn:not(.active-m):not(.active-f):hover { background: var(--surface); color: var(--text); }
+
+  /* ── SECTION ── */
+  .section { margin-bottom: 64px; }
+
+  .section-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 8.5px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--amber-dark);
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px;
+    font-weight: 900;
+    color: var(--text);
+    margin-bottom: 8px;
+    line-height: 1.15;
+  }
+
+  .section-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.7;
+    margin-bottom: 28px;
+    max-width: 580px;
+  }
+
+  /* ── PROMPT BLOCK ── */
+  .prompt-block {
+    background: #1A1208;
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+
+  .prompt-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .prompt-header-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--amber);
+  }
+
+  .copy-btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: rgba(240,168,48,0.15);
+    border: 1px solid rgba(240,168,48,0.3);
+    color: var(--amber);
+    border-radius: 5px;
+    padding: 4px 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .copy-btn:hover { background: rgba(240,168,48,0.25); }
+  .copy-btn.copied { background: var(--green-bg); border-color: var(--green-border); color: var(--green); }
+
+  .prompt-body {
+    padding: 20px 24px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11.5px;
+    line-height: 1.75;
+    color: rgba(255,255,255,0.82);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .prompt-body .k { color: #F0A830; } /* key / label */
+  .prompt-body .v { color: #A8D8A8; } /* value / variable */
+  .prompt-body .c { color: rgba(255,255,255,0.35); } /* comment */
+  .prompt-body .rule { color: #FFB8A0; } /* rule */
+  .prompt-body .branch { color: #C0D8FF; } /* branch logic */
+
+  /* ── PAGE CARD ── */
+  .page-card {
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+
+  .page-card-header {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 22px;
+    background: var(--surface);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .page-card-header:hover { background: #FFF0D8; }
+
+  .page-num-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    background: var(--text);
+    color: var(--bg);
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .page-card-title { font-size: 14px; font-weight: 700; color: var(--text); }
+  .page-card-subtitle { font-size: 11.5px; color: var(--text-muted); margin-top: 1px; }
+
+  .page-card-chevron {
+    font-size: 12px;
+    color: var(--text-muted);
+    transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+
+  .page-card.open .page-card-chevron { transform: rotate(180deg); }
+
+  .page-card-body {
+    display: none;
+    padding: 20px 22px 22px;
+    border-top: 1px solid var(--border);
+    background: var(--bg);
+  }
+
+  .page-card.open .page-card-body { display: block; }
+
+  /* ── BRANCH TABS ── */
+  .branch-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .branch-tab {
+    padding: 6px 14px;
+    border-radius: 7px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1.5px solid transparent;
+    transition: all 0.15s;
+  }
+
+  .branch-tab.male { background: var(--blue-bg); color: var(--blue); border-color: var(--blue-border); opacity: 0.45; }
+  .branch-tab.female { background: var(--purple-bg); color: var(--purple); border-color: var(--purple-border); opacity: 0.45; }
+  .branch-tab.both { background: var(--surface2); color: var(--text-muted); border-color: var(--border); opacity: 0.45; }
+  .branch-tab.active { opacity: 1; }
+
+  /* ── VARIABLE TABLE ── */
+  .var-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 16px;
+    font-size: 12px;
+  }
+
+  .var-table th {
+    font-family: 'DM Mono', monospace;
+    font-size: 8.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    text-align: left;
+    padding: 6px 10px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .var-table td {
+    padding: 8px 10px;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+
+  .var-table tr:last-child td { border-bottom: none; }
+  .var-table .var-name { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--amber-dark); font-weight: 500; }
+  .var-table .var-source { font-size: 11px; color: var(--text-muted); }
+  .var-table .var-desc { font-size: 12px; color: var(--text); }
+
+  /* ── RULE CARD ── */
+  .rule-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .rule-card {
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+
+  .rule-card.must { background: var(--green-bg); border: 1px solid var(--green-border); }
+  .rule-card.must .rule-title { color: var(--green); }
+  .rule-card.never { background: var(--red-bg); border: 1px solid var(--red-border); }
+  .rule-card.never .rule-title { color: var(--red); }
+
+  .rule-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 8.5px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+
+  /* ── INFO CHIP ── */
+  .chip-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+
+  .chip {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11.5px;
+    font-weight: 500;
+    border: 1px solid transparent;
+  }
+
+  .chip-amber { background: #FFF8D8; color: var(--amber-dark); border-color: #FFE88A; }
+  .chip-blue { background: var(--blue-bg); color: var(--blue); border-color: var(--blue-border); }
+  .chip-purple { background: var(--purple-bg); color: var(--purple); border-color: var(--purple-border); }
+  .chip-green { background: var(--green-bg); color: var(--green); border-color: var(--green-border); }
+
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+  /* ── JSON OUTPUT NOTE ── */
+  .output-note {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-size: 12.5px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+
+  .output-note strong { color: var(--text); }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+<!-- ══ SIDEBAR ══ -->
+<nav class="sidebar">
+  <div class="sidebar-brand">
+    <span class="sidebar-brand-tag">HairCard</span>
+    <div class="sidebar-brand-title">Prompt System</div>
+  </div>
+
+  <span class="sidebar-section-label">Foundation</span>
+  <a class="sidebar-item active" href="#master" onclick="scrollTo('master')">
+    <span class="page-badge">M</span> Master Context
+  </a>
+  <a class="sidebar-item" href="#quiz-map" onclick="scrollTo('quiz-map')">
+    <span class="page-badge">Q</span> Quiz → Variable Map
+  </a>
+  <a class="sidebar-item" href="#gender-branch" onclick="scrollTo('gender-branch')">
+    <span class="page-badge">G</span> Gender Branch Logic
+  </a>
+
+  <span class="sidebar-section-label">Page Prompts</span>
+  <a class="sidebar-item" href="#p01" onclick="scrollTo('p01')"><span class="page-badge">01</span> Baseline Input</a>
+  <a class="sidebar-item" href="#p02" onclick="scrollTo('p02')"><span class="page-badge">02</span> Executive Summary</a>
+  <a class="sidebar-item" href="#p03" onclick="scrollTo('p03')"><span class="page-badge">03</span> Face Shape</a>
+  <a class="sidebar-item" href="#p04" onclick="scrollTo('p04')"><span class="page-badge">04</span> Hair Behavior</a>
+  <a class="sidebar-item" href="#p05" onclick="scrollTo('p05')"><span class="page-badge">05</span> Primary Rec</a>
+  <a class="sidebar-item" href="#p06" onclick="scrollTo('p06')"><span class="page-badge">06</span> Safe Upgrade</a>
+  <a class="sidebar-item" href="#p07" onclick="scrollTo('p07')"><span class="page-badge">07</span> Outfit Fit</a>
+  <a class="sidebar-item" href="#p08" onclick="scrollTo('p08')"><span class="page-badge">08</span> Avoid Styles</a>
+  <a class="sidebar-item" href="#p09" onclick="scrollTo('p09')"><span class="page-badge">09</span> Barber Card</a>
+  <a class="sidebar-item" href="#p10" onclick="scrollTo('p10')"><span class="page-badge">10</span> Front View Guide</a>
+  <a class="sidebar-item" href="#p11" onclick="scrollTo('p11')"><span class="page-badge">11</span> Taper / Layer Guide</a>
+  <a class="sidebar-item" href="#p12" onclick="scrollTo('p12')"><span class="page-badge">12</span> Styling Routine</a>
+  <a class="sidebar-item" href="#p13" onclick="scrollTo('p13')"><span class="page-badge">13</span> Maintenance Timeline</a>
+  <a class="sidebar-item" href="#p14" onclick="scrollTo('p14')"><span class="page-badge">14</span> Reference Board</a>
+  <a class="sidebar-item" href="#p15" onclick="scrollTo('p15')"><span class="page-badge">15</span> Final Action Plan</a>
+
+  <span class="sidebar-section-label">Image Prompts</span>
+  <a class="sidebar-item" href="#vision-prompt" onclick="scrollTo('vision-prompt')">
+    <span class="page-badge">👁</span> Vision Analysis
+  </a>
+  <a class="sidebar-item" href="#img-map" onclick="scrollTo('img-map')">
+    <span class="page-badge">🗺</span> Image Slot Map
+  </a>
+  <a class="sidebar-item" href="#img-constraints" onclick="scrollTo('img-constraints')">
+    <span class="page-badge">⚠</span> Image Constraints
+  </a>
+  <a class="sidebar-item" href="#img-pg02" onclick="scrollTo('img-pg02')"><span class="page-badge">02</span> Exec Summary</a>
+  <a class="sidebar-item" href="#img-pg05" onclick="scrollTo('img-pg05')"><span class="page-badge">05</span> Primary Rec Views</a>
+  <a class="sidebar-item" href="#img-pg07" onclick="scrollTo('img-pg07')"><span class="page-badge">07</span> Outfit × Activity</a>
+  <a class="sidebar-item" href="#img-pg08" onclick="scrollTo('img-pg08')"><span class="page-badge">08</span> Avoid Styles</a>
+  <a class="sidebar-item" href="#img-pg10" onclick="scrollTo('img-pg10')"><span class="page-badge">10</span> Angle Guide</a>
+  <a class="sidebar-item" href="#img-pg14" onclick="scrollTo('img-pg14')"><span class="page-badge">14</span> Before / After</a>
+
+  <span class="sidebar-section-label">Output</span>
+  <a class="sidebar-item" href="#json-schema" onclick="scrollTo('json-schema')">
+    <span class="page-badge">J</span> JSON Schema
+  </a>
+  <a class="sidebar-item" href="#safety" onclick="scrollTo('safety')">
+    <span class="page-badge">S</span> Safety Rules
+  </a>
+</nav>
+
+<!-- ══ MAIN ══ -->
+<main class="main">
+
+  <span class="section-tag">HairCard AI System</span>
+  <h1 class="section-title" style="font-size:40px;margin-bottom:12px;">Prompt System<br>Documentation</h1>
+  <p class="section-desc">Master context prompt + 15 page-specific prompts, gender-branched for male (barber lane) dan female (salon lane). Semua prompt menggunakan variabel dari quiz answers dan vision analysis.</p>
+
+  <div class="gender-toggle" id="global-gender-toggle">
+    <button class="gender-btn active-m" onclick="setGender('male')">♂ Male / Barber Lane</button>
+    <button class="gender-btn" onclick="setGender('female')">♀ Female / Salon Lane</button>
+  </div>
+
+  <!-- ══════════════ MASTER PROMPT ══════════════ -->
+  <div class="section" id="master">
+    <span class="section-tag">Foundation</span>
+    <h2 class="section-title">Master Context Prompt</h2>
+    <p class="section-desc">Dikirim sebagai <code style="background:var(--surface2);padding:2px 6px;border-radius:4px;font-family:'DM Mono',monospace;font-size:11px;">system</code> message di setiap API call. Semua page prompt di-append setelahnya sebagai <code style="background:var(--surface2);padding:2px 6px;border-radius:4px;font-family:'DM Mono',monospace;font-size:11px;">user</code> message.</p>
+
+    <div class="prompt-block">
+      <div class="prompt-header">
+        <span class="prompt-header-label">system_prompt / master_context</span>
+        <button class="copy-btn" onclick="copyPrompt(this, 'master-text')">Copy</button>
+      </div>
+      <div class="prompt-body" id="master-text"><span class="c"># HairCard — Master Analysis Context</span>
+
+<span class="k">You are a professional hairstyle analyst and barber/salon consultant.</span>
+<span class="k">Your task is to generate one specific page of a premium 15-page HairCard report.</span>
+
+<span class="c">## Client Profile</span>
+<span class="k">Name:</span> <span class="v">{{client_name}}</span>
+<span class="k">Age:</span> <span class="v">{{client_age}}</span>
+<span class="k">Gender Lane:</span> <span class="v">{{gender_lane}}</span> <span class="c">// "male-barber" | "female-salon" | "androgynous"</span>
+
+<span class="c">## Vision Analysis (from selfie)</span>
+<span class="k">Face shape:</span> <span class="v">{{face_shape}}</span> <span class="c">// e.g. "oval-leaning, soft rectangular jaw"</span>
+<span class="k">Forehead:</span> <span class="v">{{forehead_read}}</span> <span class="c">// e.g. "balanced", "broad", "narrow"</span>
+<span class="k">Jaw:</span> <span class="v">{{jaw_read}}</span> <span class="c">// e.g. "soft rectangular", "sharp angular", "rounded"</span>
+<span class="k">Cheek width:</span> <span class="v">{{cheek_read}}</span>
+<span class="k">Hair density (visible):</span> <span class="v">{{density}}</span> <span class="c">// "low" | "medium" | "high"</span>
+<span class="k">Hair texture (visible):</span> <span class="v">{{texture}}</span> <span class="c">// "straight" | "slight-wave" | "wavy" | "curly" | "coily"</span>
+<span class="k">Current length:</span> <span class="v">{{current_length}}</span>
+<span class="k">Growth pattern:</span> <span class="v">{{growth_pattern}}</span> <span class="c">// e.g. "front lift", "cowlick at crown", "even"</span>
+<span class="k">Scalp visibility:</span> <span class="v">{{scalp_visible}}</span> <span class="c">// "yes" | "no" | "slightly"</span>
+
+<span class="c">## Quiz Answers</span>
+<span class="k">Current problem:</span> <span class="v">{{problem}}</span> <span class="c">// e.g. "hair looks flat", "unsure which cut fits"</span>
+<span class="k">Desired outcome:</span> <span class="v">{{desired_outcome}}</span> <span class="c">// e.g. "sharper, more professional"</span>
+<span class="k">Maintenance level:</span> <span class="v">{{maintenance}}</span> <span class="c">// "low" | "medium" | "high"</span>
+<span class="k">Style direction:</span> <span class="v">{{style_direction}}</span> <span class="c">// e.g. "clean modern", "natural casual", "edgy"</span>
+<span class="k">Lifestyle context:</span> <span class="v">{{lifestyle}}</span> <span class="c">// e.g. "office + weekend cafe", "creative industry"</span>
+<span class="k">Upcoming occasion:</span> <span class="v">{{occasion}}</span> <span class="c">// e.g. "job interview next month", "none"</span>
+<span class="k">Risk level:</span> <span class="v">{{risk_level}}</span> <span class="c">// "safe" | "moderate" | "noticeable-change"</span>
+<span class="k">Hard-no styles:</span> <span class="v">{{hard_nos}}</span> <span class="c">// e.g. "no shaved sides", "no bleach"</span>
+<span class="k">Fit score (computed):</span> <span class="v">{{fit_score}}</span> <span class="c">// integer 1–100</span>
+
+<span class="c">## Gender Lane Branch Rules</span>
+<span class="branch">IF gender_lane == "male-barber":</span>
+  <span class="c">→ Use barber terminology: fade, taper, crop, undercut, fringe, neckline</span>
+  <span class="c">→ Focus on: top length, side treatment (taper/fade height), neckline shape</span>
+  <span class="c">→ Finish recommendations: matte clay, pomade, wax — never "serum" or "gloss"</span>
+  <span class="c">→ Instruction card target: barber, not salon</span>
+
+<span class="branch">IF gender_lane == "female-salon":</span>
+  <span class="c">→ Use salon terminology: layers, bangs, lob, bob, face-framing, balayage, toner</span>
+  <span class="c">→ Focus on: length preservation preference, layer weight, face-framing angle, fringe type</span>
+  <span class="c">→ Finish recommendations: serum, mousse, heat protectant, dry texture spray</span>
+  <span class="c">→ Instruction card target: salon/hairstylist, not barber</span>
+
+<span class="branch">IF gender_lane == "androgynous":</span>
+  <span class="c">→ Neutral terminology, focus on shape/length comfort, avoid gendered style labels</span>
+
+<span class="c">## Output Rules (apply to every page)</span>
+<span class="rule">ALWAYS ground recommendations in visible selfie cues, not assumptions.</span>
+<span class="rule">NEVER use body-shaming language (avoid: "hide", "disguise", "fix your face").</span>
+<span class="rule">NEVER claim certainty about genetics, ethnicity, or health conditions.</span>
+<span class="rule">USE hedging language: "appears", "based on the photo", "likely", "best direction for".</span>
+<span class="rule">AVOID filler phrases: "great news!", "amazing", "stunning transformation".</span>
+<span class="rule">KEEP tone: direct, confident, practical — like a trusted barber/stylist consultant.</span>
+<span class="rule">OUTPUT format: structured JSON matching the page schema. No markdown prose.</span></div>
+    </div>
+
+    <div class="rule-row">
+      <div class="rule-card must">
+        <span class="rule-title">✓ Always Include</span>
+        Kirim master prompt sebagai <strong>system</strong> message. Setiap page prompt sebagai <strong>user</strong> message. Vision analysis hasil dari vision LLM terpisah yang sudah jalan duluan.
+      </div>
+      <div class="rule-card never">
+        <span class="rule-title">✕ Never Do</span>
+        Jangan generate semua 15 halaman dalam satu API call. Panggil per halaman, atau batch 3–4 halaman paralel dengan page prompt masing-masing.
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ QUIZ → VARIABLE MAP ══════════════ -->
+  <div class="section" id="quiz-map">
+    <span class="section-tag">Foundation</span>
+    <h2 class="section-title">Quiz → Variable Map</h2>
+    <p class="section-desc">Setiap quiz question harus menghasilkan setidaknya satu variabel yang dipakai di report. Tidak ada pertanyaan kosong.</p>
+
+    <table class="var-table">
+      <thead>
+        <tr>
+          <th>Variable</th>
+          <th>Sumber</th>
+          <th>Dipakai di Page</th>
+          <th>Keterangan</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="var-name">{{gender_lane}}</td>
+          <td class="var-source">Quiz Q1 (first branch)</td>
+          <td class="var-desc">02, 05, 06, 09, 11</td>
+          <td class="var-desc">Paling kritis. Branch semua logic dari sini.</td>
+        </tr>
+        <tr>
+          <td class="var-name">{{face_shape}}</td>
+          <td class="var-source">Vision LLM (selfie)</td>
+          <td class="var-desc">03, 05, 08, 10</td>
+          <td class="var-desc">Dihasilkan dari analisis foto, bukan quiz.</td>
+        </tr>
+        <tr>
+          <td class="var-name">{{texture}}</td>
+          <td class="var-source">Vision LLM + Quiz Q4</td>
+          <td class="var-desc">04, 05, 12</td>
+          <td class="var-desc">Vision sebagai ground truth, quiz sebagai konfirmasi.</td>
+        </tr>
+        <tr>
+          <td class="var-name">{{problem}}</td>
+          <td class="var-source">Quiz Q2</td>
+          <td class="var-desc">02, 04, 08</td>
+          <td class="var-desc">e.g. "rambut lepek", "muka keliatan lebar"</td>
+        </tr>
+        <tr>
+          <td class="var-name">{{desired_outcome}}</td>
+          <td class="var-source">Quiz Q5</td>
+          <td class="var-desc">02, 05, 15</td>
+          <td class="var-desc">e.g. "lebih profesional", "lebih muda", "lebih clean"</td>
+        </tr>
+        <tr>
+          <td class="var-name">{{maintenance}}</td>
+          <td class="var-source">Quiz Q6</td>
+          <td class="var-desc">05, 06, 12, 13</td>
+          <td class="var-desc">Low = hindari cut yang butuh styling harian.</td>
+        </tr>
+        <tr>
+          <td class="var-name">{{lifestyle}}</td>
+          <td class="var-source">Quiz Q7</td>
+          <td class="var-desc">07, 09, 15</td>
+          <td class="var-desc">e.g. "office + weekend", "creative freelancer"</td>
+        </tr>
+        <tr>
+          <td class="var-name">{{risk_level}}</td>
+          <td class="var-source">Quiz Q8</td>
+          <td class="var-desc">05, 06</td>
+          <td class="var-desc">"safe" → konservatif. "noticeable" → bold rec.</td>
+        </tr>
+        <tr>
+          <td class="var-name">{{hard_nos}}</td>
+          <td class="var-source">Quiz Q9</td>
+          <td class="var-desc">05, 08, 09</td>
+          <td class="var-desc">Harus di-exclude dari semua recommendation.</td>
+        </tr>
+        <tr>
+          <td class="var-name">{{occasion}}</td>
+          <td class="var-source">Quiz Q10</td>
+          <td class="var-desc">02, 07</td>
+          <td class="var-desc">e.g. "interview bulan depan" → push professional cut.</td>
+        </tr>
+        <tr>
+          <td class="var-name">{{fit_score}}</td>
+          <td class="var-source">Computed (server-side)</td>
+          <td class="var-desc">Cover, 02, 09, 15</td>
+          <td class="var-desc">Hitung dari face shape match × maintenance match × risk alignment.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══════════════ GENDER BRANCH LOGIC ══════════════ -->
+  <div class="section" id="gender-branch">
+    <span class="section-tag">Foundation</span>
+    <h2 class="section-title">Gender Branch Logic</h2>
+    <p class="section-desc">Halaman yang fully branched berbeda kontennya antara male dan female. Halaman shared hanya beda terminologi.</p>
+
+    <table class="var-table">
+      <thead>
+        <tr><th>Page</th><th>Male Branch</th><th>Female Branch</th><th>Shared?</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="var-name">Pg 02 Summary</td>
+          <td class="var-desc">Barber cut verdict: crop/taper/fade logic</td>
+          <td class="var-desc">Salon verdict: layers/bangs/length logic</td>
+          <td class="var-source">Fully branched</td>
+        </tr>
+        <tr>
+          <td class="var-name">Pg 05 Primary Rec</td>
+          <td class="var-desc">Top length cm, taper height, neckline</td>
+          <td class="var-desc">Length cm, layer weight, fringe type, face-framing</td>
+          <td class="var-source">Fully branched</td>
+        </tr>
+        <tr>
+          <td class="var-name">Pg 06 Safe Upgrade</td>
+          <td class="var-desc">Conservative taper cleanup</td>
+          <td class="var-desc">Length-preserving lob / soft bangs option</td>
+          <td class="var-source">Fully branched</td>
+        </tr>
+        <tr>
+          <td class="var-name">Pg 09 Barber Card</td>
+          <td class="var-desc">"Show this to your barber" script</td>
+          <td class="var-desc">"Show this to your hairstylist" script</td>
+          <td class="var-source">Fully branched</td>
+        </tr>
+        <tr>
+          <td class="var-name">Pg 11 Profile Guide</td>
+          <td class="var-desc">Taper height, side wall, sideburn, fade warning</td>
+          <td class="var-desc">Layer graduation, face-framing angle, curtain bangs rule</td>
+          <td class="var-source">Fully branched</td>
+        </tr>
+        <tr>
+          <td class="var-name">Pg 03 Face Shape</td>
+          <td class="var-desc" colspan="2">Same analysis, different silhouette goal (width control vs volume framing)</td>
+          <td class="var-source">Shared + tweak</td>
+        </tr>
+        <tr>
+          <td class="var-name">Pg 04 Hair Behavior</td>
+          <td class="var-desc" colspan="2">Same read, different product recommendation at end</td>
+          <td class="var-source">Shared + tweak</td>
+        </tr>
+        <tr>
+          <td class="var-name">Pg 07 Outfit</td>
+          <td class="var-desc" colspan="2">Same lifestyle slots, different styling context</td>
+          <td class="var-source">Shared + tweak</td>
+        </tr>
+        <tr>
+          <td class="var-name">Pg 12 Routine</td>
+          <td class="var-desc" colspan="2">Steps same, products differ (clay vs serum/mousse)</td>
+          <td class="var-source">Shared + tweak</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══════════════ PAGE PROMPTS ══════════════ -->
+
+  <!-- helper: page card rendered by JS -->
+  <div class="section">
+    <span class="section-tag">Page Prompts</span>
+    <h2 class="section-title">Per-Page Prompts</h2>
+    <p class="section-desc">Klik halaman untuk expand. Toggle gender di atas untuk switch branch. Semua prompt siap copy-paste ke API call.</p>
+
+    <div id="page-prompts"></div>
+  </div>
+
+  <!-- ══════════════ VISION ANALYSIS PROMPT ══════════════ -->
+  <div class="section" id="vision-prompt">
+    <span class="section-tag">Image Prompts</span>
+    <h2 class="section-title">Vision Analysis Prompt</h2>
+    <p class="section-desc">Dijalankan <strong>pertama kali</strong> sebelum semua page prompt. Input: selfie image. Output: structured JSON yang jadi variabel di master context. Pakai vision-capable model (GPT-4o / Claude 3.5 Sonnet / Gemini Pro Vision).</p>
+
+    <div class="prompt-block">
+      <div class="prompt-header">
+        <span class="prompt-header-label">vision_prompt / selfie_analysis</span>
+        <button class="copy-btn" onclick="copyPrompt(this, 'vision-text')">Copy</button>
+      </div>
+      <div class="prompt-body" id="vision-text">You are a professional hairstyle analyst. Analyze the uploaded selfie photo and return a structured JSON object with the following fields. Use only what is visibly observable in the photo. Do not assume or invent data.
+
+IMPORTANT:
+- Use hedging language: "appears", "visible read suggests", "likely".
+- Never state ethnicity, race, or health diagnosis.
+- If a feature is not clearly visible, use "unclear" as the value.
+- Return ONLY valid JSON. No prose, no markdown, no explanation.
+
+Required output schema:
+{
+  "face_shape": string,         // "oval" | "round" | "square" | "rectangle" | "heart" | "diamond" | "oblong" | "oval-leaning-[modifier]"
+  "face_shape_confidence": string, // "high" | "medium" | "low"
+  "forehead": string,           // "balanced" | "broad" | "narrow" | "unclear"
+  "forehead_height": string,    // "high" | "medium" | "low"
+  "jaw": string,                // "soft-rounded" | "soft-rectangular" | "angular" | "sharp" | "undefined"
+  "cheek_width": string,        // "narrow" | "medium" | "wide"
+  "face_length": string,        // "short" | "medium" | "long"
+  "skin_tone_range": string,    // "very-light" | "light" | "medium-light" | "medium" | "medium-deep" | "deep" — for image gen matching only
+  "hair_texture": string,       // "straight" | "slight-wave" | "wavy" | "curly" | "coily"
+  "hair_density": string,       // "low" | "medium" | "high"
+  "hair_color": string,         // general color descriptor, e.g. "dark brown", "black", "light brown", "blonde", "grey"
+  "current_length": string,     // "buzz" | "short" | "medium-short" | "medium" | "medium-long" | "long"
+  "growth_pattern": string,     // "even" | "front-lift" | "cowlick-crown" | "receding-temples" | "unclear"
+  "scalp_visible": string,      // "yes" | "no" | "slightly"
+  "thinning_detected": boolean, // true only if clearly visible thinning or receding areas
+  "photo_quality": string,      // "good" | "acceptable" | "poor" — affects confidence of analysis
+  "photo_angle": string,        // "front-facing" | "slight-angle" | "side" | "unclear"
+  "analysis_notes": string      // 1 sentence: any visible constraint or notable feature for report use
+}</div>
+    </div>
+
+    <div class="rule-row">
+      <div class="rule-card must">
+        <span class="rule-title">✓ Pipeline Order</span>
+        1. Run vision_prompt on selfie → get JSON.<br>
+        2. Merge with quiz answers → build master context.<br>
+        3. Run page prompts (parallel or sequential).<br>
+        4. Run image gen prompts using vision JSON vars.
+      </div>
+      <div class="rule-card never">
+        <span class="rule-title">✕ Never Skip Vision</span>
+        Jangan generate report tanpa vision analysis. Semua recommendation harus grounded ke visible selfie data, bukan quiz alone. Jika foto kualitas "poor", flag ke user untuk reupload sebelum lanjut.
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ IMAGE SLOT MAP ══════════════ -->
+  <div class="section" id="img-map">
+    <span class="section-tag">Image Prompts</span>
+    <h2 class="section-title">Image Slot Map</h2>
+    <p class="section-desc">Setiap slot foto di report punya sumber berbeda. Tidak semua slot butuh image generation — beberapa pakai upload asli, beberapa pakai stock/editorial.</p>
+
+    <table class="var-table">
+      <thead>
+        <tr><th>Page</th><th>Slot</th><th>Source</th><th>Gender Branch</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="var-name">Cover</td>
+          <td class="var-desc">Client portrait</td>
+          <td class="var-source" style="color:var(--green);font-weight:600;">Upload (original)</td>
+          <td class="var-desc">Shared</td>
+          <td class="var-desc">Crop to portrait 3:4. No filter.</td>
+        </tr>
+        <tr>
+          <td class="var-name">Pg 01</td>
+          <td class="var-desc">Baseline selfie</td>
+          <td class="var-source" style="color:var(--green);font-weight:600;">Upload (original)</td>
+          <td class="var-desc">Shared</td>
+          <td class="var-desc">Same photo, full frame.</td>
+        </tr>
+        <tr>
+          <td class="var-name">Pg 02</td>
+          <td class="var-desc">Result reference</td>
+          <td class="var-source" style="color:var(--amber-dark);font-weight:600;">Generated</td>
+          <td class="var-desc">Fully branched</td>
+          <td class="var-desc">Match skin tone + recommended style.</td>
+        </tr>
+        <tr>
+          <td class="var-name">Pg 03</td>
+          <td class="var-desc">Face analysis overlay</td>
+          <td class="var-source" style="color:var(--blue);font-weight:600;">Upload + overlay</td>
+          <td class="var-desc">Shared</td>
+          <td class="var-desc">Original + CSS/SVG grid overlay. No gen needed.</td>
+        </tr>
+        <tr>
+          <td class="var-name">Pg 04</td>
+          <td class="var-desc">Hair texture close-up</td>
+          <td class="var-source" style="color:var(--amber-dark);font-weight:600;">Generated</td>
+          <td class="var-desc">Shared</td>
+          <td class="var-desc">Close-up of hair texture matching {{texture}} + {{hair_color}}.</td>
+        </tr>
+        <tr>
+          <td class="var-name">Pg 05</td>
+          <td class="var-desc">Front / Back / Side views</td>
+          <td class="var-source" style="color:var(--amber-dark);font-weight:600;">Generated × 3</td>
+          <td class="var-desc">Fully branched</td>
+          <td class="var-desc">3 separate prompts. Same person, same cut, 3 angles.</td>
+        </tr>
+        <tr>
+          <td class="var-name">Pg 06</td>
+          <td class="var-desc">Before / Safe upgrade</td>
+          <td class="var-source" style="color:var(--green);font-weight:600;">Upload + Generated</td>
+          <td class="var-desc">Branched</td>
+          <td class="var-desc">Left = upload original. Right = generated conservative rec.</td>
+        </tr>
+        <tr>
+          <td class="var-name">Pg 07</td>
+          <td class="var-desc">3 activity photos</td>
+          <td class="var-source" style="color:var(--amber-dark);font-weight:600;">Generated × 3</td>
+          <td class="var-desc">Branched</td>
+          <td class="var-desc">Work, LinkedIn, Weekend. Same hairstyle, different outfit/setting.</td>
+        </tr>
+        <tr>
+          <td class="var-name">Pg 08</td>
+          <td class="var-desc">3 avoid style photos</td>
+          <td class="var-source" style="color:var(--amber-dark);font-weight:600;">Generated × 3</td>
+          <td class="var-desc">Branched</td>
+          <td class="var-desc">Same face type, bad-fit style each. Consistent person across 3.</td>
+        </tr>
+        <tr>
+          <td class="var-name">Pg 10</td>
+          <td class="var-desc">4 angle photos</td>
+          <td class="var-source" style="color:var(--amber-dark);font-weight:600;">Generated × 4</td>
+          <td class="var-desc">Shared</td>
+          <td class="var-desc">Selfie / Studio / Street / Side. Same person, same hairstyle.</td>
+        </tr>
+        <tr>
+          <td class="var-name">Pg 11</td>
+          <td class="var-desc">Side profile photo</td>
+          <td class="var-source" style="color:var(--amber-dark);font-weight:600;">Generated</td>
+          <td class="var-desc">Branched</td>
+          <td class="var-desc">Male: taper detail. Female: layer graduation visible.</td>
+        </tr>
+        <tr>
+          <td class="var-name">Pg 13</td>
+          <td class="var-desc">Reference board photos</td>
+          <td class="var-source" style="color:var(--amber-dark);font-weight:600;">Generated × 2–3</td>
+          <td class="var-desc">Branched</td>
+          <td class="var-desc">Direction-only references. Not exact copies.</td>
+        </tr>
+        <tr>
+          <td class="var-name">Pg 15</td>
+          <td class="var-desc">Before + Recommended</td>
+          <td class="var-source" style="color:var(--green);font-weight:600;">Upload + Generated</td>
+          <td class="var-desc">Shared</td>
+          <td class="var-desc">Side-by-side comparison. Must match skin tone.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══════════════ IMAGE CONSTRAINTS ══════════════ -->
+  <div class="section" id="img-constraints">
+    <span class="section-tag">Image Prompts</span>
+    <h2 class="section-title">Universal Image Constraints</h2>
+    <p class="section-desc">Berlaku untuk semua image generation prompt di seluruh report. Selalu append ke setiap prompt.</p>
+
+    <div class="prompt-block">
+      <div class="prompt-header">
+        <span class="prompt-header-label">image_constraints / universal_append</span>
+        <button class="copy-btn" onclick="copyPrompt(this, 'img-constraints-text')">Copy</button>
+      </div>
+      <div class="prompt-body" id="img-constraints-text">// Append to every image generation prompt:
+
+VISUAL CONSISTENCY RULES:
+- Subject skin tone: {{skin_tone_range}} — match exactly across all generated images
+- Subject face shape type: {{face_shape}} — keep consistent
+- Hair color: {{hair_color}} — consistent unless showing color recommendation
+- Photo style: editorial portrait photography, natural lighting, clean background
+- No heavy filters, no oversaturation, no dramatic vignette
+- No text overlays, no watermarks, no UI elements in image
+
+QUALITY RULES:
+- Aspect ratio: 3:4 portrait for all single-person shots
+- Resolution target: minimum 1024×1365px
+- Focus: sharp on face and hair, background softly blurred (f/2.8 equivalent)
+- Lighting: soft diffused — avoid harsh shadows on face
+
+CONTENT SAFETY:
+- Subject must appear 18+ years old
+- No revealing clothing for recommendation images
+- Outfit should match lifestyle context (office-appropriate for work/LinkedIn shots)
+- No brand logos visible
+
+DO NOT:
+- Change the person's face structure between images
+- Generate images that look like beauty ads or stock photo clichés
+- Add dramatic makeup unless contextually appropriate
+- Make the person look younger, older, or significantly different from {{face_shape}} and {{skin_tone_range}}</div>
+    </div>
+  </div>
+
+  <!-- ══════════════ IMG PG 02 ══════════════ -->
+  <div class="section" id="img-pg02">
+    <span class="section-tag">Image Prompt — Pg 02</span>
+    <h2 class="section-title">Executive Summary<br>Result Reference</h2>
+    <p class="section-desc">1 photo slot. Shows the recommended hairstyle on a person matching the client's face type. Fully gender-branched.</p>
+
+    <div class="branch-tabs" style="margin-bottom:14px;">
+      <div class="branch-tab male active" onclick="switchImgBranch('img02','male',this)">♂ Male</div>
+      <div class="branch-tab female" onclick="switchImgBranch('img02','female',this)">♀ Female</div>
+    </div>
+
+    <div class="prompt-block">
+      <div class="prompt-header">
+        <span class="prompt-header-label">image_prompt / pg02_result_reference</span>
+        <button class="copy-btn" onclick="copyPrompt(this, 'img02-text')">Copy</button>
+      </div>
+      <div class="prompt-body" id="img02-text">Editorial portrait photograph of a {{face_shape}} faced {{skin_tone_range}} skinned man in his late 20s.
+
+Hairstyle: {{pg02_cut_name}} — textured crop with low taper. Top hair is 5–6cm, naturally textured and slightly broken. Sides are tapered low near the ear. Clean neckline. Matte finish, no shine.
+
+Setting: neutral warm-beige studio background, soft box lighting from slightly above and front-left. Three-quarter angle, chin slightly down, direct gaze.
+
+Outfit: clean cream or white open-collar shirt. Collar visible but relaxed.
+
+Photography style: editorial men's grooming magazine, clean composition, 85mm portrait lens, shallow depth of field, background softly blurred.
+
+Mood: confident, natural, professional without being stiff.
+
+[Append universal image constraints]</div>
+    </div>
+
+    <div style="display:none" id="img02-female-text">Editorial portrait photograph of a {{face_shape}} faced {{skin_tone_range}} skinned woman in her late 20s.
+
+Hairstyle: {{pg02_cut_name}} — face-framing layers with soft curtain bangs. Hair falls naturally past the shoulders with visible layering. Light texture, no stiffness. Natural finish.
+
+Setting: neutral warm-beige studio background, soft diffused window light from front-left. Face forward, soft expression, direct gaze.
+
+Outfit: clean blouse or structured top in neutral color. Neckline clean and simple.
+
+Photography style: editorial women's beauty/lifestyle magazine, soft natural light, 85mm portrait lens, shallow depth of field, background softly blurred.
+
+Mood: natural, polished, approachable.
+
+[Append universal image constraints]</div>
+  </div>
+
+  <!-- ══════════════ IMG PG 05 ══════════════ -->
+  <div class="section" id="img-pg05">
+    <span class="section-tag">Image Prompt — Pg 05</span>
+    <h2 class="section-title">Primary Rec:<br>Front / Back / Side Views</h2>
+    <p class="section-desc">3 photo slots — same person, same hairstyle, 3 different angles. Generate with consistent seed/character if model supports it. Fully gender-branched.</p>
+
+    <div class="branch-tabs" style="margin-bottom:14px;">
+      <div class="branch-tab male active" onclick="switchImgBranch('img05','male',this)">♂ Male</div>
+      <div class="branch-tab female" onclick="switchImgBranch('img05','female',this)">♀ Female</div>
+    </div>
+
+    <div id="img05-male-block">
+      <div class="prompt-block" style="margin-bottom:12px;">
+        <div class="prompt-header">
+          <span class="prompt-header-label">image_prompt / pg05_front_view — MALE</span>
+          <button class="copy-btn" onclick="copyPrompt(this, 'img05m-front')">Copy</button>
+        </div>
+        <div class="prompt-body" id="img05m-front">Front-facing portrait of a {{face_shape}} faced {{skin_tone_range}} man, late 20s, wearing a plain light-colored shirt.
+
+Hairstyle (FRONT): textured crop — top hair naturally styled forward with broken texture, no hard part. Forehead partially visible. Sides tapered low, temples compact but not shaved. Clean hairline.
+
+Camera: direct front, eye level. Studio portrait style. Warm neutral background. Soft box light, even illumination.
+
+Crop: head + upper shoulder only. Portrait 3:4 ratio.
+
+[Append universal image constraints]</div>
+      </div>
+
+      <div class="prompt-block" style="margin-bottom:12px;">
+        <div class="prompt-header">
+          <span class="prompt-header-label">image_prompt / pg05_back_view — MALE</span>
+          <button class="copy-btn" onclick="copyPrompt(this, 'img05m-back')">Copy</button>
+        </div>
+        <div class="prompt-body" id="img05m-back">Back-of-head portrait of a {{skin_tone_range}} man, late 20s.
+
+Hairstyle (BACK): textured crop — back view showing neckline shape. Natural neckline, not boxed aggressively. Low taper transitioning from side wall, gradual fade near the ear. Back of crown shows natural broken texture, 5–6cm length on top.
+
+Camera: directly behind subject, slightly above eye level. Clean neutral background. Even soft lighting, no harsh shadows.
+
+Crop: from mid-neck to top of head, full width of head visible.
+
+[Append universal image constraints]</div>
+      </div>
+
+      <div class="prompt-block">
+        <div class="prompt-header">
+          <span class="prompt-header-label">image_prompt / pg05_side_profile — MALE</span>
+          <button class="copy-btn" onclick="copyPrompt(this, 'img05m-side')">Copy</button>
+        </div>
+        <div class="prompt-body" id="img05m-side">Pure side profile portrait of a {{face_shape}} faced {{skin_tone_range}} man, late 20s.
+
+Hairstyle (SIDE): low taper visible on side wall — transition from skin near ear, gradual blend upward. Temple compact. Top hair 5–6cm, texture visible from side angle. Neckline tapers naturally at the back.
+
+Camera: exactly 90° side angle, left or right profile. Head fills frame. Clean neutral or softly blurred indoor background. Natural or studio soft light. Jaw and ear clearly visible.
+
+Crop: head + upper shoulder. Portrait 3:4.
+
+[Append universal image constraints]</div>
+      </div>
+    </div>
+
+    <div id="img05-female-block" style="display:none;">
+      <div class="prompt-block" style="margin-bottom:12px;">
+        <div class="prompt-header">
+          <span class="prompt-header-label">image_prompt / pg05_front_view — FEMALE</span>
+          <button class="copy-btn" onclick="copyPrompt(this, 'img05f-front')">Copy</button>
+        </div>
+        <div class="prompt-body" id="img05f-front">Front-facing portrait of a {{face_shape}} faced {{skin_tone_range}} woman, late 20s, wearing a simple neutral-colored top.
+
+Hairstyle (FRONT): face-framing layers — hair falls forward past jaw, soft curtain bangs parted in the middle. Layers visible from front angle, ends slightly flicked. Natural texture, no stiffness. Hair color: {{hair_color}}.
+
+Camera: direct front, eye level. Studio portrait. Warm neutral background. Soft diffused light from slightly above.
+
+Crop: head + upper shoulder. Portrait 3:4.
+
+[Append universal image constraints]</div>
+      </div>
+
+      <div class="prompt-block" style="margin-bottom:12px;">
+        <div class="prompt-header">
+          <span class="prompt-header-label">image_prompt / pg05_back_view — FEMALE</span>
+          <button class="copy-btn" onclick="copyPrompt(this, 'img05f-back')">Copy</button>
+        </div>
+        <div class="prompt-body" id="img05f-back">Back-of-head portrait of a {{skin_tone_range}} woman, late 20s.
+
+Hairstyle (BACK): layered cut — back view showing layer graduation clearly. Shorter layers visible near crown, longer toward ends. Natural movement, not stiff. Cut shape clean at the back. Hair color: {{hair_color}}.
+
+Camera: directly behind subject, slightly above. Clean neutral background. Even soft light, no harsh shadows.
+
+Crop: from mid-neck to top of head, full head width visible.
+
+[Append universal image constraints]</div>
+      </div>
+
+      <div class="prompt-block">
+        <div class="prompt-header">
+          <span class="prompt-header-label">image_prompt / pg05_side_profile — FEMALE</span>
+          <button class="copy-btn" onclick="copyPrompt(this, 'img05f-side')">Copy</button>
+        </div>
+        <div class="prompt-body" id="img05f-side">Pure side profile portrait of a {{face_shape}} faced {{skin_tone_range}} woman, late 20s.
+
+Hairstyle (SIDE): layered cut — side profile showing layer step from crown to ends. Face-framing piece falls forward to jaw. Curtain bangs softly parted, framing cheekbone. Back length visible, falls past collarbone. Natural texture. Hair color: {{hair_color}}.
+
+Camera: exactly 90° side angle. Clean neutral background. Soft natural or studio light. Jaw and ear clearly visible.
+
+Crop: head + upper shoulder. Portrait 3:4.
+
+[Append universal image constraints]</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ IMG PG 07 ══════════════ -->
+  <div class="section" id="img-pg07">
+    <span class="section-tag">Image Prompt — Pg 07</span>
+    <h2 class="section-title">Outfit & Activity Fit:<br>3 Context Photos</h2>
+    <p class="section-desc">3 photo slots. Same person, same hairstyle — different outfit and setting per activity. Each has a distinct color temperature.</p>
+
+    <div class="branch-tabs" style="margin-bottom:14px;">
+      <div class="branch-tab male active" onclick="switchImgBranch('img07','male',this)">♂ Male</div>
+      <div class="branch-tab female" onclick="switchImgBranch('img07','female',this)">♀ Female</div>
+    </div>
+
+    <div id="img07-male-block">
+      <div class="prompt-block" style="margin-bottom:12px;">
+        <div class="prompt-header">
+          <span class="prompt-header-label">image_prompt / pg07_work — MALE</span>
+          <button class="copy-btn" onclick="copyPrompt(this, 'img07m-work')">Copy</button>
+        </div>
+        <div class="prompt-body" id="img07m-work">Editorial portrait of a {{skin_tone_range}} man, late 20s, in a modern office or co-working setting.
+
+Hairstyle: {{pg02_cut_name}} styled with matte clay. Volume controlled, forehead partially visible, sides compact.
+
+Outfit: crisp white or light blue dress shirt, top button open, no tie. Clean collar. Slight tuck visible.
+
+Setting: modern office interior, warm neutral tones, slightly blurred background. Natural window light from the side.
+
+Mood: focused, professional, approachable. Slight 3/4 angle, natural expression.
+
+[Append universal image constraints]</div>
+      </div>
+
+      <div class="prompt-block" style="margin-bottom:12px;">
+        <div class="prompt-header">
+          <span class="prompt-header-label">image_prompt / pg07_linkedin — MALE</span>
+          <button class="copy-btn" onclick="copyPrompt(this, 'img07m-linkedin')">Copy</button>
+        </div>
+        <div class="prompt-body" id="img07m-linkedin">Editorial portrait of a {{skin_tone_range}} man, late 20s. LinkedIn / client meeting headshot style.
+
+Hairstyle: {{pg02_cut_name}} neatly styled, matte finish. Hair looks camera-ready and polished.
+
+Outfit: navy or charcoal blazer over plain white or light shirt. Clean neckline. No patterns.
+
+Setting: clean neutral studio background (light warm grey or cream). Soft box lighting, even and flattering. Direct front or very slight angle.
+
+Mood: confident, direct, professional. Camera-ready expression.
+
+[Append universal image constraints]</div>
+      </div>
+
+      <div class="prompt-block">
+        <div class="prompt-header">
+          <span class="prompt-header-label">image_prompt / pg07_weekend — MALE</span>
+          <button class="copy-btn" onclick="copyPrompt(this, 'img07m-weekend')">Copy</button>
+        </div>
+        <div class="prompt-body" id="img07m-weekend">Lifestyle portrait of a {{skin_tone_range}} man, late 20s, in a cafe or outdoor setting.
+
+Hairstyle: {{pg02_cut_name}} with minimal product — natural texture, slightly relaxed compared to work setting.
+
+Outfit: relaxed overshirt or casual button-up in earth tones, layered over a plain tee. No wet shine in hair.
+
+Setting: warm cafe interior or outdoor natural light. Bokeh background, golden hour quality light or warm indoor ambient. Casual, lived-in environment.
+
+Mood: relaxed, natural, off-duty confident. Looking away or soft direct gaze.
+
+[Append universal image constraints]</div>
+      </div>
+    </div>
+
+    <div id="img07-female-block" style="display:none;">
+      <div class="prompt-block" style="margin-bottom:12px;">
+        <div class="prompt-header">
+          <span class="prompt-header-label">image_prompt / pg07_work — FEMALE</span>
+          <button class="copy-btn" onclick="copyPrompt(this, 'img07f-work')">Copy</button>
+        </div>
+        <div class="prompt-body" id="img07f-work">Editorial portrait of a {{skin_tone_range}} woman, late 20s, in a modern office setting.
+
+Hairstyle: {{pg02_cut_name}} styled neatly — hair down or half-up. Clean, controlled, not voluminous. Face-framing pieces visible.
+
+Outfit: structured blouse or blazer in neutral tones. Clean neckline. Professional appearance.
+
+Setting: modern office or co-working space, softly blurred background. Natural window light.
+
+Mood: focused, composed, professional. Slight 3/4 angle.
+
+[Append universal image constraints]</div>
+      </div>
+
+      <div class="prompt-block" style="margin-bottom:12px;">
+        <div class="prompt-header">
+          <span class="prompt-header-label">image_prompt / pg07_social — FEMALE</span>
+          <button class="copy-btn" onclick="copyPrompt(this, 'img07f-social')">Copy</button>
+        </div>
+        <div class="prompt-body" id="img07f-social">Editorial portrait of a {{skin_tone_range}} woman, late 20s, dressed for a social or dinner setting.
+
+Hairstyle: {{pg02_cut_name}} styled with natural blow-dry shape or soft waves. Layers and face-framing visible. Light serum for shine.
+
+Outfit: simple elegant top or dress in a solid color. Feminine but understated.
+
+Setting: warm restaurant or event interior. Soft ambient light with slight golden tone.
+
+Mood: relaxed elegance, social confidence. Direct gaze, natural smile or composed expression.
+
+[Append universal image constraints]</div>
+      </div>
+
+      <div class="prompt-block">
+        <div class="prompt-header">
+          <span class="prompt-header-label">image_prompt / pg07_weekend — FEMALE</span>
+          <button class="copy-btn" onclick="copyPrompt(this, 'img07f-weekend')">Copy</button>
+        </div>
+        <div class="prompt-body" id="img07f-weekend">Lifestyle portrait of a {{skin_tone_range}} woman, late 20s, in a cafe or outdoor setting.
+
+Hairstyle: {{pg02_cut_name}} air-dried or lightly diffused. Natural texture. No stiff styling. Hair moves naturally.
+
+Outfit: casual top or relaxed knit in earth or muted tones. Comfortable, weekend-appropriate.
+
+Setting: warm cafe interior or outdoor setting. Natural daylight or warm ambient light. Relaxed, lived-in background, softly blurred.
+
+Mood: natural, effortless, at ease. Looking slightly away or soft expression.
+
+[Append universal image constraints]</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ IMG PG 08 ══════════════ -->
+  <div class="section" id="img-pg08">
+    <span class="section-tag">Image Prompt — Pg 08</span>
+    <h2 class="section-title">Styles to Avoid:<br>3 Bad-Fit Photos</h2>
+    <p class="section-desc">3 photo slots showing wrong styles. Must use same face type as client for apple-to-apple comparison. Each photo shows one avoid style clearly.</p>
+
+    <div class="prompt-block">
+      <div class="prompt-header">
+        <span class="prompt-header-label">image_prompt / pg08_avoid_template</span>
+        <button class="copy-btn" onclick="copyPrompt(this, 'img08-text')">Copy</button>
+      </div>
+      <div class="prompt-body" id="img08-text">// Use this template for each of the 3 avoid styles.
+// Replace {{avoid_style_N}} with the style name from Pg 08 text prompt output.
+// Replace {{avoid_why_N}} with the reason.
+
+Portrait photograph of a {{face_shape}} faced {{skin_tone_range}} person matching the client's gender lane, late 20s.
+
+Hairstyle: {{avoid_style_N}} — render this style accurately and clearly. The style must be visually recognizable as the named style.
+
+Examples:
+  - "heavy middle part" → deep center part with volume pushed to both sides, wet look
+  - "blunt mushroom fringe" → bowl-cut style with blunt horizontal fringe covering forehead
+  - "high disconnected undercut" → shaved sides with long top, hard disconnection line
+  - "blunt chin-length bob" → perfectly blunt ends at chin, no layers
+  - "very long one-length" → all one length, no layers, flat appearance
+
+Setting: neutral warm background (same as result reference for contrast). Soft studio light. Direct front or 3/4 angle.
+
+Purpose: show the style clearly so the viewer can identify what to avoid. Not unflattering — just clearly not the right match for this face shape.
+
+[Append universal image constraints]
+
+// Generate 3 separate images with 3 different avoid styles from Pg 08 JSON output.</div>
+    </div>
+
+    <div class="rule-row">
+      <div class="rule-card must">
+        <span class="rule-title">✓ Consistency Rule</span>
+        Gunakan face shape dan skin tone yang sama untuk semua 3 avoid photos. Viewer harus bisa compare apples-to-apples vs result reference di Pg 02.
+      </div>
+      <div class="rule-card never">
+        <span class="rule-title">✕ Never Ugly</span>
+        Jangan generate foto yang terlihat buruk secara umum — hanya bad-fit untuk face shape ini. Avoid style harus terlihat seperti style yang valid tapi salah untuk wajah ini.
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ IMG PG 10 ══════════════ -->
+  <div class="section" id="img-pg10">
+    <span class="section-tag">Image Prompt — Pg 10</span>
+    <h2 class="section-title">Angle Guide:<br>4 Photo Angles</h2>
+    <p class="section-desc">4 photo slots — same person, same hairstyle, 4 real-world photography scenarios. Fully shared (same template, minor tweak per gender).</p>
+
+    <div class="prompt-block">
+      <div class="prompt-header">
+        <span class="prompt-header-label">image_prompt / pg10_selfie</span>
+        <button class="copy-btn" onclick="copyPrompt(this, 'img10-selfie')">Copy</button>
+      </div>
+      <div class="prompt-body" id="img10-selfie">Selfie-style photo of a {{skin_tone_range}} {{gender_lane === 'female-salon' ? 'woman' : 'man'}}, late 20s.
+
+Hairstyle: {{pg02_cut_name}}. Natural texture, matte/natural finish.
+
+Camera simulation: slightly wide-angle (selfie lens distortion, subtle), phone held at arm's length slightly above eye level, chin slightly down. Face fills most of the frame.
+
+Setting: indoor natural light — near a window. Background is a softly blurred room interior. Casual, real-life feel. Not a studio shot.
+
+Mood: natural, candid, not posed. Looking directly at camera with relaxed expression.
+
+[Append universal image constraints]</div>
+    </div>
+
+    <div class="prompt-block" style="margin-top:12px;">
+      <div class="prompt-header">
+        <span class="prompt-header-label">image_prompt / pg10_studio</span>
+        <button class="copy-btn" onclick="copyPrompt(this, 'img10-studio')">Copy</button>
+      </div>
+      <div class="prompt-body" id="img10-studio">Professional headshot / LinkedIn-style portrait of a {{skin_tone_range}} {{gender_lane === 'female-salon' ? 'woman' : 'man'}}, late 20s.
+
+Hairstyle: {{pg02_cut_name}} neatly styled, polished, camera-ready.
+
+Camera: 85mm portrait lens simulation. Eye level, direct front or very slight angle. Clean depth of field, subject sharp, background softly blurred.
+
+Setting: clean studio background — warm cream or light grey. Soft box lighting, even on face, slight shadow definition on one side. Professional quality.
+
+Outfit: smart professional — blazer or structured shirt/top.
+
+Mood: confident, direct, competent. Professional expression.
+
+[Append universal image constraints]</div>
+    </div>
+
+    <div class="prompt-block" style="margin-top:12px;">
+      <div class="prompt-header">
+        <span class="prompt-header-label">image_prompt / pg10_street</span>
+        <button class="copy-btn" onclick="copyPrompt(this, 'img10-street')">Copy</button>
+      </div>
+      <div class="prompt-body" id="img10-street">Street / candid lifestyle portrait of a {{skin_tone_range}} {{gender_lane === 'female-salon' ? 'woman' : 'man'}}, late 20s.
+
+Hairstyle: {{pg02_cut_name}} showing natural movement and texture in outdoor light.
+
+Camera: 35–50mm candid simulation. 3/4 front angle, body slightly turned. Subject not fully posed — caught mid-movement or mid-step.
+
+Setting: outdoor urban environment — clean sidewalk, building facade, or park. Natural daylight, golden hour quality. Background blurred with visible street context.
+
+Outfit: smart casual — layered casual top or jacket, relaxed but clean.
+
+Mood: effortless, confident, real-world look. Natural expression.
+
+[Append universal image constraints]</div>
+    </div>
+
+    <div class="prompt-block" style="margin-top:12px;">
+      <div class="prompt-header">
+        <span class="prompt-header-label">image_prompt / pg10_profile</span>
+        <button class="copy-btn" onclick="copyPrompt(this, 'img10-profile')">Copy</button>
+      </div>
+      <div class="prompt-body" id="img10-profile">Pure 90° side profile portrait of a {{skin_tone_range}} {{gender_lane === 'female-salon' ? 'woman' : 'man'}}, late 20s.
+
+Hairstyle: {{pg02_cut_name}} — side profile clearly shows the cut shape: taper line (male) or layer graduation (female). Neckline or back length visible.
+
+Camera: exactly 90° side. Head fills the vertical frame. Ear clearly visible. Jaw profile clean.
+
+Setting: clean neutral background — studio or simple indoor. Even soft light, no harsh shadows on the profile.
+
+Mood: clean, diagnostic — this is the technical angle. Subject looking forward, not at camera.
+
+[Append universal image constraints]</div>
+    </div>
+  </div>
+
+  <!-- ══════════════ IMG PG 14/15 ══════════════ -->
+  <div class="section" id="img-pg14">
+    <span class="section-tag">Image Prompt — Pg 14 / 15</span>
+    <h2 class="section-title">Before + After /<br>Final Action Plan</h2>
+    <p class="section-desc">Before = upload asli. After = generated result image. Harus match skin tone, face angle, dan lighting sedekat mungkin untuk credibility.</p>
+
+    <div class="prompt-block">
+      <div class="prompt-header">
+        <span class="prompt-header-label">image_prompt / pg15_after_result</span>
+        <button class="copy-btn" onclick="copyPrompt(this, 'img15-text')">Copy</button>
+      </div>
+      <div class="prompt-body" id="img15-text">Portrait photograph matching the style of the uploaded client photo as closely as possible.
+
+Subject: {{face_shape}} faced, {{skin_tone_range}} skinned {{gender_lane === 'female-salon' ? 'woman' : 'man'}}, late 20s.
+
+Hairstyle (AFTER): {{pg02_cut_name}} — primary recommendation, front-facing view. Clean styling, natural finish.
+
+Camera angle: match the uploaded selfie angle as closely as possible. If selfie was front-facing → generate front-facing. If slight angle → match that angle.
+
+Lighting: match the warmth and direction of the original selfie lighting if possible. Slight improvement in quality is acceptable but not drastic.
+
+Framing: head + upper shoulder. Similar crop to the original selfie.
+
+Purpose: this image sits next to the client's original photo in a before/after layout. It must feel like the same person, not a different model.
+
+CRITICAL:
+- Face shape must match {{face_shape}} exactly
+- Skin tone must match {{skin_tone_range}} exactly
+- Do not make the subject look dramatically different from the original — same person, better hairstyle
+
+[Append universal image constraints]</div>
+    </div>
+
+    <div class="rule-row">
+      <div class="rule-card must">
+        <span class="rule-title">✓ Credibility Rule</span>
+        Before/After adalah halaman paling kritis untuk trust. Generated "after" harus terlihat believable — bukan stock model, tapi wajah tipe yang sama dengan client.
+      </div>
+      <div class="rule-card never">
+        <span class="rule-title">✕ Never Over-Stylize</span>
+        Jangan generate "after" yang terlihat seperti fashion editorial. Harus terlihat seperti hasil barber/salon visit yang realistis, bukan photoshoot.
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ JSON SCHEMA ══════════════ -->
+  <div class="section" id="json-schema">
+    <span class="section-tag">Output</span>
+    <h2 class="section-title">JSON Output Schema</h2>
+    <p class="section-desc">Setiap page harus return JSON valid. Tidak ada prose, tidak ada markdown. Parser di server akan validate sebelum pass ke PDF renderer.</p>
+
+    <div class="prompt-block">
+      <div class="prompt-header">
+        <span class="prompt-header-label">output_schema / master</span>
+        <button class="copy-btn" onclick="copyPrompt(this, 'schema-text')">Copy</button>
+      </div>
+      <div class="prompt-body" id="schema-text"><span class="c">// Root schema — setiap halaman return objek ini</span>
+{
+  <span class="k">"page"</span>: <span class="v">number</span>,              <span class="c">// 1–15</span>
+  <span class="k">"page_label"</span>: <span class="v">string</span>,        <span class="c">// e.g. "EXECUTIVE SUMMARY"</span>
+  <span class="k">"section_tag"</span>: <span class="v">string</span>,       <span class="c">// e.g. "DECISION PAGE"</span>
+  <span class="k">"headline"</span>: <span class="v">string</span>,          <span class="c">// Main H1 of the page (max 40 chars)</span>
+  <span class="k">"subheadline"</span>: <span class="v">string | null</span>, <span class="c">// Secondary H2 if needed</span>
+  <span class="k">"body"</span>: <span class="v">string | null</span>,       <span class="c">// Short body text (max 2 sentences)</span>
+  <span class="k">"items"</span>: <span class="v">Item[]</span>,             <span class="c">// Main content items (see per-page schema)</span>
+  <span class="k">"stats"</span>: <span class="v">Stat[] | null</span>,      <span class="c">// Metric chips (value + label)</span>
+  <span class="k">"avoid"</span>: <span class="v">string | null</span>,      <span class="c">// Single avoid note for this page</span>
+  <span class="k">"quote"</span>: <span class="v">string | null</span>,      <span class="c">// Pull quote (italic callout)</span>
+  <span class="k">"checklist"</span>: <span class="v">string[] | null</span> <span class="c">// Actionable checklist items</span>
+}
+
+<span class="c">// Item — generic content block</span>
+{
+  <span class="k">"label"</span>: <span class="v">string</span>,   <span class="c">// ALL CAPS label, max 20 chars</span>
+  <span class="k">"value"</span>: <span class="v">string</span>,   <span class="c">// Main value text</span>
+  <span class="k">"note"</span>: <span class="v">string?</span>    <span class="c">// Optional sub-note</span>
+}
+
+<span class="c">// Stat — metric chip</span>
+{
+  <span class="k">"value"</span>: <span class="v">string</span>,  <span class="c">// e.g. "92", "3–4w", "7m"</span>
+  <span class="k">"label"</span>: <span class="v">string</span>   <span class="c">// e.g. "FIT SCORE", "CLEAN", "STYLE"</span>
+}
+
+<span class="c">// Page-specific extensions — example for Pg 05</span>
+{
+  <span class="k">"barber_wording"</span>: <span class="v">string</span>,  <span class="c">// Exact phrase client shows barber/salon</span>
+  <span class="k">"why_it_works"</span>: <span class="v">string</span>,    <span class="c">// 1-sentence rationale</span>
+  <span class="k">"views"</span>: {
+    <span class="k">"top"</span>: <span class="v">string</span>,
+    <span class="k">"side"</span>: <span class="v">string</span>,
+    <span class="k">"back"</span>: <span class="v">string</span>,
+    <span class="k">"finish"</span>: <span class="v">string</span>
+  }
+}</div>
+    </div>
+  </div>
+
+  <!-- ══════════════ SAFETY ══════════════ -->
+  <div class="section" id="safety">
+    <span class="section-tag">Output</span>
+    <h2 class="section-title">Safety & Language Rules</h2>
+
+    <div class="rule-row">
+      <div class="rule-card must">
+        <span class="rule-title">✓ Approved Language</span>
+        "Based on the photo" · "appears to be" · "likely fits" · "best direction for" · "works with your" · "complements the" · "supports the natural"
+      </div>
+      <div class="rule-card never">
+        <span class="rule-title">✕ Banned Language</span>
+        "hide your" · "disguise" · "fix your face" · "you have bad" · "unfortunately" · "problem area" (as insult) · any ethnicity/genetics claim
+      </div>
+    </div>
+    <div class="rule-row">
+      <div class="rule-card must">
+        <span class="rule-title">✓ Medical Disclaimer Trigger</span>
+        Jika vision analysis mendeteksi thinning/receding/patchy area → tambahkan: "HairCard is a styling guide only and does not diagnose medical hair conditions."
+      </div>
+      <div class="rule-card never">
+        <span class="rule-title">✕ Never Score Attractiveness</span>
+        Fit Score (92/100) adalah haircut-to-face-shape match score, bukan beauty score. Jangan pernah frame sebagai "attractiveness rating" di copy manapun.
+      </div>
+    </div>
+  </div>
+
+</main>
+</div>
+
+<script>
+// ── PAGE PROMPTS DATA ──
+const pages = [
+  {
+    id: 'p01', num: '01', title: 'Baseline Input',
+    subtitle: 'Original selfie + photo read',
+    branch: 'shared',
+    vars: ['{{client_name}}','{{face_shape}}','{{texture}}','{{density}}'],
+    male: `Generate page 01: BASELINE INPUT.
+
+Output the AI read of the uploaded selfie. Do not include any recommendation yet.
+
+Required JSON fields:
+- headline: "Baseline Input"
+- items: [
+    { label: "VISIBLE READ", value: "<face shape and jaw read, 1 sentence>" },
+    { label: "HAIR READ", value: "<texture, density, growth pattern, 1 sentence>" },
+    { label: "PHOTO QUALITY", value: "<lighting, angle, crop quality note>" }
+  ]
+- body: "Recommendation visuals start after this baseline page."
+
+Rules:
+- Do not recommend anything on this page.
+- Use hedging: "appears", "based on photo", "visible read suggests".
+- Max 12 words per item value.`,
+    female: `Generate page 01: BASELINE INPUT.
+
+Output the AI read of the uploaded selfie. Do not include any recommendation yet.
+
+Required JSON fields:
+- headline: "Baseline Input"
+- items: [
+    { label: "VISIBLE READ", value: "<face shape and jaw/cheekbone read, 1 sentence>" },
+    { label: "HAIR READ", value: "<texture, density, length, growth pattern, 1 sentence>" },
+    { label: "PHOTO QUALITY", value: "<lighting, angle, crop quality note>" }
+  ]
+- body: "Recommendation visuals start after this baseline page."
+
+Rules:
+- Do not recommend anything on this page.
+- Use hedging: "appears", "based on photo", "visible read suggests".
+- Max 12 words per item value.`
+  },
+  {
+    id: 'p02', num: '02', title: 'Executive Summary',
+    subtitle: 'Fast verdict — fully gender-branched',
+    branch: 'branched',
+    vars: ['{{gender_lane}}','{{face_shape}}','{{desired_outcome}}','{{fit_score}}','{{occasion}}'],
+    male: `Generate page 02: EXECUTIVE SUMMARY — MALE / BARBER LANE.
+
+Deliver the fast verdict: best barber cut for this face shape, hair behavior, and lifestyle.
+
+Required JSON fields:
+- headline: "<Best cut name, e.g. 'Textured Crop + Low Taper'>"
+- subheadline: "BEST CUT"
+- body: "<1 sentence: clean benefit description, max 20 words>"
+- stats: [
+    { value: "{{fit_score}}", label: "FACE FIT" },
+    { value: "<Low|Med|High>", label: "BARBER RISK" },
+    { value: "<Low|Med|High>", label: "EFFORT" }
+  ]
+- avoid: "<One thing to avoid — style name + why in 8 words>"
+- items: [
+    { label: "WHY THIS CUT", value: "<face shape rationale, 1 sentence>" }
+  ]
+
+Rules for male lane:
+- Use barber terminology only: crop, taper, fade, undercut, fringe.
+- Barber Risk = how hard it is for an average barber to execute correctly.
+- Effort = daily styling effort for the client.
+- Avoid item must be a specific style name, not a generic warning.`,
+    female: `Generate page 02: EXECUTIVE SUMMARY — FEMALE / SALON LANE.
+
+Deliver the fast verdict: best salon direction for this face shape, hair behavior, and lifestyle.
+
+Required JSON fields:
+- headline: "<Best direction name, e.g. 'Face-Framing Layers + Soft Curtain Bangs'>"
+- subheadline: "BEST DIRECTION"
+- body: "<1 sentence: clean benefit description, max 20 words>"
+- stats: [
+    { value: "{{fit_score}}", label: "FACE FIT" },
+    { value: "<Low|Med|High>", label: "SALON RISK" },
+    { value: "<Low|Med|High>", label: "EFFORT" }
+  ]
+- avoid: "<One thing to avoid — style name + why in 8 words>"
+- items: [
+    { label: "WHY THIS DIRECTION", value: "<face shape rationale, 1 sentence>" }
+  ]
+
+Rules for female lane:
+- Use salon terminology: layers, lob, bob, bangs, face-framing, balayage, toner.
+- Salon Risk = how hard it is for an average hairstylist to execute without error.
+- Effort = daily upkeep effort for the client (heat, products, styling time).
+- Avoid item must reference a specific cut/color trend to avoid.`
+  },
+  {
+    id: 'p03', num: '03', title: 'Face Shape & Proportion',
+    subtitle: 'Diagnostic — shared + silhouette goal differs',
+    branch: 'shared',
+    vars: ['{{face_shape}}','{{forehead_read}}','{{jaw_read}}','{{cheek_read}}'],
+    male: `Generate page 03: FACE SHAPE & BALANCE MAP — MALE LANE.
+
+Analyze the face proportions and identify the silhouette goal for this haircut direction.
+
+Required JSON fields:
+- headline: "Face Shape & Balance Map"
+- items: [
+    { label: "FACE SHAPE", value: "<shape classification>" },
+    { label: "FOREHEAD", value: "<balanced|broad|narrow>" },
+    { label: "CHEEK", value: "<width read>" },
+    { label: "JAW", value: "<soft/sharp/rounded + descriptor>" },
+    { label: "LENGTH", value: "<oval/long/round/square leaning>" },
+    { label: "GOAL", value: "<1 constraint sentence, e.g. 'Do not add temple width'>" }
+  ]
+- subheadline: "<Silhouette target, e.g. 'Compact sides, light vertical top texture'>"
+
+Male silhouette rules:
+- Oval face → compact sides, slight vertical top. Best.
+- Round face → avoid width on sides, add height at top.
+- Square/angular → avoid hard geometric cuts, soften with texture.
+- Long/oblong → avoid high top volume, keep sides fuller.`,
+    female: `Generate page 03: FACE SHAPE & BALANCE MAP — FEMALE LANE.
+
+Analyze the face proportions and identify the silhouette goal for this hair direction.
+
+Required JSON fields:
+- headline: "Face Shape & Balance Map"
+- items: [
+    { label: "FACE SHAPE", value: "<shape classification>" },
+    { label: "FOREHEAD", value: "<balanced|broad|narrow>" },
+    { label: "CHEEK", value: "<width read>" },
+    { label: "JAW", value: "<soft/sharp/rounded + descriptor>" },
+    { label: "LENGTH", value: "<oval/long/round/square leaning>" },
+    { label: "GOAL", value: "<1 constraint sentence for feminine framing>" }
+  ]
+- subheadline: "<Silhouette target, e.g. 'Face-framing layers to balance cheek width'>"
+
+Female silhouette rules:
+- Oval face → most styles work. Recommend what suits lifestyle best.
+- Round face → avoid blunt bobs at chin, avoid heavy fringe. Prefer layers + length.
+- Square/angular → avoid blunt straight cuts. Softening layers, curtain bangs.
+- Long/oblong → avoid all-one-length long hair. Layers, lob, fringe to add width.
+- Heart face → avoid heavy top volume. Side-swept bangs or lob.`
+  },
+  {
+    id: 'p04', num: '04', title: 'Hair Type & Behavior',
+    subtitle: 'Texture, density, growth — product differs by gender',
+    branch: 'shared',
+    vars: ['{{texture}}','{{density}}','{{growth_pattern}}','{{scalp_visible}}'],
+    male: `Generate page 04: HAIR TYPE & GROWTH BEHAVIOR — MALE LANE.
+
+Describe the hair's visible properties and what this means for cut and styling.
+
+Required JSON fields:
+- headline: "Hair Type & Growth Behavior"
+- quote: "<1 rule sentence about following natural growth, max 20 words>"
+- items: [
+    { label: "DENSITY", value: "<Low|Medium|High>" },
+    { label: "TEXTURE", value: "<Straight|Slight wave|Wavy|Curly|Coily>" },
+    { label: "FRONT LIFT", value: "<Natural|Flat|Strong cowlick|etc.>" },
+    { label: "HOLD", value: "<Matte clay|Light wax|Strong pomade|No product>" }
+  ]
+
+Male product logic:
+- Straight/low density → matte clay, pea-sized, blow forward + up.
+- Wavy/curly → light defining cream or curl-friendly wax. No heavy pomade.
+- High density → thinning shears note in barber wording. Air-dry or diffuse.
+- Scalp visible (thinning) → flag in quote: recommend low-hold product only.`,
+    female: `Generate page 04: HAIR TYPE & GROWTH BEHAVIOR — FEMALE LANE.
+
+Describe the hair's visible properties and what this means for cut and styling.
+
+Required JSON fields:
+- headline: "Hair Type & Growth Behavior"
+- quote: "<1 rule sentence about working with natural texture, max 20 words>"
+- items: [
+    { label: "DENSITY", value: "<Fine|Medium|Thick>" },
+    { label: "TEXTURE", value: "<Straight|Wavy|Curly|Coily>" },
+    { label: "NATURAL MOVEMENT", value: "<Low|Medium|High>" },
+    { label: "PRODUCT", value: "<Serum|Mousse|Curl cream|Dry texture spray|Leave-in>" }
+  ]
+
+Female product logic:
+- Fine/straight → volumizing mousse or light texturizing spray. Avoid heavy serum.
+- Wavy → curl-enhancing cream or light mousse. Air-dry recommended.
+- Curly/coily → leave-in conditioner + curl cream. Diffuse or air-dry. No blow-dry without diffuser.
+- Thick/dense → serum for frizz. Recommend layering cut to reduce bulk.`
+  },
+  {
+    id: 'p05', num: '05', title: 'Primary Haircut Recommendation',
+    subtitle: 'Main rec — fully branched, 3 photo views',
+    branch: 'branched',
+    vars: ['{{gender_lane}}','{{face_shape}}','{{texture}}','{{maintenance}}','{{risk_level}}','{{hard_nos}}'],
+    male: `Generate page 05: PRIMARY HAIRCUT RECOMMENDATION — MALE LANE.
+
+This is the main recommendation page. Be specific, directive, and practical.
+
+Required JSON fields:
+- headline: "Primary Haircut Recommendation"
+- barber_wording: "<Exact phrase: cut name, length, side treatment, finish. Max 15 words.>"
+- why_it_works: "<1 sentence: face + hair rationale>"
+- views: {
+    top: "<length in cm + texture instruction>",
+    side: "<taper/fade specification>",
+    back: "<neckline instruction>",
+    finish: "<product + technique, e.g. 'Matte clay, finger-textured, no shine'>"
+  }
+- items: [
+    { label: "TOP", value: "<top spec>" },
+    { label: "SIDE", value: "<side spec>" },
+    { label: "BACK", value: "<back spec>" },
+    { label: "FINISH", value: "<finish spec>" }
+  ]
+
+Execution rules:
+- If {{risk_level}} == "safe" → recommend cleanup version of current style.
+- If {{risk_level}} == "noticeable-change" → bold direction, one step up from current.
+- If {{maintenance}} == "low" → avoid cuts that need daily product.
+- Hard-nos ({{hard_nos}}) must be excluded from recommendation.
+- Taper or fade height must be explicit: "low taper" / "mid fade" / "skin fade".`,
+    female: `Generate page 05: PRIMARY HAIRCUT RECOMMENDATION — FEMALE LANE.
+
+This is the main recommendation page. Be specific, directive, and practical.
+
+Required JSON fields:
+- headline: "Primary Haircut Recommendation"
+- salon_wording: "<Exact phrase to tell hairstylist: length, layers, bangs, finish. Max 20 words.>"
+- why_it_works: "<1 sentence: face + hair rationale>"
+- views: {
+    length: "<target length or trim amount>",
+    layers: "<layer weight and placement>",
+    fringe: "<fringe type or 'no fringe'>",
+    finish: "<product + technique, e.g. 'Serum on mid-lengths, air-dry or diffuse'>"
+  }
+- items: [
+    { label: "LENGTH", value: "<length spec>" },
+    { label: "LAYERS", value: "<layer spec>" },
+    { label: "FRINGE / FRONT", value: "<fringe spec>" },
+    { label: "FINISH", value: "<finish spec>" }
+  ]
+
+Execution rules:
+- If {{risk_level}} == "safe" → preserve length, recommend layers or a trim only.
+- If {{risk_level}} == "noticeable-change" → lob, bob, bangs, or significant layer change.
+- If {{maintenance}} == "low" → avoid blunt fringe (needs daily trimming/styling).
+- Hard-nos ({{hard_nos}}) must be excluded.
+- Specify fringe type explicitly: none / curtain / side-swept / wispy / blunt.`
+  },
+  {
+    id: 'p06', num: '06', title: 'Safe Upgrade Option',
+    subtitle: 'Conservative version — fully branched',
+    branch: 'branched',
+    vars: ['{{gender_lane}}','{{risk_level}}','{{maintenance}}'],
+    male: `Generate page 06: SAFE UPGRADE OPTION — MALE LANE.
+
+The conservative version of the primary recommendation. For users nervous about change.
+
+Required JSON fields:
+- headline: "Safe Upgrade Option"
+- items: [
+    { label: "CURRENT BASELINE", value: "<what to keep the same>" },
+    { label: "SAFE UPGRADE", value: "<minimal change: cleanup, soften, or refine only>" },
+    { label: "WHO IT'S FOR", value: "<risk-averse user descriptor>" }
+  ]
+- body: "<1 sentence: why this works as a confidence builder>"
+
+Male safe upgrade logic:
+- Do not change the overall cut shape.
+- Recommend: taper cleanup, neckline refinement, or product change only.
+- Safe wording: "natural side part with soft taper", "current cut + matte finish".
+- Never recommend fade if current is no-fade.`,
+    female: `Generate page 06: SAFE UPGRADE OPTION — FEMALE LANE.
+
+The conservative version of the primary recommendation. For users nervous about change.
+
+Required JSON fields:
+- headline: "Safe Upgrade Option"
+- items: [
+    { label: "CURRENT BASELINE", value: "<what to keep the same>" },
+    { label: "SAFE UPGRADE", value: "<minimal change: trim, soft layers, or toner only>" },
+    { label: "WHO IT'S FOR", value: "<risk-averse user descriptor>" }
+  ]
+- body: "<1 sentence: why this works as a confidence builder>"
+
+Female safe upgrade logic:
+- Preserve length unless user explicitly wants a change.
+- Recommend: dusting trim, soft face-framing layers, or a toner for dimension.
+- Safe wording: "same length + subtle layers", "lob with blowout shape", "no fringe, side-part".
+- Never recommend bleach or heavy color as safe option.`
+  },
+  {
+    id: 'p07', num: '07', title: 'Outfit & Activity Fit',
+    subtitle: 'Lifestyle-based — 3 activity photos + avoid strip',
+    branch: 'shared',
+    vars: ['{{lifestyle}}','{{occasion}}','{{style_direction}}'],
+    male: `Generate page 07: OUTFIT & ACTIVITY FIT — MALE LANE.
+
+Match the recommended haircut to the user's lifestyle contexts. 3 activity slots + 1 avoid.
+
+Required JSON fields:
+- headline: "Outfit & Activity Fit"
+- items: [
+    { label: "WORK / OFFICE", value: "<shirt/collar descriptor>", note: "<hair volume/finish note>" },
+    { label: "LINKEDIN / CLIENT", value: "<formal wear descriptor>", note: "<camera-ready note>" },
+    { label: "WEEKEND / CAFE", value: "<casual wear descriptor>", note: "<relaxed styling note>" }
+  ]
+- avoid: "<Specific outfit + hair combo to avoid, 1 sentence>"
+
+Male outfit rules:
+- Work: controlled volume, clean collar line, no wet shine.
+- LinkedIn: matte finish, blazer or structured shirt, camera-ready framing.
+- Weekend: relaxed texture, no heavy product.
+- Avoid: anything that makes the haircut compete with the outfit neckline.`,
+    female: `Generate page 07: OUTFIT & ACTIVITY FIT — FEMALE LANE.
+
+Match the recommended hair direction to the user's lifestyle contexts. 3 activity slots + 1 avoid.
+
+Required JSON fields:
+- headline: "Outfit & Activity Fit"
+- items: [
+    { label: "WORK / OFFICE", value: "<outfit descriptor>", note: "<updo/half-up or down note>" },
+    { label: "SOCIAL / EVENT", value: "<dressy look descriptor>", note: "<styling up note>" },
+    { label: "WEEKEND / CASUAL", value: "<casual outfit descriptor>", note: "<loose/natural texture note>" }
+  ]
+- avoid: "<Specific look to avoid, 1 sentence>"
+
+Female outfit rules:
+- Work: neat down or half-up. Avoid very voluminous styles that distract.
+- Social: blow-dry shape or loose waves. Layers shine here.
+- Weekend: air-dry texture, undone but clean.
+- Avoid: heavy fringe + bold neckline (compete for attention).`
+  },
+  {
+    id: 'p08', num: '08', title: 'Styles to Avoid',
+    subtitle: 'Hard filter — 3 bad-fit styles + better alternative',
+    branch: 'shared',
+    vars: ['{{face_shape}}','{{hard_nos}}','{{texture}}'],
+    male: `Generate page 08: STYLES TO AVOID — MALE LANE.
+
+Name 3 specific popular styles that conflict with this user's face shape or hair behavior. Be direct.
+
+Required JSON fields:
+- headline: "Styles to Avoid"
+- items: [
+    { label: "AVOID 1", value: "<style name>", note: "<why in 8 words max>" },
+    { label: "AVOID 2", value: "<style name>", note: "<why in 8 words max>" },
+    { label: "AVOID 3", value: "<style name>", note: "<why in 8 words max>" }
+  ]
+- body: "The report should say no clearly. Trust goes up when bad-fit options are filtered out."
+- subheadline: "Better: <recommended style name>"
+
+Male avoid logic:
+- Each avoid must be a named, recognizable style (e.g. "heavy middle part", "skin fade undercut").
+- Reason must reference face shape OR hair behavior — not personal opinion.
+- Hard-nos from quiz ({{hard_nos}}) must appear here if they are style-relevant.`,
+    female: `Generate page 08: STYLES TO AVOID — FEMALE LANE.
+
+Name 3 specific popular styles that conflict with this user's face shape or hair behavior. Be direct.
+
+Required JSON fields:
+- headline: "Styles to Avoid"
+- items: [
+    { label: "AVOID 1", value: "<style name>", note: "<why in 8 words max>" },
+    { label: "AVOID 2", value: "<style name>", note: "<why in 8 words max>" },
+    { label: "AVOID 3", value: "<style name>", note: "<why in 8 words max>" }
+  ]
+- body: "The report should say no clearly. Trust goes up when bad-fit options are filtered out."
+- subheadline: "Better: <recommended style name>"
+
+Female avoid logic:
+- Each avoid must be a named, recognizable style (e.g. "blunt chin-length bob", "heavy fringe", "very long one-length").
+- Reason must reference face shape balance or hair texture conflict.
+- Hard-nos from quiz ({{hard_nos}}) must appear here if style-relevant.`
+  },
+  {
+    id: 'p09', num: '09', title: 'Barber / Salon Instruction Card',
+    subtitle: 'Screenshot-ready — fully branched script',
+    branch: 'branched',
+    vars: ['{{gender_lane}}','{{face_shape}}','{{hard_nos}}','{{fit_score}}'],
+    male: `Generate page 09: BARBER INSTRUCTION CARD — MALE LANE.
+
+This page is screenshotted and shown directly to the barber. Language must be clear, directive, and barber-readable.
+
+Required JSON fields:
+- headline: "<First-person instruction, e.g. 'I want a textured crop with a low taper.'>"
+- body: "<Supporting detail: top length, fringe rule, finish — max 20 words>"
+- items: [
+    { label: "DO", value: "<item 1>" },
+    { label: "DO", value: "<item 2>" },
+    { label: "DO", value: "<item 3>" },
+    { label: "DO", value: "<item 4>" },
+    { label: "DO NOT", value: "<item 1>" },
+    { label: "DO NOT", value: "<item 2>" },
+    { label: "DO NOT", value: "<item 3>" },
+    { label: "DO NOT", value: "<item 4>" }
+  ]
+- stats: [{ value: "{{fit_score}}", label: "FACE FIT SCORE" }]
+
+Barber card rules:
+- Headline must be in first person ("I want...").
+- DO items: specific technique instructions (taper height, neckline type, finish).
+- DO NOT items: direct exclusions derived from face shape + hard-nos.
+- Zero vague words: no "nice", "clean-ish", "a bit". All specifics.`,
+    female: `Generate page 09: SALON INSTRUCTION CARD — FEMALE LANE.
+
+This page is screenshotted and shown directly to the hairstylist. Language must be clear, directive, and salon-readable.
+
+Required JSON fields:
+- headline: "<First-person instruction, e.g. 'I want face-framing layers with soft curtain bangs.'>"
+- body: "<Supporting detail: length, layer weight, fringe, finish — max 20 words>"
+- items: [
+    { label: "DO", value: "<item 1>" },
+    { label: "DO", value: "<item 2>" },
+    { label: "DO", value: "<item 3>" },
+    { label: "DO", value: "<item 4>" },
+    { label: "DO NOT", value: "<item 1>" },
+    { label: "DO NOT", value: "<item 2>" },
+    { label: "DO NOT", value: "<item 3>" },
+    { label: "DO NOT", value: "<item 4>" }
+  ]
+- stats: [{ value: "{{fit_score}}", label: "FACE FIT SCORE" }]
+
+Salon card rules:
+- Headline must be in first person ("I want...").
+- DO items: length in cm, layer type, fringe type, finish product.
+- DO NOT items: specific styles to avoid based on face shape + hard-nos.
+- Zero vague words. All specifics.`
+  },
+  {
+    id: 'p10', num: '10', title: 'Front View Shape Guide',
+    subtitle: 'Good vs bad silhouette — shared',
+    branch: 'shared',
+    vars: ['{{face_shape}}','{{gender_lane}}'],
+    male: `Generate page 10: FRONT VIEW SHAPE GUIDE — MALE LANE.
+
+Describe what the good and bad front silhouettes look like for this specific face shape.
+
+Required JSON fields:
+- headline: "Front View Shape Guide"
+- items: [
+    { label: "GOOD FRONT", value: "<3 descriptors: texture, width control, forehead visibility>" },
+    { label: "BAD FRONT", value: "<3 descriptors: what to avoid in the silhouette>" }
+  ]
+- body: "<Photo check rule: sides vs cheek, top texture movement — 1 sentence>"
+
+Male front view rules:
+- Good front = compact sides, slight vertical texture, forehead partially visible.
+- Bad front = wide sides (temples broader than cheeks), blunt/heavy fringe.
+- Photo check: "sides should not extend wider than cheek balance; top texture should add slight vertical movement."`,
+    female: `Generate page 10: FRONT VIEW SHAPE GUIDE — FEMALE LANE.
+
+Describe what the good and bad front silhouettes look like for this specific face shape.
+
+Required JSON fields:
+- headline: "Front View Shape Guide"
+- items: [
+    { label: "GOOD FRONT", value: "<3 descriptors: layers, face-framing, length balance>" },
+    { label: "BAD FRONT", value: "<3 descriptors: what to avoid in the silhouette>" }
+  ]
+- body: "<Photo check rule: face-framing vs face-widening, volume placement — 1 sentence>"
+
+Female front view rules:
+- Good front = face-framing layers that follow jaw, proportionate volume.
+- Bad front = blunt chin-length that flattens oval, heavy fringe that closes forehead.
+- Photo check: "face-framing pieces should follow the jaw, not push volume outward at temples."`
+  },
+  {
+    id: 'p11', num: '11', title: 'Side Profile & Taper / Layer Guide',
+    subtitle: 'Execution detail — fully branched',
+    branch: 'branched',
+    vars: ['{{gender_lane}}','{{face_shape}}'],
+    male: `Generate page 11: SIDE PROFILE & TAPER GUIDE — MALE LANE.
+
+Technical execution guide for the side view: taper height, side wall, sideburn, neckline.
+
+Required JSON fields:
+- headline: "Side Profile & Taper Guide"
+- subheadline: "<Short bold directive, e.g. 'Keep the taper low.'>"
+- body: "<1 rule sentence about side wall continuity, italic callout>"
+- items: [
+    { label: "TAPER POINT", value: "<location and transition style>" },
+    { label: "TEMPLE", value: "<height and fullness rule>" },
+    { label: "NECKLINE", value: "<shape: natural|squared|tapered>" }
+  ]
+
+Male taper rules:
+- Low taper = transition near the ear. Preferred for oval/rectangular faces.
+- Mid fade = transition at temple. Use for round faces needing more contrast.
+- Skin fade = aggressive. Only for specific cuts (textured frohawk, etc).
+- Neckline: natural preferred. Squared only if user is corporate/formal lifestyle.`,
+    female: `Generate page 11: SIDE PROFILE & LAYER GUIDE — FEMALE LANE.
+
+Technical execution guide for the side view: layer graduation, face-framing fall, neckline/back length.
+
+Required JSON fields:
+- headline: "Side Profile & Layer Guide"
+- subheadline: "<Short bold directive, e.g. 'Let the layers fall forward.'>"
+- body: "<1 rule sentence about layer graduation continuity>"
+- items: [
+    { label: "LAYER GRADUATION", value: "<soft/medium/strong graduation>" },
+    { label: "FACE-FRAMING", value: "<angle and length of face-framing pieces>" },
+    { label: "BACK LENGTH", value: "<back vs front length relationship>" }
+  ]
+
+Female layer rules:
+- Soft graduation = subtle layers, natural movement. Low maintenance.
+- Medium graduation = visible movement, works with wavy/curly.
+- Strong graduation = dramatic layer step. High styling required.
+- Face-framing: pieces should fall forward to jaw, not behind ear.`
+  },
+  {
+    id: 'p12', num: '12', title: 'Styling Routine & Products',
+    subtitle: 'Steps + product — product differs by gender',
+    branch: 'shared',
+    vars: ['{{texture}}','{{maintenance}}','{{gender_lane}}'],
+    male: `Generate page 12: STYLING ROUTINE & PRODUCTS — MALE LANE.
+
+4-step repeatable morning routine. Keep to 7 minutes or under for low-maintenance users.
+
+Required JSON fields:
+- headline: "Styling Routine & Products"
+- stats: [{ value: "<X>m", label: "TOTAL ROUTINE" }]
+- items: [
+    { label: "01", value: "Towel Dry", note: "<instruction, max 10 words>" },
+    { label: "02", value: "Blow Dry", note: "<instruction, max 10 words>" },
+    { label: "03", value: "<Product name>", note: "<amount + technique, max 10 words>" },
+    { label: "04", value: "Finger Texture", note: "<final finish instruction, max 10 words>" }
+  ]
+- body: "<Pro tip: 1 sentence about the most common mistake for this hair type>"
+
+Male product logic:
+- Low maintenance: matte clay only, pea-sized, finger texture.
+- Medium: clay or wax + blow-dry forward.
+- High: pomade or strong hold paste + diffuser if wavy.
+- Never recommend gel for natural matte look.`,
+    female: `Generate page 12: STYLING ROUTINE & PRODUCTS — FEMALE LANE.
+
+4–5 step repeatable routine. Adjust total time to user's stated maintenance level.
+
+Required JSON fields:
+- headline: "Styling Routine & Products"
+- stats: [{ value: "<X>m", label: "TOTAL ROUTINE" }]
+- items: [
+    { label: "01", value: "Towel Dry / Detangle", note: "<instruction, max 10 words>" },
+    { label: "02", value: "<Heat or Air-Dry>", note: "<instruction, max 10 words>" },
+    { label: "03", value: "<Product name>", note: "<amount + technique, max 10 words>" },
+    { label: "04", value: "<Finish step>", note: "<final instruction, max 10 words>" }
+  ]
+- body: "<Pro tip: 1 sentence about the most common mistake for this hair type>"
+
+Female product logic:
+- Fine/straight: volumizing mousse before blow-dry + light texturizing spray after.
+- Wavy: curl cream on damp hair, scrunch, air-dry or diffuse.
+- Curly/coily: leave-in + curl cream + diffuse. No brush when dry.
+- High maintenance: heat protectant always if blow-dry or straightener.`
+  },
+  {
+    id: 'p13', num: '13', title: 'Maintenance Timeline',
+    subtitle: 'Grow-out plan + booking trigger',
+    branch: 'shared',
+    vars: ['{{maintenance}}','{{gender_lane}}','{{lifestyle}}'],
+    male: `Generate page 13: MAINTENANCE TIMELINE — MALE LANE.
+
+5-node grow-out timeline from cut day to reshape. Make the booking trigger obvious.
+
+Required JSON fields:
+- headline: "Maintenance Timeline"
+- items: [
+    { label: "W1", value: "Sharpest shape", note: "<what looks great at week 1>" },
+    { label: "W2–3", value: "Best natural phase", note: "<photo window — why this is the best moment>" },
+    { label: "W4", value: "Side bulk appears", note: "<what starts going wrong>" },
+    { label: "W5+", value: "Full reshape needed", note: "<what breaks down>" },
+    { label: "TARGET", value: "Book cleanup", note: "<ideal timing for barber visit>" }
+  ]
+- body: "Book taper cleanup every 3–4 weeks."
+- subheadline: "<Best photo window tip, 1 sentence>"
+
+Male cleanup logic:
+- Low maintenance: 4–5 week cycle.
+- Medium: 3–4 week cycle.
+- High: 2–3 week cycle (skin fade users especially).`,
+    female: `Generate page 13: MAINTENANCE TIMELINE — FEMALE LANE.
+
+Grow-out timeline from cut/color day to next appointment. Make the trigger obvious.
+
+Required JSON fields:
+- headline: "Maintenance Timeline"
+- items: [
+    { label: "WK 1–2", value: "Shape at its best", note: "<what looks best right after salon>" },
+    { label: "WK 3–6", value: "Optimal phase", note: "<layers settle, natural movement>" },
+    { label: "WK 7–8", value: "Fringe grows out", note: "<if fringe: starts to need trim>" },
+    { label: "WK 10–12", value: "Shape loses structure", note: "<what breaks down>" },
+    { label: "TARGET", value: "Book next appointment", note: "<ideal timing for salon visit>" }
+  ]
+- body: "Book a trim or layer refresh every 8–12 weeks."
+- subheadline: "<Best photo/event window tip, 1 sentence>"
+
+Female timing logic:
+- Short cut (bob/lob): 6–8 week cycle.
+- Medium length with layers: 8–10 week cycle.
+- Long hair, minimal layers: 10–12 week cycle.
+- Fringe: 4–6 week trim regardless of overall length.`
+  },
+  {
+    id: 'p14', num: '14', title: 'Reference Direction Board',
+    subtitle: 'Curated keywords — shared',
+    branch: 'shared',
+    vars: ['{{gender_lane}}','{{style_direction}}','{{face_shape}}'],
+    male: `Generate page 14: REFERENCE DIRECTION BOARD — MALE LANE.
+
+4 reference direction rules. Give keywords the client can search, not image descriptions.
+
+Required JSON fields:
+- headline: "Reference Direction Board"
+- items: [
+    { label: "TEXTURE DIRECTION", value: "<texture style keyword + rule, e.g. 'Clean Korean texture: soft movement, no hard spikes'>" },
+    { label: "SHAPE LANGUAGE", value: "<shape keyword + rule>" },
+    { label: "FADE BOUNDARY", value: "<taper/fade constraint rule>" },
+    { label: "FRINGE RULE", value: "<fringe constraint, positive or negative>" }
+  ]
+- body: "Use as direction, not exact copies."
+
+Male reference rules:
+- Keywords must be searchable on Instagram/Pinterest (e.g. "clean taper crop", "Korean textured crop").
+- No celebrity name references (avoids copyright and outdated looks).
+- Each rule must have a positive (what to look for) + implicit negative (what to avoid).`,
+    female: `Generate page 14: REFERENCE DIRECTION BOARD — FEMALE LANE.
+
+4 reference direction rules. Give keywords the client can search, not image descriptions.
+
+Required JSON fields:
+- headline: "Reference Direction Board"
+- items: [
+    { label: "TEXTURE DIRECTION", value: "<texture style keyword + rule>" },
+    { label: "LENGTH DIRECTION", value: "<length and shape keyword + rule>" },
+    { label: "FRINGE DIRECTION", value: "<fringe keyword + rule, or 'no fringe: why'>" },
+    { label: "COLOR DIRECTION", value: "<color keyword + rule, or 'natural only: why'>" }
+  ]
+- body: "Use as direction, not exact copies."
+
+Female reference rules:
+- Keywords must be searchable on Pinterest/Instagram (e.g. "soft curtain bangs", "Korean lob", "face-framing layers").
+- No celebrity name references.
+- Color direction only relevant if quiz showed interest. Otherwise: "natural base color: no change needed."
+- Each direction must have a searchable keyword + 1 constraint.`
+  },
+  {
+    id: 'p15', num: '15', title: 'Final Action Plan',
+    subtitle: 'Checklist close — shared',
+    branch: 'shared',
+    vars: ['{{gender_lane}}','{{desired_outcome}}','{{fit_score}}','{{maintenance}}'],
+    male: `Generate page 15: FINAL ACTION PLAN — MALE LANE.
+
+Closing checklist. Everything the client needs to do before and after the barber visit.
+
+Required JSON fields:
+- headline: "Final Action Plan"
+- subheadline: "<Your next cut: 1-sentence barber brief>"
+- stats: [
+    { value: "{{fit_score}}", label: "FIT SCORE" },
+    { value: "<3–4w>", label: "CLEANUP" },
+    { value: "<7>m", label: "DAILY" }
+  ]
+- checklist: [
+    "Save barber card — pg. 09",
+    "Pick one front + one side reference",
+    "Ask for low taper, not high fade",
+    "Use matte clay — avoid wet gel",
+    "Book cleanup in 3–4 weeks",
+    "Use angle guide for selfie / LinkedIn"
+  ]
+
+Checklist rules:
+- Max 6 items.
+- Each item starts with an action verb.
+- All items must be completable within 24 hours of reading the report.`,
+    female: `Generate page 15: FINAL ACTION PLAN — FEMALE LANE.
+
+Closing checklist. Everything the client needs to do before and after the salon visit.
+
+Required JSON fields:
+- headline: "Final Action Plan"
+- subheadline: "<Your next appointment: 1-sentence salon brief>"
+- stats: [
+    { value: "{{fit_score}}", label: "FIT SCORE" },
+    { value: "<8–10w>", label: "NEXT VISIT" },
+    { value: "<X>m", label: "DAILY" }
+  ]
+- checklist: [
+    "Save salon card — pg. 09",
+    "Pick one length + one texture reference",
+    "Ask for <layer type>, not <common mistake>",
+    "Use <recommended product> — avoid <wrong product>",
+    "Book next appointment in <X> weeks",
+    "Use angle guide for best photo angles"
+  ]
+
+Checklist rules:
+- Max 6 items.
+- Each item starts with an action verb.
+- Customize <layer type> and <wrong product> from the primary recommendation.`
+  }
+];
+
+// ── RENDER PAGES ──
+let currentGender = 'male';
+
+function renderPages() {
+  const container = document.getElementById('page-prompts');
+  container.innerHTML = pages.map(p => `
+    <div class="page-card" id="${p.id}">
+      <div class="page-card-header" onclick="toggleCard('${p.id}')">
+        <div class="page-num-badge">${p.num}</div>
+        <div>
+          <div class="page-card-title">${p.title}</div>
+          <div class="page-card-subtitle">${p.subtitle}</div>
+        </div>
+        <div class="page-card-chevron">▼</div>
+      </div>
+      <div class="page-card-body">
+        <div class="chip-row">
+          <span class="chip ${p.branch === 'branched' ? 'chip-amber' : 'chip-green'}">${p.branch === 'branched' ? '⚡ Fully Branched' : '∩ Shared + Tweak'}</span>
+          ${p.vars.map(v => `<span class="chip chip-blue" style="font-family:'DM Mono',monospace;font-size:10px;">${v}</span>`).join('')}
+        </div>
+
+        <div class="branch-tabs">
+          <div class="branch-tab male ${currentGender === 'male' ? 'active' : ''}" onclick="switchBranch('${p.id}', 'male')">♂ Male / Barber</div>
+          <div class="branch-tab female ${currentGender === 'female' ? 'active' : ''}" onclick="switchBranch('${p.id}', 'female')">♀ Female / Salon</div>
+        </div>
+
+        <div class="prompt-block">
+          <div class="prompt-header">
+            <span class="prompt-header-label">page_prompt / pg_${p.num}_${currentGender}</span>
+            <button class="copy-btn" onclick="copyPrompt(this, 'prompt-${p.id}')">Copy</button>
+          </div>
+          <div class="prompt-body" id="prompt-${p.id}">${escHtml(currentGender === 'male' ? p.male : p.female)}</div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+  updateSidebarActive();
+}
+
+function escHtml(str) {
+  return str.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function toggleCard(id) {
+  const card = document.getElementById(id);
+  card.classList.toggle('open');
+}
+
+function switchBranch(pageId, gender) {
+  currentGender = gender;
+  const page = pages.find(p => p.id === pageId);
+  const card = document.getElementById(pageId);
+  const promptEl = card.querySelector(`#prompt-${pageId}`);
+  const labelEl = card.querySelector('.prompt-header-label');
+  const tabs = card.querySelectorAll('.branch-tab');
+
+  promptEl.textContent = gender === 'male' ? page.male : page.female;
+  labelEl.textContent = `page_prompt / pg_${page.num}_${gender}`;
+  tabs.forEach(t => {
+    t.classList.remove('active');
+    if ((t.classList.contains('male') && gender === 'male') ||
+        (t.classList.contains('female') && gender === 'female')) {
+      t.classList.add('active');
+    }
+  });
+
+  // update global toggle
+  updateGlobalToggle();
+}
+
+function setGender(gender) {
+  currentGender = gender;
+  renderPages();
+  updateGlobalToggle();
+}
+
+function updateGlobalToggle() {
+  const btns = document.querySelectorAll('#global-gender-toggle .gender-btn');
+  btns.forEach(b => {
+    b.classList.remove('active-m', 'active-f');
+  });
+  if (currentGender === 'male') btns[0].classList.add('active-m');
+  else btns[1].classList.add('active-f');
+}
+
+function copyPrompt(btn, id) {
+  const el = document.getElementById(id);
+  const text = el.innerText || el.textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✓ Copied';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = 'Copy';
+      btn.classList.remove('copied');
+    }, 2000);
+  });
+}
+
+// ── SIDEBAR SCROLL HIGHLIGHT ──
+function updateSidebarActive() {
+  document.querySelectorAll('.sidebar-item').forEach(item => {
+    item.classList.remove('active');
+  });
+}
+
+// ── INIT ──
+renderPages();
+
+// Sidebar scroll spy
+window.addEventListener('scroll', () => {
+  const sections = document.querySelectorAll('.section, .page-card');
+  let current = '';
+  sections.forEach(s => {
+    if (s.getBoundingClientRect().top < 200) current = s.id;
+  });
+  document.querySelectorAll('.sidebar-item').forEach(item => {
+    item.classList.remove('active');
+    if (item.getAttribute('href') === '#' + current) item.classList.add('active');
+  });
+}, { passive: true });
+</script>
+</body>
+</html>
