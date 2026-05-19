@@ -529,6 +529,7 @@
 <span class="k">Lifestyle context:</span> <span class="v">{{lifestyle}}</span> <span class="c">// e.g. "office + weekend cafe", "creative industry"</span>
 <span class="k">Upcoming occasion:</span> <span class="v">{{occasion}}</span> <span class="c">// e.g. "job interview next month", "none"</span>
 <span class="k">Risk level:</span> <span class="v">{{risk_level}}</span> <span class="c">// "safe" | "moderate" | "noticeable-change"</span>
+<span class="k">Hair color preview:</span> <span class="v">{{color_vibe}}</span> <span class="c">// "nope" | "gelap" | "toner" | "balayage/highlight" | "terang" | "surprise me"</span>
 <span class="k">Hard-no styles:</span> <span class="v">{{hard_nos}}</span> <span class="c">// e.g. "no shaved sides", "no bleach"</span>
 <span class="k">Fit score (computed):</span> <span class="v">{{fit_score}}</span> <span class="c">// integer 1–100</span>
 
@@ -868,8 +869,8 @@ RULES:
         <tbody>
           <tr>
             <td class="var-name">{{color_vibe}}</td>
-            <td class="var-desc">Want a hair color preview?</td>
-            <td class="var-desc">Nope / Gelap / Toner / Balayage-highlight / Terang / Surprise me</td>
+            <td class="var-desc">Which hair color preview image should HairCard generate?</td>
+            <td class="var-desc">Skip image / Generate darker / Generate toner-gloss / Generate balayage-highlight / Generate lighter / Let HairCard pick</td>
             <td class="var-desc">img-color, 14</td>
           </tr>
         </tbody>
