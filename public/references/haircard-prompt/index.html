@@ -458,11 +458,15 @@
     <span class="page-badge">⚠</span> Image Constraints
   </a>
   <a class="sidebar-item" href="#img-pg02" onclick="scrollTo('img-pg02')"><span class="page-badge">02</span> Exec Summary</a>
+  <a class="sidebar-item" href="#img-pg04" onclick="scrollTo('img-pg04')"><span class="page-badge">04</span> Hair Texture</a>
   <a class="sidebar-item" href="#img-pg05" onclick="scrollTo('img-pg05')"><span class="page-badge">05</span> Primary Rec Views</a>
   <a class="sidebar-item" href="#img-pg07" onclick="scrollTo('img-pg07')"><span class="page-badge">07</span> Outfit × Activity</a>
   <a class="sidebar-item" href="#img-pg08" onclick="scrollTo('img-pg08')"><span class="page-badge">08</span> Avoid Styles</a>
   <a class="sidebar-item" href="#img-pg10" onclick="scrollTo('img-pg10')"><span class="page-badge">10</span> Angle Guide</a>
+  <a class="sidebar-item" href="#img-pg11" onclick="scrollTo('img-pg11')"><span class="page-badge">11</span> Side Profile</a>
+  <a class="sidebar-item" href="#img-pg13" onclick="scrollTo('img-pg13')"><span class="page-badge">13</span> Reference Board</a>
   <a class="sidebar-item" href="#img-pg14" onclick="scrollTo('img-pg14')"><span class="page-badge">14</span> Before / After</a>
+  <a class="sidebar-item" href="#img-color" onclick="scrollTo('img-color')"><span class="page-badge">🎨</span> Color Preview</a>
 
   <span class="sidebar-section-label">Output</span>
   <a class="sidebar-item" href="#json-schema" onclick="scrollTo('json-schema')">
@@ -513,7 +517,7 @@
 <span class="k">Cheek width:</span> <span class="v">{{cheek_read}}</span>
 <span class="k">Hair density (visible):</span> <span class="v">{{density}}</span> <span class="c">// "low" | "medium" | "high"</span>
 <span class="k">Hair texture (visible):</span> <span class="v">{{texture}}</span> <span class="c">// "straight" | "slight-wave" | "wavy" | "curly" | "coily"</span>
-<span class="k">Current length (inferred from selfie):</span> <span class="v">{{current_length}}</span> <span class="c">// do not ask user to classify exact hair length</span>
+<span class="k">Current length:</span> <span class="v">{{current_length}}</span>
 <span class="k">Growth pattern:</span> <span class="v">{{growth_pattern}}</span> <span class="c">// e.g. "front lift", "cowlick at crown", "even"</span>
 <span class="k">Scalp visibility:</span> <span class="v">{{scalp_visible}}</span> <span class="c">// "yes" | "no" | "slightly"</span>
 
@@ -732,101 +736,116 @@
   <div class="section" id="vision-prompt">
     <span class="section-tag">Image Prompts</span>
     <h2 class="section-title">Vision Analysis Prompt</h2>
-    <p class="section-desc">Dijalankan <strong>pertama kali</strong> sebelum semua page prompt. Input: selfie image. Output: structured JSON yang jadi variabel di master context. Pakai vision-capable model (GPT-4o / Claude 3.5 Sonnet / Gemini Pro Vision).</p>
+    <p class="section-desc">Dijalankan <strong>pertama kali</strong> sebelum semua page prompt. Input: selfie image. Output: structured JSON yang jadi variabel di master context. Male dan female punya schema berbeda — female includes color fields.</p>
 
     <div class="branch-tabs" style="margin-bottom:14px;">
-      <div class="branch-tab male active" onclick="switchImgBranch('vision','male',this)">♂ Male / Barber Vision</div>
-      <div class="branch-tab female" onclick="switchImgBranch('vision','female',this)">♀ Female / Salon Vision</div>
+      <div class="branch-tab male active" onclick="switchImgBranch('vision','male',this)">♂ Male / Barber</div>
+      <div class="branch-tab female" onclick="switchImgBranch('vision','female',this)">♀ Female / Salon</div>
     </div>
 
-    <div class="prompt-block">
-      <div class="prompt-header">
-        <span class="prompt-header-label">vision_prompt / selfie_analysis — MALE</span>
-        <button class="copy-btn" onclick="copyPrompt(this, 'vision-text')">Copy</button>
-      </div>
-      <div class="prompt-body" id="vision-text">You are a professional hairstyle analyst for the male/barber lane. Analyze the uploaded selfie photo and return a structured JSON object with the following fields. Use only what is visibly observable in the photo. Do not assume or invent data.
+    <!-- MALE VISION -->
+    <div id="vision-male-block">
+      <div class="prompt-block">
+        <div class="prompt-header">
+          <span class="prompt-header-label">vision_prompt / selfie_analysis — MALE</span>
+          <button class="copy-btn" onclick="copyPrompt(this, 'vision-male-text')">Copy</button>
+        </div>
+        <div class="prompt-body" id="vision-male-text">You are a professional hairstyle analyst. Analyze the uploaded selfie and return structured JSON. Use only what is visibly observable. Do not assume or invent.
 
-IMPORTANT:
-- Use hedging language: "appears", "visible read suggests", "likely".
+RULES:
+- Use hedging: "appears", "visible read suggests", "likely".
 - Never state ethnicity, race, or health diagnosis.
-- If a feature is not clearly visible, use "unclear" as the value.
-- Return ONLY valid JSON. No prose, no markdown, no explanation.
+- If unclear, use "unclear" as value.
+- Return ONLY valid JSON. No prose, no markdown.
 
-Required output schema:
 {
-  "face_shape": string,         // "oval" | "round" | "square" | "rectangle" | "heart" | "diamond" | "oblong" | "oval-leaning-[modifier]"
+  "gender_lane": "male-barber",
+  "face_shape": string,            // "oval" | "round" | "square" | "rectangle" | "heart" | "diamond" | "oblong"
   "face_shape_confidence": string, // "high" | "medium" | "low"
-  "forehead": string,           // "balanced" | "broad" | "narrow" | "unclear"
-  "forehead_height": string,    // "high" | "medium" | "low"
-  "jaw": string,                // "soft-rounded" | "soft-rectangular" | "angular" | "sharp" | "undefined"
-  "cheek_width": string,        // "narrow" | "medium" | "wide"
-  "face_length": string,        // "short" | "medium" | "long"
-  "skin_tone_range": string,    // "very-light" | "light" | "medium-light" | "medium" | "medium-deep" | "deep" — for image gen matching only
-  "hair_texture": string,       // "straight" | "slight-wave" | "wavy" | "curly" | "coily"
-  "hair_density": string,       // "low" | "medium" | "high"
-  "hair_color": string,         // general color descriptor, e.g. "dark brown", "black", "light brown", "blonde", "grey"
-  "current_length": string,     // inferred from selfie: "buzz" | "short" | "medium-short" | "medium" | "medium-long" | "long" | "unclear"
-  "growth_pattern": string,     // "even" | "front-lift" | "cowlick-crown" | "receding-temples" | "unclear"
-  "scalp_visible": string,      // "yes" | "no" | "slightly"
-  "thinning_detected": boolean, // true only if clearly visible thinning or receding areas
-  "photo_quality": string,      // "good" | "acceptable" | "poor" — affects confidence of analysis
-  "photo_angle": string,        // "front-facing" | "slight-angle" | "side" | "unclear"
-  "barber_observations": {
-    "side_bulk": string,        // "compact" | "medium" | "bulky" | "unclear"
-    "temple_area": string,      // "clean" | "receding-visible" | "covered" | "unclear"
-    "neckline_visibility": string, // "visible" | "not-visible" | "unclear"
-    "fade_taper_suitability": string // 1 sentence about taper/fade risk based on visible hair/face cues
-  },
-  "analysis_notes": string      // 1 sentence: any visible constraint or notable feature for report use
+  "forehead": string,              // "balanced" | "broad" | "narrow" | "unclear"
+  "forehead_height": string,       // "high" | "medium" | "low"
+  "jaw": string,                   // "soft-rounded" | "soft-rectangular" | "angular" | "sharp" | "undefined"
+  "cheek_width": string,           // "narrow" | "medium" | "wide"
+  "face_length": string,           // "short" | "medium" | "long"
+  "skin_tone_range": string,       // "very-light" | "light" | "medium-light" | "medium" | "medium-deep" | "deep"
+  "hair_texture": string,          // "straight" | "slight-wave" | "wavy" | "curly" | "coily"
+  "hair_density": string,          // "low" | "medium" | "high"
+  "hair_color": string,            // e.g. "black", "dark brown", "light brown", "grey"
+  "current_length": string,        // "buzz" | "short" | "medium-short" | "medium"
+  "current_style": string,         // brief description of current visible style, e.g. "side-parted, unstyled"
+  "growth_pattern": string,        // "even" | "front-lift" | "cowlick-crown" | "receding-temples" | "unclear"
+  "scalp_visible": string,         // "yes" | "no" | "slightly"
+  "thinning_detected": boolean,    // true only if clearly visible thinning or receding
+  "beard_present": boolean,        // true if beard/stubble visible
+  "beard_density": string,         // "none" | "light-stubble" | "medium" | "full" | "unclear"
+  "photo_quality": string,         // "good" | "acceptable" | "poor"
+  "photo_angle": string,           // "front-facing" | "slight-angle" | "side" | "unclear"
+  "photo_lighting": string,        // "good" | "flat" | "harsh-shadow" | "backlit" | "unclear"
+  "analysis_notes": string         // 1 sentence: notable constraint or feature for report
 }</div>
+      </div>
     </div>
 
-    <div style="display:none" id="vision-female-text">You are a professional hairstyle analyst for the female/salon lane. Analyze the uploaded selfie photo and return a structured JSON object for a premium salon recommendation report. Use only what is visibly observable in the photo. Do not assume or invent data.
+    <!-- FEMALE VISION -->
+    <div id="vision-female-block" style="display:none;">
+      <div class="prompt-block">
+        <div class="prompt-header">
+          <span class="prompt-header-label">vision_prompt / selfie_analysis — FEMALE</span>
+          <button class="copy-btn" onclick="copyPrompt(this, 'vision-female-text')">Copy</button>
+        </div>
+        <div class="prompt-body" id="vision-female-text">You are a professional hairstyle analyst. Analyze the uploaded selfie and return structured JSON. Use only what is visibly observable. Do not assume or invent.
 
-IMPORTANT:
-- Use hedging language: "appears", "visible read suggests", "likely".
-- Never state ethnicity, race, attractiveness score, or health diagnosis.
-- If a feature is not clearly visible, use "unclear" as the value.
-- Do not force barber concepts like taper/fade/neckline unless the client explicitly chose an androgynous or short-hair lane.
-- Return ONLY valid JSON. No prose, no markdown, no explanation.
+RULES:
+- Use hedging: "appears", "visible read suggests", "likely".
+- Never state ethnicity, race, or health diagnosis.
+- If unclear, use "unclear" as value.
+- Return ONLY valid JSON. No prose, no markdown.
 
-Required output schema:
 {
-  "face_shape": string,         // "oval" | "round" | "square" | "rectangle" | "heart" | "diamond" | "oblong" | "oval-leaning-[modifier]"
+  "gender_lane": "female-salon",
+  "face_shape": string,            // "oval" | "round" | "square" | "rectangle" | "heart" | "diamond" | "oblong"
   "face_shape_confidence": string, // "high" | "medium" | "low"
-  "forehead": string,           // "balanced" | "broad" | "narrow" | "partly-covered" | "unclear"
-  "forehead_height": string,    // "high" | "medium" | "low" | "unclear"
-  "jaw": string,                // "soft-rounded" | "soft-rectangular" | "angular" | "sharp" | "undefined"
-  "cheek_width": string,        // "narrow" | "medium" | "wide"
-  "face_length": string,        // "short" | "medium" | "long"
-  "skin_tone_range": string,    // "very-light" | "light" | "medium-light" | "medium" | "medium-deep" | "deep" — for image gen matching only
-  "hair_texture": string,       // "straight" | "slight-wave" | "wavy" | "curly" | "coily"
-  "hair_density": string,       // "low" | "medium" | "high"
-  "hair_color": string,         // general color descriptor, e.g. "dark brown", "black", "light brown", "blonde", "grey"
-  "current_length": string,     // inferred from selfie: "pixie" | "bob" | "lob" | "shoulder" | "collarbone" | "chest-length" | "long" | "unclear"
-  "parting": string,            // "middle" | "side" | "off-center" | "no-clear-part" | "unclear"
-  "bangs_or_fringe": string,    // "none" | "curtain" | "wispy" | "blunt" | "side-swept" | "covered/unclear"
-  "layer_visibility": string,   // "none-visible" | "subtle" | "clear" | "heavy" | "unclear"
-  "face_framing_pieces": string,// "none-visible" | "subtle" | "clear" | "unclear"
-  "volume_distribution": string,// "flat-crown" | "balanced" | "side-heavy" | "ends-heavy" | "overall-full" | "unclear"
-  "ends_condition": string,     // "blunt" | "layered" | "wispy" | "uneven" | "not-visible" | "unclear"
-  "color_treatment_visible": string, // "natural-looking" | "dyed-solid" | "highlights" | "balayage-like" | "grey-blend" | "unclear"
-  "scalp_visible": string,      // "yes" | "no" | "slightly"
-  "thinning_detected": boolean, // true only if clearly visible thinning or sparse areas
-  "photo_quality": string,      // "good" | "acceptable" | "poor" — affects confidence of analysis
-  "photo_angle": string,        // "front-facing" | "slight-angle" | "side" | "unclear"
-  "salon_observations": {
-    "length_preservation_risk": string, // 1 sentence: whether major length removal seems unnecessary/risky from visible cues
-    "layer_potential": string,          // 1 sentence: what layer direction is visually plausible
-    "fringe_potential": string,         // 1 sentence: whether bangs/curtain bangs are plausible from forehead/face cues
-    "color_change_caution": string,     // 1 sentence: whether color should stay natural or can be softly enhanced
-    "styling_finish_direction": string  // "smooth blowout" | "natural waves" | "soft volume" | "sleek" | "curl definition" | "unclear"
-  },
-  "analysis_notes": string      // 1 sentence: any visible constraint or notable feature for report use
+  "forehead": string,              // "balanced" | "broad" | "narrow" | "unclear"
+  "forehead_height": string,       // "high" | "medium" | "low"
+  "jaw": string,                   // "soft-rounded" | "soft-rectangular" | "angular" | "sharp" | "undefined"
+  "cheek_width": string,           // "narrow" | "medium" | "wide"
+  "cheekbone_prominence": string,  // "high" | "medium" | "low" | "unclear"
+  "face_length": string,           // "short" | "medium" | "long"
+  "skin_tone_range": string,       // "very-light" | "light" | "medium-light" | "medium" | "medium-deep" | "deep"
+
+  // ── HAIR PHYSICAL ──
+  "hair_texture": string,          // "straight" | "slight-wave" | "wavy" | "curly" | "coily"
+  "hair_density": string,          // "fine" | "medium" | "thick"
+  "hair_porosity_estimate": string,// "low" | "medium" | "high" | "unclear" — based on shine/frizz visible
+  "current_length": string,        // "short" | "medium-short" | "shoulder" | "medium-long" | "long" | "very-long"
+  "current_style": string,         // e.g. "layered, natural wave", "one-length straight", "blunt bob"
+
+  // ── COLOR ANALYSIS (visible) ──
+  "hair_color_base": string,       // natural base color visible at root, e.g. "black", "dark brown", "medium brown"
+  "hair_color_ends": string,       // color at ends if different, e.g. "lighter brown", "bleached", "same as root"
+  "color_treatment_visible": boolean, // true if visible color treatment (highlights, balayage, bleach, toner)
+  "color_treatment_type": string,  // "none" | "full-color" | "highlights" | "balayage" | "ombre" | "toner-only" | "bleached" | "unclear"
+  "color_grow_out_visible": boolean, // true if visible root grow-out / banding
+  "color_grow_out_estimate_cm": number, // estimated cm of grow-out, 0 if none, -1 if unclear
+  "color_vibrancy": string,        // "fresh" | "faded" | "very-faded" | "natural-no-color" | "unclear"
+
+  // ── HAIR HEALTH ──
+  "frizz_level": string,           // "none" | "low" | "medium" | "high"
+  "shine_level": string,           // "high" | "medium" | "low" | "dull"
+  "split_ends_visible": boolean,   // true if visible at ends in photo
+  "scalp_visible": string,         // "yes" | "no" | "slightly"
+  "thinning_detected": boolean,    // true only if clearly visible
+
+  // ── PHOTO META ──
+  "photo_quality": string,         // "good" | "acceptable" | "poor"
+  "photo_angle": string,           // "front-facing" | "slight-angle" | "side" | "unclear"
+  "photo_lighting": string,        // "good" | "flat" | "harsh-shadow" | "backlit" | "unclear"
+  "analysis_notes": string         // 1 sentence: notable constraint or feature for report
 }</div>
+      </div>
     </div>
 
-    <div class="rule-row">
+    <div class="rule-row" style="margin-top:16px;">
       <div class="rule-card must">
         <span class="rule-title">✓ Pipeline Order</span>
         1. Run vision_prompt on selfie → get JSON.<br>
@@ -836,8 +855,31 @@ Required output schema:
       </div>
       <div class="rule-card never">
         <span class="rule-title">✕ Never Skip Vision</span>
-        Jangan generate report tanpa vision analysis. Semua recommendation harus grounded ke visible selfie data, bukan quiz alone. Jika foto kualitas "poor", flag ke user untuk reupload sebelum lanjut.
+        Jangan generate report tanpa vision analysis. Jika foto kualitas "poor", flag ke user untuk reupload. Female color fields kritis untuk Pg 04 Hair Behavior dan image gen coloring prompts.
       </div>
+    </div>
+
+    <!-- COLOR QUIZ VARIABLES (female-specific) -->
+    <div style="margin-top:24px;background:var(--purple-bg);border:1.5px solid var(--purple-border);border-radius:12px;padding:20px 24px;">
+      <span style="font-family:'DM Mono',monospace;font-size:8.5px;letter-spacing:0.22em;text-transform:uppercase;color:var(--purple);display:block;margin-bottom:4px;">♀ Female — Color Quiz Questions</span>
+      <p style="font-size:12px;color:var(--text-muted);line-height:1.6;margin-bottom:16px;">Tujuan: bukan tanya budget atau jadwal salon — tapi cari tahu user <em>mau keliatan seperti apa</em>, lalu generate preview visualnya.</p>
+      <table class="var-table" style="margin-bottom:0;">
+        <thead><tr><th>Variable</th><th>Quiz Question</th><th>Options</th><th>Dipakai di</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="var-name">{{color_vibe}}</td>
+            <td class="var-desc">Want a hair color preview?</td>
+            <td class="var-desc">Nope / Gelap / Toner / Balayage-highlight / Terang / Surprise me</td>
+            <td class="var-desc">img-color, 14</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- MALE COLOR NOTE -->
+    <div style="margin-top:12px;background:var(--blue-bg);border:1.5px solid var(--blue-border);border-radius:12px;padding:16px 20px;">
+      <span style="font-family:'DM Mono',monospace;font-size:8.5px;letter-spacing:0.22em;text-transform:uppercase;color:var(--blue);display:block;margin-bottom:8px;">♂ Male — Color Quiz (1 question)</span>
+      <p style="font-size:12.5px;color:var(--text-muted);line-height:1.6;">Cukup 1 pertanyaan: <strong style="color:var(--text);">"Mau liat preview kalau rambut lo dikasih warna?"</strong> → Ya / Nope. Jika Ya → generate <code style="background:var(--surface2);padding:1px 5px;border-radius:3px;font-family:'DM Mono',monospace;font-size:10px;">img-color-male</code> dengan subtle men's color direction.</p>
     </div>
   </div>
 
@@ -953,17 +995,12 @@ Required output schema:
     <h2 class="section-title">Universal Image Constraints</h2>
     <p class="section-desc">Berlaku untuk semua image generation prompt di seluruh report. Selalu append ke setiap prompt.</p>
 
-    <div class="branch-tabs" style="margin-bottom:14px;">
-      <div class="branch-tab male active" onclick="switchImgBranch('img-constraints','male',this)">♂ Male / Barber Constraints</div>
-      <div class="branch-tab female" onclick="switchImgBranch('img-constraints','female',this)">♀ Female / Salon Constraints</div>
-    </div>
-
     <div class="prompt-block">
       <div class="prompt-header">
-        <span class="prompt-header-label">image_constraints / universal_append — MALE</span>
+        <span class="prompt-header-label">image_constraints / universal_append</span>
         <button class="copy-btn" onclick="copyPrompt(this, 'img-constraints-text')">Copy</button>
       </div>
-      <div class="prompt-body" id="img-constraints-text">// Append to every male/barber image generation prompt:
+      <div class="prompt-body" id="img-constraints-text">// Append to every image generation prompt:
 
 VISUAL CONSISTENCY RULES:
 - Subject skin tone: {{skin_tone_range}} — match exactly across all generated images
@@ -991,46 +1028,6 @@ DO NOT:
 - Add dramatic makeup unless contextually appropriate
 - Make the person look younger, older, or significantly different from {{face_shape}} and {{skin_tone_range}}</div>
     </div>
-
-    <div style="display:none" id="img-constraints-female-text">// Append to every female/salon image generation prompt:
-
-VISUAL CONSISTENCY RULES:
-- Subject skin tone: {{skin_tone_range}} — match exactly across all generated images
-- Subject face shape type: {{face_shape}} — keep consistent
-- Hair color: {{hair_color}} — consistent unless showing an explicit color recommendation
-- Hair length family: {{current_length}} — preserve believable length continuity unless the prompt is a deliberate cut transformation
-- Salon direction: {{pg02_cut_name}} — keep the same salon recommendation across all generated images
-- Photo style: premium salon editorial portrait photography, natural lighting, clean background
-- No heavy filters, no oversaturation, no dramatic vignette
-- No text overlays, no watermarks, no UI elements in image
-
-FEMALE / SALON DETAIL RULES:
-- Show salon-relevant details clearly: layers, face-framing pieces, bangs/fringe, ends, movement, and finish
-- If recommendation includes curtain bangs, show a soft parted fringe — not thick blunt bangs
-- If recommendation includes layers, show visible graduation and movement — not one-length flat hair
-- If recommendation includes bob/lob, make length and ends clean and intentional
-- If recommendation includes color, keep it subtle and salon-realistic: gloss, toner, highlights, balayage, or natural enhancement
-- Do not add dramatic makeup or beauty-pageant styling unless the lifestyle context explicitly calls for event styling
-
-QUALITY RULES:
-- Aspect ratio: 3:4 portrait for all single-person shots
-- Resolution target: minimum 1024×1365px
-- Focus: sharp on face and hair, background softly blurred (f/2.8 equivalent)
-- Lighting: soft diffused — avoid harsh shadows on face and hairline
-- Hair must be readable: avoid hats, heavy accessories, or poses that hide the cut
-
-CONTENT SAFETY:
-- Subject must appear 18+ years old
-- Clothing should be modest and context-appropriate
-- Outfit should match lifestyle context (office-appropriate for work/LinkedIn shots)
-- No brand logos visible
-
-DO NOT:
-- Change the person's face structure between images
-- Turn the image into a beauty ad or stock-photo cliché
-- Over-glamorize: avoid extreme retouching, unrealistic shine, or perfect doll-like hair
-- Add barber-specific taper/fade language unless the selected lane is androgynous/short-hair
-- Make the person look younger, older, or significantly different from {{face_shape}} and {{skin_tone_range}}</div>
   </div>
 
   <!-- ══════════════ IMG PG 02 ══════════════ -->
@@ -1319,64 +1316,36 @@ Mood: natural, effortless, at ease. Looking slightly away or soft expression.
   <div class="section" id="img-pg08">
     <span class="section-tag">Image Prompt — Pg 08</span>
     <h2 class="section-title">Styles to Avoid:<br>3 Bad-Fit Photos</h2>
-    <p class="section-desc">3 photo slots showing wrong styles. Must use same face type as client for apple-to-apple comparison. Fully gender-branched.</p>
-
-    <div class="branch-tabs" style="margin-bottom:14px;">
-      <div class="branch-tab male active" onclick="switchImgBranch('img08','male',this)">♂ Male</div>
-      <div class="branch-tab female" onclick="switchImgBranch('img08','female',this)">♀ Female</div>
-    </div>
+    <p class="section-desc">3 photo slots showing wrong styles. Must use same face type as client for apple-to-apple comparison. Each photo shows one avoid style clearly.</p>
 
     <div class="prompt-block">
       <div class="prompt-header">
-        <span class="prompt-header-label">image_prompt / pg08_avoid_template — MALE</span>
+        <span class="prompt-header-label">image_prompt / pg08_avoid_template</span>
         <button class="copy-btn" onclick="copyPrompt(this, 'img08-text')">Copy</button>
       </div>
-      <div class="prompt-body" id="img08-text">// Use this template for each of the 3 male/barber avoid styles.
+      <div class="prompt-body" id="img08-text">// Use this template for each of the 3 avoid styles.
 // Replace {{avoid_style_N}} with the style name from Pg 08 text prompt output.
 // Replace {{avoid_why_N}} with the reason.
 
-Portrait photograph of a {{face_shape}} faced {{skin_tone_range}} man, late 20s.
+Portrait photograph of a {{face_shape}} faced {{skin_tone_range}} person matching the client's gender lane, late 20s.
 
-Hairstyle: {{avoid_style_N}} — render this barber style accurately and clearly. The style must be visually recognizable as the named style.
+Hairstyle: {{avoid_style_N}} — render this style accurately and clearly. The style must be visually recognizable as the named style.
 
-Male avoid examples:
+Examples:
   - "heavy middle part" → deep center part with volume pushed to both sides, wet look
   - "blunt mushroom fringe" → bowl-cut style with blunt horizontal fringe covering forehead
   - "high disconnected undercut" → shaved sides with long top, hard disconnection line
-  - "skin fade too high" → side fade climbs too high and makes face look longer/narrower
-  - "wet slick-back" → shiny combed-back hair with too much product
+  - "blunt chin-length bob" → perfectly blunt ends at chin, no layers
+  - "very long one-length" → all one length, no layers, flat appearance
 
 Setting: neutral warm background (same as result reference for contrast). Soft studio light. Direct front or 3/4 angle.
 
-Purpose: show the style clearly so the viewer can identify what to avoid. Not ugly — just clearly not the right match for this face shape.
+Purpose: show the style clearly so the viewer can identify what to avoid. Not unflattering — just clearly not the right match for this face shape.
 
-[Append male/barber image constraints]
+[Append universal image constraints]
 
 // Generate 3 separate images with 3 different avoid styles from Pg 08 JSON output.</div>
     </div>
-
-    <div style="display:none" id="img08-female-text">// Use this template for each of the 3 female/salon avoid styles.
-// Replace {{avoid_style_N}} with the style name from Pg 08 text prompt output.
-// Replace {{avoid_why_N}} with the reason.
-
-Portrait photograph of a {{face_shape}} faced {{skin_tone_range}} woman, late 20s.
-
-Hairstyle: {{avoid_style_N}} — render this salon style accurately and clearly. The style must be visually recognizable as the named cut, fringe, layer, or color direction.
-
-Female avoid examples:
-  - "blunt chin-length bob" → perfectly blunt ends at chin, no layers, no face-framing
-  - "very long one-length" → all one length, no layers, flat at crown, heavy ends
-  - "heavy straight-across bangs" → thick blunt fringe covering forehead, strong horizontal line
-  - "flat center part with no layers" → hair hangs straight down, no movement around cheek/jaw
-  - "over-lightened balayage" → high contrast color that distracts from natural tone and shape
-
-Setting: neutral warm background (same as result reference for contrast). Soft salon/editorial light. Direct front or 3/4 angle.
-
-Purpose: show the style clearly so the viewer can identify what to avoid. Not unflattering or insulting — just a valid salon style that is wrong for this face shape, hair behavior, or maintenance tolerance.
-
-[Append female/salon image constraints]
-
-// Generate 3 separate images with 3 different avoid styles from Pg 08 JSON output.</div>
 
     <div class="rule-row">
       <div class="rule-card must">
@@ -1385,7 +1354,7 @@ Purpose: show the style clearly so the viewer can identify what to avoid. Not un
       </div>
       <div class="rule-card never">
         <span class="rule-title">✕ Never Ugly</span>
-        Jangan generate foto yang terlihat buruk secara umum — hanya bad-fit untuk face shape ini. Avoid style harus terlihat seperti style yang valid tapi salah untuk user ini.
+        Jangan generate foto yang terlihat buruk secara umum — hanya bad-fit untuk face shape ini. Avoid style harus terlihat seperti style yang valid tapi salah untuk wajah ini.
       </div>
     </div>
   </div>
@@ -1394,137 +1363,82 @@ Purpose: show the style clearly so the viewer can identify what to avoid. Not un
   <div class="section" id="img-pg10">
     <span class="section-tag">Image Prompt — Pg 10</span>
     <h2 class="section-title">Angle Guide:<br>4 Photo Angles</h2>
-    <p class="section-desc">4 photo slots — same person, same hairstyle, 4 real-world photography scenarios. Fully gender-branched.</p>
+    <p class="section-desc">4 photo slots — same person, same hairstyle, 4 real-world photography scenarios. Fully shared (same template, minor tweak per gender).</p>
 
-    <div class="branch-tabs" style="margin-bottom:14px;">
-      <div class="branch-tab male active" onclick="switchImgBranch('img10','male',this)">♂ Male</div>
-      <div class="branch-tab female" onclick="switchImgBranch('img10','female',this)">♀ Female</div>
-    </div>
+    <div class="prompt-block">
+      <div class="prompt-header">
+        <span class="prompt-header-label">image_prompt / pg10_selfie</span>
+        <button class="copy-btn" onclick="copyPrompt(this, 'img10-selfie')">Copy</button>
+      </div>
+      <div class="prompt-body" id="img10-selfie">Selfie-style photo of a {{skin_tone_range}} {{gender_lane === 'female-salon' ? 'woman' : 'man'}}, late 20s.
 
-    <div id="img10-male-block">
-      <div class="prompt-block">
-        <div class="prompt-header"><span class="prompt-header-label">image_prompt / pg10_selfie — MALE</span><button class="copy-btn" onclick="copyPrompt(this, 'img10m-selfie')">Copy</button></div>
-        <div class="prompt-body" id="img10m-selfie">Selfie-style photo of a {{skin_tone_range}} man, late 20s.
+Hairstyle: {{pg02_cut_name}}. Natural texture, matte/natural finish.
 
-Hairstyle: {{pg02_cut_name}}. Natural texture, matte finish, compact sides.
+Camera simulation: slightly wide-angle (selfie lens distortion, subtle), phone held at arm's length slightly above eye level, chin slightly down. Face fills most of the frame.
 
-Camera simulation: slightly wide-angle phone selfie, held at arm's length slightly above eye level, chin slightly down. Face fills most of the frame.
-
-Setting: indoor natural light near a window. Background softly blurred. Casual, real-life feel. Not a studio shot.
+Setting: indoor natural light — near a window. Background is a softly blurred room interior. Casual, real-life feel. Not a studio shot.
 
 Mood: natural, candid, not posed. Looking directly at camera with relaxed expression.
 
-[Append male/barber image constraints]</div>
+[Append universal image constraints]</div>
+    </div>
+
+    <div class="prompt-block" style="margin-top:12px;">
+      <div class="prompt-header">
+        <span class="prompt-header-label">image_prompt / pg10_studio</span>
+        <button class="copy-btn" onclick="copyPrompt(this, 'img10-studio')">Copy</button>
       </div>
-      <div class="prompt-block" style="margin-top:12px;">
-        <div class="prompt-header"><span class="prompt-header-label">image_prompt / pg10_studio — MALE</span><button class="copy-btn" onclick="copyPrompt(this, 'img10m-studio')">Copy</button></div>
-        <div class="prompt-body" id="img10m-studio">Professional headshot / LinkedIn-style portrait of a {{skin_tone_range}} man, late 20s.
+      <div class="prompt-body" id="img10-studio">Professional headshot / LinkedIn-style portrait of a {{skin_tone_range}} {{gender_lane === 'female-salon' ? 'woman' : 'man'}}, late 20s.
 
-Hairstyle: {{pg02_cut_name}} neatly styled, polished, matte, camera-ready.
+Hairstyle: {{pg02_cut_name}} neatly styled, polished, camera-ready.
 
-Camera: 85mm portrait lens simulation. Eye level, direct front or very slight angle. Clean depth of field.
+Camera: 85mm portrait lens simulation. Eye level, direct front or very slight angle. Clean depth of field, subject sharp, background softly blurred.
 
-Setting: clean studio background — warm cream or light grey. Soft box lighting, even on face.
+Setting: clean studio background — warm cream or light grey. Soft box lighting, even on face, slight shadow definition on one side. Professional quality.
 
-Outfit: smart professional — blazer or structured shirt.
+Outfit: smart professional — blazer or structured shirt/top.
 
-Mood: confident, direct, competent.
+Mood: confident, direct, competent. Professional expression.
 
-[Append male/barber image constraints]</div>
+[Append universal image constraints]</div>
+    </div>
+
+    <div class="prompt-block" style="margin-top:12px;">
+      <div class="prompt-header">
+        <span class="prompt-header-label">image_prompt / pg10_street</span>
+        <button class="copy-btn" onclick="copyPrompt(this, 'img10-street')">Copy</button>
       </div>
-      <div class="prompt-block" style="margin-top:12px;">
-        <div class="prompt-header"><span class="prompt-header-label">image_prompt / pg10_street — MALE</span><button class="copy-btn" onclick="copyPrompt(this, 'img10m-street')">Copy</button></div>
-        <div class="prompt-body" id="img10m-street">Street / candid lifestyle portrait of a {{skin_tone_range}} man, late 20s.
+      <div class="prompt-body" id="img10-street">Street / candid lifestyle portrait of a {{skin_tone_range}} {{gender_lane === 'female-salon' ? 'woman' : 'man'}}, late 20s.
 
 Hairstyle: {{pg02_cut_name}} showing natural movement and texture in outdoor light.
 
-Camera: 35–50mm candid simulation. 3/4 front angle, body slightly turned, caught mid-movement.
+Camera: 35–50mm candid simulation. 3/4 front angle, body slightly turned. Subject not fully posed — caught mid-movement or mid-step.
 
-Setting: outdoor urban environment — clean sidewalk, building facade, or park. Natural daylight or golden hour.
+Setting: outdoor urban environment — clean sidewalk, building facade, or park. Natural daylight, golden hour quality. Background blurred with visible street context.
 
 Outfit: smart casual — layered casual top or jacket, relaxed but clean.
 
-Mood: effortless, confident, real-world look.
+Mood: effortless, confident, real-world look. Natural expression.
 
-[Append male/barber image constraints]</div>
+[Append universal image constraints]</div>
+    </div>
+
+    <div class="prompt-block" style="margin-top:12px;">
+      <div class="prompt-header">
+        <span class="prompt-header-label">image_prompt / pg10_profile</span>
+        <button class="copy-btn" onclick="copyPrompt(this, 'img10-profile')">Copy</button>
       </div>
-      <div class="prompt-block" style="margin-top:12px;">
-        <div class="prompt-header"><span class="prompt-header-label">image_prompt / pg10_profile — MALE</span><button class="copy-btn" onclick="copyPrompt(this, 'img10m-profile')">Copy</button></div>
-        <div class="prompt-body" id="img10m-profile">Pure 90° side profile portrait of a {{skin_tone_range}} man, late 20s.
+      <div class="prompt-body" id="img10-profile">Pure 90° side profile portrait of a {{skin_tone_range}} {{gender_lane === 'female-salon' ? 'woman' : 'man'}}, late 20s.
 
-Hairstyle: {{pg02_cut_name}} — side profile clearly shows taper line, temple compactness, top length, and neckline.
+Hairstyle: {{pg02_cut_name}} — side profile clearly shows the cut shape: taper line (male) or layer graduation (female). Neckline or back length visible.
 
 Camera: exactly 90° side. Head fills the vertical frame. Ear clearly visible. Jaw profile clean.
 
-Setting: clean neutral background. Even soft light, no harsh shadows.
+Setting: clean neutral background — studio or simple indoor. Even soft light, no harsh shadows on the profile.
 
 Mood: clean, diagnostic — this is the technical angle. Subject looking forward, not at camera.
 
-[Append male/barber image constraints]</div>
-      </div>
-    </div>
-
-    <div id="img10-female-block" style="display:none;">
-      <div class="prompt-block">
-        <div class="prompt-header"><span class="prompt-header-label">image_prompt / pg10_selfie — FEMALE</span><button class="copy-btn" onclick="copyPrompt(this, 'img10f-selfie')">Copy</button></div>
-        <div class="prompt-body" id="img10f-selfie">Selfie-style photo of a {{skin_tone_range}} woman, late 20s.
-
-Hairstyle: {{pg02_cut_name}}. Natural salon finish, face-framing visible, layers or fringe readable from the front.
-
-Camera simulation: phone selfie, held at arm's length slightly above eye level. Face and hair frame fill most of the image.
-
-Setting: indoor natural light near a window. Background softly blurred. Real-life feel, not beauty-ad styling.
-
-Mood: natural, candid, relaxed expression.
-
-[Append female/salon image constraints]</div>
-      </div>
-      <div class="prompt-block" style="margin-top:12px;">
-        <div class="prompt-header"><span class="prompt-header-label">image_prompt / pg10_studio — FEMALE</span><button class="copy-btn" onclick="copyPrompt(this, 'img10f-studio')">Copy</button></div>
-        <div class="prompt-body" id="img10f-studio">Professional headshot / LinkedIn-style portrait of a {{skin_tone_range}} woman, late 20s.
-
-Hairstyle: {{pg02_cut_name}} neatly styled with salon polish. Face-framing pieces, fringe, layers, or ends must be visible.
-
-Camera: 85mm portrait lens simulation. Eye level, direct front or very slight angle. Clean depth of field.
-
-Setting: clean studio background — warm cream or light grey. Soft box lighting, even on face and hair.
-
-Outfit: smart professional — blazer, structured blouse, or clean minimal top.
-
-Mood: confident, direct, competent.
-
-[Append female/salon image constraints]</div>
-      </div>
-      <div class="prompt-block" style="margin-top:12px;">
-        <div class="prompt-header"><span class="prompt-header-label">image_prompt / pg10_street — FEMALE</span><button class="copy-btn" onclick="copyPrompt(this, 'img10f-street')">Copy</button></div>
-        <div class="prompt-body" id="img10f-street">Street / candid lifestyle portrait of a {{skin_tone_range}} woman, late 20s.
-
-Hairstyle: {{pg02_cut_name}} showing natural movement in outdoor light. Layers or face-framing should move naturally, not look stiff.
-
-Camera: 35–50mm candid simulation. 3/4 front angle, body slightly turned, caught mid-movement.
-
-Setting: outdoor urban environment — clean sidewalk, building facade, or park. Natural daylight or golden hour.
-
-Outfit: smart casual — relaxed jacket, knit, blouse, or clean casual layer.
-
-Mood: effortless, confident, real-world look.
-
-[Append female/salon image constraints]</div>
-      </div>
-      <div class="prompt-block" style="margin-top:12px;">
-        <div class="prompt-header"><span class="prompt-header-label">image_prompt / pg10_profile — FEMALE</span><button class="copy-btn" onclick="copyPrompt(this, 'img10f-profile')">Copy</button></div>
-        <div class="prompt-body" id="img10f-profile">Pure 90° side profile portrait of a {{skin_tone_range}} woman, late 20s.
-
-Hairstyle: {{pg02_cut_name}} — side profile clearly shows layer graduation, face-framing angle, fringe shape if present, and back length.
-
-Camera: exactly 90° side. Head fills the vertical frame. Ear or cheek outline can be partly visible through hair. Jaw profile and hair silhouette clear.
-
-Setting: clean neutral background. Even soft light, no harsh shadows.
-
-Mood: clean, diagnostic — this is the technical salon angle. Subject looking forward, not at camera.
-
-[Append female/salon image constraints]</div>
-      </div>
+[Append universal image constraints]</div>
     </div>
   </div>
 
@@ -1532,23 +1446,18 @@ Mood: clean, diagnostic — this is the technical salon angle. Subject looking f
   <div class="section" id="img-pg14">
     <span class="section-tag">Image Prompt — Pg 14 / 15</span>
     <h2 class="section-title">Before + After /<br>Final Action Plan</h2>
-    <p class="section-desc">Before = upload asli. After = generated result image. Harus match skin tone, face angle, dan lighting sedekat mungkin untuk credibility. Fully gender-branched.</p>
-
-    <div class="branch-tabs" style="margin-bottom:14px;">
-      <div class="branch-tab male active" onclick="switchImgBranch('img15','male',this)">♂ Male</div>
-      <div class="branch-tab female" onclick="switchImgBranch('img15','female',this)">♀ Female</div>
-    </div>
+    <p class="section-desc">Before = upload asli. After = generated result image. Harus match skin tone, face angle, dan lighting sedekat mungkin untuk credibility.</p>
 
     <div class="prompt-block">
       <div class="prompt-header">
-        <span class="prompt-header-label">image_prompt / pg15_after_result — MALE</span>
+        <span class="prompt-header-label">image_prompt / pg15_after_result</span>
         <button class="copy-btn" onclick="copyPrompt(this, 'img15-text')">Copy</button>
       </div>
       <div class="prompt-body" id="img15-text">Portrait photograph matching the style of the uploaded client photo as closely as possible.
 
-Subject: {{face_shape}} faced, {{skin_tone_range}} skinned man, late 20s.
+Subject: {{face_shape}} faced, {{skin_tone_range}} skinned {{gender_lane === 'female-salon' ? 'woman' : 'man'}}, late 20s.
 
-Hairstyle (AFTER): {{pg02_cut_name}} — primary barber recommendation, front-facing view. Clean styling, natural matte finish, visible taper/fade details if relevant.
+Hairstyle (AFTER): {{pg02_cut_name}} — primary recommendation, front-facing view. Clean styling, natural finish.
 
 Camera angle: match the uploaded selfie angle as closely as possible. If selfie was front-facing → generate front-facing. If slight angle → match that angle.
 
@@ -1561,44 +1470,415 @@ Purpose: this image sits next to the client's original photo in a before/after l
 CRITICAL:
 - Face shape must match {{face_shape}} exactly
 - Skin tone must match {{skin_tone_range}} exactly
-- Hair color must match {{hair_color}} unless the recommendation explicitly changes color
-- Do not make the subject look dramatically different from the original — same person, better haircut
+- Do not make the subject look dramatically different from the original — same person, better hairstyle
 
-[Append male/barber image constraints]</div>
+[Append universal image constraints]</div>
     </div>
-
-    <div style="display:none" id="img15-female-text">Portrait photograph matching the style of the uploaded client photo as closely as possible.
-
-Subject: {{face_shape}} faced, {{skin_tone_range}} skinned woman, late 20s.
-
-Hairstyle (AFTER): {{pg02_cut_name}} — primary salon recommendation, front-facing view. Show the actual salon changes clearly: face-framing, layers, fringe/bangs, bob/lob shape, blowout, waves, or color enhancement depending on recommendation.
-
-Camera angle: match the uploaded selfie angle as closely as possible. If selfie was front-facing → generate front-facing. If slight angle → match that angle.
-
-Lighting: match the warmth and direction of the original selfie lighting if possible. Slight improvement in quality is acceptable but not drastic.
-
-Framing: head + upper shoulder. Similar crop to the original selfie, with enough hair visible to read length, layers, ends, and face-framing.
-
-Purpose: this image sits next to the client's original photo in a before/after layout. It must feel like the same person after a realistic salon visit, not a different model or beauty campaign.
-
-CRITICAL:
-- Face shape must match {{face_shape}} exactly
-- Skin tone must match {{skin_tone_range}} exactly
-- Hair color must match {{hair_color}} unless the recommendation explicitly changes color
-- Preserve believable hair length continuity unless recommendation is a clear bob/lob/short-cut transformation
-- Do not over-glamorize with heavy makeup, extreme shine, or fashion-editorial styling
-- Do not make the subject look dramatically different from the original — same person, better salon direction
-
-[Append female/salon image constraints]</div>
 
     <div class="rule-row">
       <div class="rule-card must">
         <span class="rule-title">✓ Credibility Rule</span>
-        Before/After adalah halaman paling kritis untuk trust. Generated "after" harus believable — bukan stock model, tapi wajah tipe yang sama dengan client.
+        Before/After adalah halaman paling kritis untuk trust. Generated "after" harus terlihat believable — bukan stock model, tapi wajah tipe yang sama dengan client.
       </div>
       <div class="rule-card never">
         <span class="rule-title">✕ Never Over-Stylize</span>
         Jangan generate "after" yang terlihat seperti fashion editorial. Harus terlihat seperti hasil barber/salon visit yang realistis, bukan photoshoot.
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ IMG PG 04 ══════════════ -->
+  <div class="section" id="img-pg04">
+    <span class="section-tag">Image Prompt — Pg 04</span>
+    <h2 class="section-title">Hair Texture<br>Close-Up</h2>
+    <p class="section-desc">1 photo slot. Close-up of hair texture showing growth direction and behavior. Shared across gender — hanya beda pada length dan texture type.</p>
+
+    <div class="branch-tabs" style="margin-bottom:14px;">
+      <div class="branch-tab male active" onclick="switchImgBranch('img04','male',this)">♂ Male</div>
+      <div class="branch-tab female" onclick="switchImgBranch('img04','female',this)">♀ Female</div>
+    </div>
+
+    <div id="img04-male-block">
+      <div class="prompt-block">
+        <div class="prompt-header">
+          <span class="prompt-header-label">image_prompt / pg04_texture_closeup — MALE</span>
+          <button class="copy-btn" onclick="copyPrompt(this, 'img04m-text')">Copy</button>
+        </div>
+        <div class="prompt-body" id="img04m-text">Close-up macro photograph of {{hair_texture}} hair, {{hair_color_base}} color, {{hair_density}} density.
+
+Framing: top-down or slightly angled view of the crown/top area of a man's head. Hair fills the entire frame. No face visible — hair only.
+
+Show clearly:
+- Individual strand texture (straight / slight wave / wave pattern)
+- Natural growth direction from crown
+- Density of hair visible at scalp
+- Natural finish — no product sheen unless "matte clay" noted in recommendation
+
+Lighting: soft directional light from above showing strand texture and movement. Not flat — light should create subtle shadow between strands to show depth.
+
+Style: editorial, clinical but beautiful. Think grooming magazine close-up, not shampoo ad.
+
+[Append universal image constraints — hair consistency rules only, no face rules apply]</div>
+      </div>
+    </div>
+
+    <div id="img04-female-block" style="display:none;">
+      <div class="prompt-block">
+        <div class="prompt-header">
+          <span class="prompt-header-label">image_prompt / pg04_texture_closeup — FEMALE</span>
+          <button class="copy-btn" onclick="copyPrompt(this, 'img04f-text')">Copy</button>
+        </div>
+        <div class="prompt-body" id="img04f-text">Close-up macro photograph of {{hair_texture}} hair, {{hair_color_base}} color, {{hair_density}} density.
+
+Framing: side or 3/4 view showing the mid-length to ends of a woman's hair. Hair movement and texture fills the frame. No face — hair only.
+
+Show clearly:
+- Wave or curl pattern (if applicable)
+- Layer movement at the ends
+- Hair health: shine level, frizz presence, split end visibility
+- Color: if {{color_treatment_visible}} is true, show the color dimension visible at ends or roots
+- Natural or styled finish matching {{hair_texture}} behavior
+
+Lighting: soft window light or diffused studio from the side — shows texture, movement, and color dimension in the same frame.
+
+Style: editorial beauty close-up. Think hair care magazine, not stock photo.
+
+[Append universal image constraints — hair consistency rules only, no face rules apply]</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ IMG PG 11 ══════════════ -->
+  <div class="section" id="img-pg11">
+    <span class="section-tag">Image Prompt — Pg 11</span>
+    <h2 class="section-title">Side Profile &<br>Taper / Layer Guide</h2>
+    <p class="section-desc">1 photo slot. Technical side view — male shows taper execution, female shows layer graduation. Fully gender-branched.</p>
+
+    <div class="branch-tabs" style="margin-bottom:14px;">
+      <div class="branch-tab male active" onclick="switchImgBranch('img11','male',this)">♂ Male</div>
+      <div class="branch-tab female" onclick="switchImgBranch('img11','female',this)">♀ Female</div>
+    </div>
+
+    <div id="img11-male-block">
+      <div class="prompt-block">
+        <div class="prompt-header">
+          <span class="prompt-header-label">image_prompt / pg11_side_taper — MALE</span>
+          <button class="copy-btn" onclick="copyPrompt(this, 'img11m-text')">Copy</button>
+        </div>
+        <div class="prompt-body" id="img11m-text">Close side profile photograph of a {{skin_tone_range}} man, late 20s, in a barber chair or against a clean neutral wall.
+
+Hairstyle: {{pg02_cut_name}} — focus on taper execution on the side wall.
+
+What must be clearly visible:
+- The taper transition point near the ear — low taper starting just above ear
+- Side wall gradation from skin/very short near ear to full length at top
+- Temple area: compact, not shaved too high
+- Neckline begins to taper naturally
+- Top of hair (5–6cm) visible from side showing texture
+
+Camera: pure 90° side angle or slight 3/4. Tight framing — head and neck, no full torso needed. The side wall and taper line must be in focus.
+
+Lighting: clean, even. Barber shop or neutral studio. The cut lines must be readable.
+
+Style: technical editorial — like a barber education magazine showing the taper correctly executed.
+
+[Append universal image constraints]</div>
+      </div>
+    </div>
+
+    <div id="img11-female-block" style="display:none;">
+      <div class="prompt-block">
+        <div class="prompt-header">
+          <span class="prompt-header-label">image_prompt / pg11_side_layers — FEMALE</span>
+          <button class="copy-btn" onclick="copyPrompt(this, 'img11f-text')">Copy</button>
+        </div>
+        <div class="prompt-body" id="img11f-text">Side profile photograph of a {{skin_tone_range}} woman, late 20s, against a neutral background.
+
+Hairstyle: {{pg02_cut_name}} — focus on layer graduation visible from the side.
+
+What must be clearly visible:
+- Layer step from crown → mid-length → ends
+- Face-framing piece falling forward toward jaw
+- If curtain bangs: fringe falls naturally, parted softly
+- Back length relative to front length
+- Natural movement in the layers — not stiff, not overworked
+
+Camera: pure 90° side angle. Head and shoulder framing. Profile clearly showing jaw and ear. Hair movement visible.
+
+Lighting: soft diffused light — a window or box light from the front. Hair layers show depth and movement, not flat.
+
+Style: editorial beauty/salon magazine. Technical but beautiful — the cut should look intentional and flattering from the side.
+
+[Append universal image constraints]</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ IMG PG 13 ══════════════ -->
+  <div class="section" id="img-pg13">
+    <span class="section-tag">Image Prompt — Pg 13</span>
+    <h2 class="section-title">Reference Direction Board<br>Photos</h2>
+    <p class="section-desc">2–3 photo slots. Direction references — not exact copies. Each image shows one searchable style direction. Generate to match {{skin_tone_range}} and {{face_shape}} for relatability. Fully gender-branched.</p>
+
+    <div class="branch-tabs" style="margin-bottom:14px;">
+      <div class="branch-tab male active" onclick="switchImgBranch('img13','male',this)">♂ Male</div>
+      <div class="branch-tab female" onclick="switchImgBranch('img13','female',this)">♀ Female</div>
+    </div>
+
+    <div id="img13-male-block">
+      <div class="prompt-block" style="margin-bottom:12px;">
+        <div class="prompt-header">
+          <span class="prompt-header-label">image_prompt / pg13_ref_primary — MALE</span>
+          <button class="copy-btn" onclick="copyPrompt(this, 'img13m-primary')">Copy</button>
+        </div>
+        <div class="prompt-body" id="img13m-primary">Editorial portrait of a {{skin_tone_range}} man, late 20s, {{face_shape}} face type.
+
+Hairstyle direction: {{ref_texture_direction}} — e.g. "clean Korean textured crop" or "modern natural taper crop". Render the style clearly with the texture direction as described.
+
+This is a DIRECTION reference, not the exact recommended cut. It should inspire the mood and texture approach, not be copied exactly.
+
+Styling: minimal product, natural finish. Hair looks intentional but effortless.
+
+Setting: clean editorial background — neutral cream or warm white. Soft studio light. Front or 3/4 angle. Professional portrait quality.
+
+Purpose: user will show this alongside the barber card as a texture mood reference.
+
+[Append universal image constraints]</div>
+      </div>
+
+      <div class="prompt-block">
+        <div class="prompt-header">
+          <span class="prompt-header-label">image_prompt / pg13_ref_secondary — MALE</span>
+          <button class="copy-btn" onclick="copyPrompt(this, 'img13m-secondary')">Copy</button>
+        </div>
+        <div class="prompt-body" id="img13m-secondary">Editorial portrait of a {{skin_tone_range}} man, late 20s, {{face_shape}} face type.
+
+Hairstyle direction: {{ref_shape_direction}} — e.g. "compact top silhouette with soft fringe" or "low taper with natural neckline". Show the shape language clearly from a front or 3/4 angle.
+
+This is a shape reference — emphasizes silhouette and proportions, not texture details.
+
+Setting: natural lifestyle setting or clean studio. Warm soft light. Slight angle preferred to show side wall shape.
+
+Purpose: complements the primary reference. Together they give the barber a texture + shape brief.
+
+[Append universal image constraints]</div>
+      </div>
+    </div>
+
+    <div id="img13-female-block" style="display:none;">
+      <div class="prompt-block" style="margin-bottom:12px;">
+        <div class="prompt-header">
+          <span class="prompt-header-label">image_prompt / pg13_ref_primary — FEMALE</span>
+          <button class="copy-btn" onclick="copyPrompt(this, 'img13f-primary')">Copy</button>
+        </div>
+        <div class="prompt-body" id="img13f-primary">Editorial portrait of a {{skin_tone_range}} woman, late 20s, {{face_shape}} face type.
+
+Hairstyle direction: {{ref_texture_direction}} — e.g. "soft curtain bangs with face-framing layers" or "Korean lob with natural movement". Render clearly with the texture and movement described.
+
+This is a DIRECTION reference — mood and texture inspiration, not exact copy.
+
+Hair color: {{hair_color_base}} or close to it. Do not show dramatic color unless {{color_vibe}} is set.
+
+Setting: editorial portrait background — neutral warm or lifestyle context. Soft natural or studio light. Front or 3/4 angle. The hair must be the clear focus.
+
+Purpose: user shows this alongside salon card as a texture/length mood reference.
+
+[Append universal image constraints]</div>
+      </div>
+
+      <div class="prompt-block" style="margin-bottom:12px;">
+        <div class="prompt-header">
+          <span class="prompt-header-label">image_prompt / pg13_ref_secondary — FEMALE</span>
+          <button class="copy-btn" onclick="copyPrompt(this, 'img13f-secondary')">Copy</button>
+        </div>
+        <div class="prompt-body" id="img13f-secondary">Editorial portrait of a {{skin_tone_range}} woman, late 20s, {{face_shape}} face type.
+
+Hairstyle direction: {{ref_shape_direction}} — e.g. "lob length with visible layers from side" or "long layers with face framing". Show the LENGTH and SHAPE clearly — side or 3/4 angle preferred so length and layer step are visible.
+
+This is a shape reference — complements the texture reference with length/proportion information.
+
+Setting: natural lifestyle or editorial studio. Warm soft light showing length clearly.
+
+[Append universal image constraints]</div>
+      </div>
+
+      <div class="prompt-block">
+        <div class="prompt-header">
+          <span class="prompt-header-label">image_prompt / pg13_ref_color — FEMALE (conditional)</span>
+          <button class="copy-btn" onclick="copyPrompt(this, 'img13f-color')">Copy</button>
+        </div>
+        <div class="prompt-body" id="img13f-color">// Only generate if {{color_vibe}} !== "nope"
+
+Editorial portrait of a {{skin_tone_range}} woman, late 20s, {{face_shape}} face type.
+
+Hairstyle direction: same {{pg02_cut_name}} cut. Color direction: {{color_vibe}} — render the color mood as described (balayage / toner / darker / lighter).
+
+This is a COLOR direction reference — the cut shape is secondary, the color mood is what the user is comparing.
+
+Lighting: specifically chosen to show the color dimension — soft side light or window light catching the color in the hair.
+
+Purpose: user shows this to salon colorist as color direction brief alongside the text recommendation.
+
+[Append universal image constraints]</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ COLOR IMAGE PROMPTS ══════════════ -->
+  <div class="section" id="img-color">
+    <span class="section-tag">Image Prompts — Color</span>
+    <h2 class="section-title">Hair Color<br>Preview Images</h2>
+    <p class="section-desc">Aktif hanya jika <code style="background:var(--surface2);padding:2px 6px;border-radius:4px;font-family:'DM Mono',monospace;font-size:11px;">{{color_vibe}} !== "nope"</code>. Tujuannya bukan kasih advice teknis — tapi tunjukin <em>visual preview</em>: "kira-kira lo bakal keliatan kaya gini." Generate 1–2 variant berdasarkan <code style="background:var(--surface2);padding:2px 6px;border-radius:4px;font-family:'DM Mono',monospace;font-size:11px;">{{color_vibe}}</code>.</p>
+
+    <div style="background:var(--amber-wash,#FFF8E8);border:1.5px solid #FFE088;border-radius:10px;padding:14px 18px;margin-bottom:20px;">
+      <span style="font-family:'DM Mono',monospace;font-size:8.5px;letter-spacing:0.2em;text-transform:uppercase;color:var(--amber-dark);display:block;margin-bottom:6px;">Routing Logic</span>
+      <p style="font-size:12.5px;color:var(--text);line-height:1.7;">
+        <strong>color_vibe = "gelap"</strong> → generate <code style="font-family:'DM Mono',monospace;font-size:10px;">color_darker</code><br>
+        <strong>color_vibe = "toner"</strong> → generate <code style="font-family:'DM Mono',monospace;font-size:10px;">color_toner</code><br>
+        <strong>color_vibe = "balayage/highlight"</strong> → generate <code style="font-family:'DM Mono',monospace;font-size:10px;">color_balayage</code><br>
+        <strong>color_vibe = "terang"</strong> → only if safe for visible hair + risk level → generate <code style="font-family:'DM Mono',monospace;font-size:10px;">color_lighter</code><br>
+        <strong>color_vibe = "surprise me"</strong> → AI picks best match for {{face_shape}} + {{skin_tone_range}} → generate that variant
+      </p>
+    </div>
+
+    <!-- FEMALE COLOR PROMPTS -->
+    <div style="background:var(--purple-bg);border:1.5px solid var(--purple-border);border-radius:10px;padding:10px 16px;margin-bottom:14px;">
+      <span style="font-family:'DM Mono',monospace;font-size:8.5px;letter-spacing:0.2em;text-transform:uppercase;color:var(--purple);">♀ Female Color Variants</span>
+    </div>
+
+    <div class="prompt-block" style="margin-bottom:12px;">
+      <div class="prompt-header">
+        <span class="prompt-header-label">image_prompt / color_balayage — FEMALE</span>
+        <button class="copy-btn" onclick="copyPrompt(this, 'img-color-balayage')">Copy</button>
+      </div>
+      <div class="prompt-body" id="img-color-balayage">// Trigger: {{color_vibe}} === "balayage/highlight"
+
+Editorial portrait of a {{skin_tone_range}} woman, late 20s, {{face_shape}} face.
+Hairstyle: {{pg02_cut_name}} — same cut as primary recommendation.
+
+Color: natural balayage on {{hair_color_base}} base — roots stay natural, warm honey/caramel tones hand-painted toward mid-lengths and ends. Soft, seamless blend. No harsh lines. Grow-out friendly.
+
+The color should look like a real, achievable salon result — not oversaturated or filtered.
+
+Lighting: soft diffused light that shows color dimension at the ends clearly.
+Setting: neutral warm background. Portrait 3:4, front or 3/4 angle.
+
+PURPOSE: This is a "what would I look like" preview — make it feel real and personal, not like a stock ad.
+
+[Append universal image constraints]</div>
+    </div>
+
+    <div class="prompt-block" style="margin-bottom:12px;">
+      <div class="prompt-header">
+        <span class="prompt-header-label">image_prompt / color_toner — FEMALE</span>
+        <button class="copy-btn" onclick="copyPrompt(this, 'img-color-toner')">Copy</button>
+      </div>
+      <div class="prompt-body" id="img-color-toner">// Trigger: {{color_vibe}} === "toner"
+
+Editorial portrait of a {{skin_tone_range}} woman, late 20s, {{face_shape}} face.
+Hairstyle: {{pg02_cut_name}} — same cut as primary recommendation.
+
+Color: toner-only on natural {{hair_color_base}} base. Same base color but visibly more polished — slightly cool-neutral or ash to reduce brassiness, improved vibrancy and shine. No highlights, no lightening.
+
+Effect: "fresh from salon" look without dramatic change. Hair looks healthier and more intentional.
+
+Lighting: soft studio or window light. The shine and vibrancy should be the visible difference vs before.
+Setting: neutral warm background. Portrait 3:4.
+
+PURPOSE: Show that even a subtle toner changes how the hair reads on camera — valuable for LinkedIn/work context.
+
+[Append universal image constraints]</div>
+    </div>
+
+    <div class="prompt-block" style="margin-bottom:12px;">
+      <div class="prompt-header">
+        <span class="prompt-header-label">image_prompt / color_darker — FEMALE</span>
+        <button class="copy-btn" onclick="copyPrompt(this, 'img-color-darker')">Copy</button>
+      </div>
+      <div class="prompt-body" id="img-color-darker">// Trigger: {{color_vibe}} === "gelap"
+
+Editorial portrait of a {{skin_tone_range}} woman, late 20s, {{face_shape}} face.
+Hairstyle: {{pg02_cut_name}} — same cut as primary recommendation.
+
+Color: rich, deep version of {{hair_color_base}} — 1–2 shades deeper. Dimensional dark brown or deep shade with subtle warmth visible in light. Not flat black — hair should have depth and slight sheen.
+
+Skin tone matching: the darker color must complement {{skin_tone_range}} specifically.
+  - Warm/medium-deep skin → rich warm brown or espresso
+  - Cool/light skin → cool dark brown or soft black
+
+Lighting: soft light to show depth and shine in darker shade.
+Setting: neutral background. Portrait 3:4.
+
+PURPOSE: "What if I went darker" — make it look polished and intentional, not heavy.
+
+[Append universal image constraints]</div>
+    </div>
+
+    <div class="prompt-block" style="margin-bottom:24px;">
+      <div class="prompt-header">
+        <span class="prompt-header-label">image_prompt / color_lighter — FEMALE</span>
+        <button class="copy-btn" onclick="copyPrompt(this, 'img-color-lighter')">Copy</button>
+      </div>
+      <div class="prompt-body" id="img-color-lighter">// Trigger: {{color_vibe}} === "terang"
+// Pre-check: if lighter color is unsafe for visible hair condition or risk level, skip this prompt and show color_toner instead
+
+Editorial portrait of a {{skin_tone_range}} woman, late 20s, {{face_shape}} face.
+Hairstyle: {{pg02_cut_name}} — same cut as primary recommendation.
+
+Color: lightened from {{hair_color_base}} base.
+  - Keep the lift conservative and realistic: warm light brown, soft caramel, honey, or golden direction depending on base color and skin tone.
+  - Do not imply chemical safety certainty; frame it as a visual preview, not salon feasibility advice.
+
+Skin tone note: warm undertone skin → golden/honey direction. Cool undertone → ash blonde or champagne.
+
+Lighting: warm soft light to show the lighter color dimension clearly.
+Setting: neutral warm background. Portrait 3:4.
+
+PURPOSE: Realistic "lighter version of me" — not platinum fantasy. Should look achievable.
+
+[Append universal image constraints]</div>
+    </div>
+
+    <!-- MALE COLOR PROMPT -->
+    <div style="background:var(--blue-bg);border:1.5px solid var(--blue-border);border-radius:10px;padding:10px 16px;margin-bottom:14px;">
+      <span style="font-family:'DM Mono',monospace;font-size:8.5px;letter-spacing:0.2em;text-transform:uppercase;color:var(--blue);">♂ Male Color Variant</span>
+    </div>
+
+    <div class="prompt-block">
+      <div class="prompt-header">
+        <span class="prompt-header-label">image_prompt / color_preview — MALE</span>
+        <button class="copy-btn" onclick="copyPrompt(this, 'img-color-male')">Copy</button>
+      </div>
+      <div class="prompt-body" id="img-color-male">// Trigger: {{color_vibe}} !== "nope"
+// AI picks best subtle color direction based on {{hair_color_base}} + {{skin_tone_range}}
+
+Editorial portrait of a {{skin_tone_range}} man, late 20s, {{face_shape}} face.
+Hairstyle: {{pg02_cut_name}} — same cut as primary recommendation.
+
+Color direction — pick ONE based on vision data:
+  - Base is black → soft dark brown toner. Adds depth and shine, not obviously colored.
+  - Base is dark brown → subtle warm highlights at top only, 1 level lighter. "Been in the sun" look.
+  - Base is medium brown → soft ash or caramel toner at top. Cool or warm depending on {{skin_tone_range}}.
+  - Base is already light → cool ash or natural toner to refine, no lightening needed.
+
+Golden rule for men's color: it must look like it could be natural. Zero salon-obvious result.
+
+Lighting: natural or soft studio. Show color dimension at top of hair where light hits.
+Setting: neutral warm background. Portrait 3:4.
+
+PURPOSE: "What if I had a bit of color" — subtle, wearable, looks like great genetics not a salon visit.
+
+[Append universal image constraints]</div>
+    </div>
+
+    <div class="rule-row" style="margin-top:16px;">
+      <div class="rule-card must">
+        <span class="rule-title">✓ Skin Tone × Color Rule</span>
+        Setiap color prompt harus mention {{skin_tone_range}} explicitly. Warm skin → warm color undertone. Cool skin → ash/cool direction. Never generate a color that would clash with the detected skin tone.
+      </div>
+      <div class="rule-card never">
+        <span class="rule-title">✕ No Fantasy Colors</span>
+        Jangan generate warna yang tidak achievable dari base color {{hair_color_base}} atau butuh bleaching berat. Semua preview harus terlihat seperti hasil salon nyata, bukan filter app.
       </div>
     </div>
   </div>
@@ -2475,30 +2755,40 @@ function updateGlobalToggle() {
   else btns[1].classList.add('active-f');
 }
 
-function switchImgBranch(prefix, gender, tab) {
-  const section = tab.closest('.section');
-  const tabs = section.querySelectorAll('.branch-tab');
-  tabs.forEach(t => t.classList.remove('active'));
-  tab.classList.add('active');
+function switchImgBranch(section, gender, clickedTab) {
+  // Update tabs
+  const tabContainer = clickedTab.closest('.branch-tabs');
+  tabContainer.querySelectorAll('.branch-tab').forEach(t => t.classList.remove('active'));
+  clickedTab.classList.add('active');
 
-  const maleBlock = document.getElementById(`${prefix}-male-block`);
-  const femaleBlock = document.getElementById(`${prefix}-female-block`);
-  if (maleBlock && femaleBlock) {
-    maleBlock.style.display = gender === 'male' ? '' : 'none';
-    femaleBlock.style.display = gender === 'female' ? '' : 'none';
+  // Vision section special handling
+  if (section === 'vision') {
+    const mBlock = document.getElementById('vision-male-block');
+    const fBlock = document.getElementById('vision-female-block');
+    if (mBlock) mBlock.style.display = gender === 'male' ? '' : 'none';
+    if (fBlock) fBlock.style.display = gender === 'female' ? '' : 'none';
     return;
   }
 
-  const visible = document.getElementById(`${prefix}-text`);
-  const female = document.getElementById(`${prefix}-female-text`);
-  if (!visible || !female) return;
+  // Generic male/female block switching
+  const mBlock = document.getElementById(`img${section}-male-block`);
+  const fBlock = document.getElementById(`img${section}-female-block`);
+  if (mBlock) mBlock.style.display = gender === 'male' ? '' : 'none';
+  if (fBlock) fBlock.style.display = gender === 'female' ? '' : 'none';
 
-  if (!visible.dataset.maleText) visible.dataset.maleText = visible.textContent;
-  visible.textContent = gender === 'female' ? female.textContent : visible.dataset.maleText;
-
-  const label = section.querySelector('.prompt-header-label');
-  if (label && !label.dataset.baseLabel) label.dataset.baseLabel = label.textContent.replace(/ — (MALE|FEMALE)$/,'');
-  if (label) label.textContent = `${label.dataset.baseLabel} — ${gender === 'female' ? 'FEMALE' : 'MALE'}`;
+  // pg02 special: single block with hidden text swap
+  if (section === '02') {
+    const mainText = document.getElementById('img02-text');
+    const femaleText = document.getElementById('img02-female-text');
+    if (mainText && femaleText) {
+      if (gender === 'female') {
+        mainText.textContent = femaleText.textContent;
+      } else {
+        // reload from original — re-render by reloading page02 male text
+        mainText.textContent = `Editorial portrait photograph of a {{face_shape}} faced {{skin_tone_range}} skinned man in his late 20s.\n\nHairstyle: {{pg02_cut_name}} — textured crop with low taper. Top hair is 5–6cm, naturally textured and slightly broken. Sides are tapered low near the ear. Clean neckline. Matte finish, no shine.\n\nSetting: neutral warm-beige studio background, soft box lighting from slightly above and front-left. Three-quarter angle, chin slightly down, direct gaze.\n\nOutfit: clean cream or white open-collar shirt. Collar visible but relaxed.\n\nPhotography style: editorial men's grooming magazine, clean composition, 85mm portrait lens, shallow depth of field, background softly blurred.\n\nMood: confident, natural, professional without being stiff.\n\n[Append universal image constraints]`;
+      }
+    }
+  }
 }
 
 function copyPrompt(btn, id) {
