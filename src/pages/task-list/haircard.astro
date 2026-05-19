@@ -60,8 +60,8 @@ const phases = [
       ["3.5", "Build preference steps", "Built prompt-backed preference steps for maintenance, style direction, desired outcome, lifestyle, occasion, risk level, and hard-no styles with persisted quiz_answers values.", "P0", "Done"],
       ["3.6", "Build upload screen", "Built required front-selfie upload step with client type/size validation, preview, reupload path, photo guidance chips, upload API, upload metadata persistence, and approved quality-gate stub.", "P0", "Done"],
       ["3.7", "Build upload privacy notice", "Added upload-step privacy notice: selfie is used only for report generation and deleted within the retention window.", "P0", "Done"],
-      ["3.8", "Build free teaser generation", "Generate or mock likely face shape, one haircut direction, one avoid note, and blurred premium preview.", "P0", "Not Started"],
-      ["3.9", "Track funnel analytics", "Emit events for landing view, quiz start, step completion, upload success, teaser generated, and paywall view.", "P1", "Not Started"],
+      ["3.8", "Build no-payment report preview pipeline", "Pivoted before payment: upload + quiz now routes toward a dev report preview pipeline wired to AI provider input, validated report JSON, persisted generation payloads, and an HTML result preview. Real AI verification still needs provider key configured.", "P0", "In Progress"],
+      ["3.9", "Track funnel/report analytics", "Extend events around report generation started/succeeded/failed and preview viewed; keep payment/paywall analytics for later after report quality is verified.", "P1", "In Progress"],
     ],
   },
   {
