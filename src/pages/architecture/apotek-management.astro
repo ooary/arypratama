@@ -1,0 +1,227 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const title = "Architecture — apoth.tech";
+const description = "Backend-first architecture for apoth.tech, a FastAPI and PostgreSQL pharmacy SaaS with inventory-ledger-first design, admin/tenant/POS zones, and deployment to apoth.arypratama.com.";
+
+const stack = [
+  { group: "Backend", items: ["FastAPI", "Python 3.12+", "Pydantic v2", "SQLAlchemy 2.0", "Alembic", "psycopg 3", "Loguru", "bson ObjectId utility", "pytest", "ruff", "pyright in moderate mode"] },
+  { group: "Database", items: ["PostgreSQL in Docker", "tenant_id scoped tables", "append-only stock_movements", "BSON ObjectId stored as CHAR(24)/VARCHAR(24)", "transactional stock posting"] },
+  { group: "Frontend", items: ["Vite", "React", "TypeScript", "Bun", "Tailwind", "shadcn/ui or Radix primitives", "TanStack Query", "Zustand", "React Hook Form", "Zod", "Dexie for POS offline cache", "Playwright"] },
+  { group: "DevOps", items: ["Private GitHub monorepo", "Docker Compose local", "GitHub Actions CI/CD", "SSH deploy to VPS", "review deployment at apoth.arypratama.com", "later production brand apoth.tech"] },
+];
+
+const backendLayers = [
+  ["API routes", "Thin FastAPI controllers. Parse request, call service, return schema."],
+  ["Schemas", "Pydantic request/response contracts. No database logic here."],
+  ["Services", "Business rules: tenant isolation, RBAC, stock posting, PO receipt, POS sale posting."],
+  ["Repositories", "Database query layer. Every tenant-owned query filters tenant_id."],
+  ["Models", "SQLAlchemy tables aligned to ERD: tenants, outlets, warehouses, products, stock_batches, stock_movements."],
+  ["Workers", "Background jobs for exports, reports, cleanup, and later heavy sync tasks."],
+];
+
+const modules = [
+  { name: "Admin Zone", purpose: "Internal SaaS operator area for tenants, plans, billing state, support access, and platform audit. Not tenant pharmacy ownership.", priority: "Frontend later; backend metadata APIs early." },
+  { name: "Tenant Zone", purpose: "Pharmacy back-office for users, apotek/outlet profile, products, suppliers, inventory, procurement, reports, and config.", priority: "Second frontend priority after backend APIs stabilize." },
+  { name: "POS App", purpose: "Cashier selling interface with shift, cart, payment, receipt, and offline queue. Server remains ledger source of truth.", priority: "After online POS API and stock posting service are correct." },
+];
+
+const flows = [
+  {
+    title: "Tenant, outlet, warehouse relation",
+    note: "In this product, outlet means apotek location. MVP creates one default outlet automatically, so the user sees Apotek, not branch complexity.",
+    steps: ["Tenant account", "Outlet / Apotek", "Warehouse / stock location", "Stock batch", "Stock movement ledger"],
+  },
+  {
+    title: "Inventory-ledger posting",
+    note: "No feature writes products.stock. All stock-affecting workflows call the same stock posting service and create append-only movements.",
+    steps: ["Workflow command", "Validate tenant + permission", "Convert qty to base unit", "Create/update stock batch", "Append stock_movements", "Return stock card projection"],
+  },
+  {
+    title: "Procurement receipt",
+    note: "Defecta and PO can be simple in MVP, but goods receipt must capture batch, expiry, supplier/PBF, invoice data, and create purchase_receive movements.",
+    steps: ["Low stock / manual need", "Defecta", "Purchase Order", "SP if regulated", "Goods Receipt", "Stock batch + movement"],
+  },
+  {
+    title: "Online POS sale",
+    note: "Browser sends a sale command. FastAPI validates and posts the canonical sale, payment, batch allocation, and stock movements inside one DB transaction.",
+    steps: ["Open shift", "Build cart", "Validate gate/payment", "FEFO allocation", "Create sale + payments", "Append sale movements"],
+  },
+  {
+    title: "Offline POS sync",
+    note: "Dexie stores cache and queued sale commands only. On reconnect, server validates with idempotency key and either posts or returns conflict.",
+    steps: ["Cached products/prices", "Offline sale command", "Dexie queue", "Reconnect sync", "Server validation", "Posted or conflict"],
+  },
+  {
+    title: "CI/CD review deployment",
+    note: "Private repo pushes run quality gates. Main or preview branch deploys Dockerized services to the VPS and exposes the review app at apoth.arypratama.com.",
+    steps: ["Git push", "GitHub Actions", "lint/typecheck/test/build", "Docker image build", "SSH deploy", "apoth.arypratama.com"],
+  },
+];
+
+const securityPrinciples = [
+  "Every tenant-owned table carries tenant_id and every API query scopes by tenant_id.",
+  "Platform Admin is separate from tenant Owner and cannot access pharmacy operational data without audited support access.",
+  "Stock movements and audit logs are append-only; corrections create new rows, never silent edits.",
+  "BSON ObjectId generation is centralized in backend/app/core/id.py; routes must not generate ad-hoc IDs.",
+  "Secrets stay server-side. Frontend env only contains public API base URL and non-secret flags.",
+  "CI must run unit tests, integration tests, tenant isolation tests, lint, typecheck, and build before deploy.",
+];
+
+const folderStructure = `apoth/
+  backend/
+    app/
+      api/v1/routes/
+      core/              # config, security, db, id.py, tenant context
+      models/            # SQLAlchemy ERD tables
+      schemas/           # Pydantic DTOs
+      services/          # domain logic, stock posting, POS posting
+      repositories/      # DB queries
+      workers/           # export/report jobs later
+    migrations/
+    tests/
+  frontend/
+    src/
+      features/admin-zone/
+      features/tenant-zone/
+      features/pos/
+      lib/api/
+      lib/db/            # Dexie POS offline cache
+  infra/
+  scripts/
+  docker-compose.yml`;
+---
+
+<BaseLayout title={title} description={description}>
+  <section class="space-y-6">
+    <div class="inline-flex rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-bold text-blue-700 dark:border-blue-900/70 dark:bg-blue-950/40 dark:text-blue-300">Architecture</div>
+    <h1 class="text-4xl font-bold tracking-tight text-zinc-950 dark:text-white sm:text-5xl">apoth.tech Architecture</h1>
+    <p class="max-w-4xl text-lg leading-8 text-zinc-600 dark:text-zinc-300">Backend-first architecture for apoth.tech. Development deploy target is <strong>apoth.arypratama.com</strong>. The product remains PRD/ERD aligned: SaaS tenant isolation, outlet-as-apotek location, inventory ledger first, POS second, and offline POS as queued commands validated by the server.</p>
+    <div class="flex flex-wrap gap-3 text-sm font-semibold">
+      <a class="rounded-full bg-white px-4 py-2 text-blue-700 shadow-sm dark:bg-zinc-900 dark:text-blue-300" href="/prd/apotek-management/">PRD</a>
+      <a class="rounded-full bg-white px-4 py-2 text-blue-700 shadow-sm dark:bg-zinc-900 dark:text-blue-300" href="/erd/apotek-management/">ERD</a>
+      <a class="rounded-full bg-white px-4 py-2 text-blue-700 shadow-sm dark:bg-zinc-900 dark:text-blue-300" href="/task-list/apotek-management/">Task List</a>
+    </div>
+  </section>
+
+  <section class="space-y-4">
+    <h2 class="text-2xl font-bold text-zinc-950 dark:text-white">1. Architecture stance</h2>
+    <div class="rounded-3xl border border-amber-200 bg-amber-50 p-6 dark:border-amber-900/70 dark:bg-amber-950/30">
+      <p class="leading-8 text-amber-950 dark:text-amber-100">MVP should hide complexity, not delete the model. We keep <code>outlets</code> because in this domain it means one physical apotek location. MVP creates one default outlet automatically and the UI calls it “Apotek”. Warehouses sit under that outlet/apotek. This avoids schema rewrite when apoth.tech later supports branches, quarantine locations, transfer, and POS-per-location.</p>
+    </div>
+  </section>
+
+  <section class="space-y-6">
+    <h2 class="text-2xl font-bold text-zinc-950 dark:text-white">2. Tech stack</h2>
+    <div class="grid gap-4 md:grid-cols-2">
+      {stack.map((group) => (
+        <div class="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+          <h3 class="font-bold text-zinc-950 dark:text-white">{group.group}</h3>
+          <ul class="mt-3 list-disc space-y-2 pl-5 text-sm leading-6 text-zinc-700 dark:text-zinc-300">
+            {group.items.map((item) => <li>{item}</li>)}
+          </ul>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="space-y-6">
+    <h2 class="text-2xl font-bold text-zinc-950 dark:text-white">3. High-level app flow</h2>
+    <div class="overflow-x-auto rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+      <svg viewBox="0 0 1080 520" role="img" aria-label="apoth high-level architecture" class="h-auto w-full min-w-[760px]">
+        <defs><marker id="arch-arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#2563eb"></path></marker></defs>
+        <rect x="40" y="80" width="210" height="86" rx="18" fill="#dbeafe" stroke="#2563eb" stroke-width="2" />
+        <text x="68" y="118" font-size="18" font-weight="800" fill="#1e3a8a">Admin Zone</text><text x="68" y="145" font-size="13" fill="#475569">tenant metadata, support</text>
+        <rect x="40" y="216" width="210" height="86" rx="18" fill="#ecfdf5" stroke="#16a34a" stroke-width="2" />
+        <text x="68" y="254" font-size="18" font-weight="800" fill="#14532d">Tenant Zone</text><text x="68" y="281" font-size="13" fill="#475569">products, stock, procurement</text>
+        <rect x="40" y="352" width="210" height="86" rx="18" fill="#fdf2f8" stroke="#db2777" stroke-width="2" />
+        <text x="68" y="390" font-size="18" font-weight="800" fill="#831843">POS App</text><text x="68" y="417" font-size="13" fill="#475569">shift, cart, offline queue</text>
+        <rect x="412" y="176" width="240" height="120" rx="22" fill="#fff7ed" stroke="#ea580c" stroke-width="2" />
+        <text x="450" y="222" font-size="22" font-weight="900" fill="#7c2d12">FastAPI Backend</text><text x="450" y="252" font-size="14" fill="#475569">services enforce business rules</text><text x="450" y="274" font-size="14" fill="#475569">stock posting is centralized</text>
+        <rect x="810" y="100" width="220" height="86" rx="18" fill="#ccfbf1" stroke="#0f766e" stroke-width="2" />
+        <text x="842" y="138" font-size="18" font-weight="800" fill="#134e4a">PostgreSQL</text><text x="842" y="164" font-size="13" fill="#475569">tenant data + ledger</text>
+        <rect x="810" y="250" width="220" height="86" rx="18" fill="#ede9fe" stroke="#7c3aed" stroke-width="2" />
+        <text x="842" y="288" font-size="18" font-weight="800" fill="#4c1d95">Redis / Worker</text><text x="842" y="314" font-size="13" fill="#475569">exports, reports later</text>
+        <rect x="810" y="392" width="220" height="70" rx="18" fill="#fef3c7" stroke="#d97706" stroke-width="2" />
+        <text x="842" y="432" font-size="18" font-weight="800" fill="#78350f">Dexie Local DB</text>
+        <line x1="250" y1="123" x2="412" y2="210" stroke="#2563eb" stroke-width="2" marker-end="url(#arch-arrow)" />
+        <line x1="250" y1="259" x2="412" y2="236" stroke="#2563eb" stroke-width="2" marker-end="url(#arch-arrow)" />
+        <line x1="250" y1="395" x2="412" y2="272" stroke="#2563eb" stroke-width="2" marker-end="url(#arch-arrow)" />
+        <line x1="652" y1="220" x2="810" y2="144" stroke="#2563eb" stroke-width="2" marker-end="url(#arch-arrow)" />
+        <line x1="652" y1="258" x2="810" y2="292" stroke="#2563eb" stroke-width="2" marker-end="url(#arch-arrow)" />
+        <path d="M145 352 C220 474 660 500 810 430" fill="none" stroke="#db2777" stroke-width="2" stroke-dasharray="8 8" marker-end="url(#arch-arrow)" />
+      </svg>
+    </div>
+  </section>
+
+  <section class="space-y-6">
+    <h2 class="text-2xl font-bold text-zinc-950 dark:text-white">4. Backend architecture</h2>
+    <div class="space-y-3">
+      {backendLayers.map(([layer, detail]) => (
+        <div class="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+          <h3 class="font-bold text-zinc-950 dark:text-white">{layer}</h3>
+          <p class="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300">{detail}</p>
+        </div>
+      ))}
+    </div>
+    <div class="rounded-2xl border border-zinc-200 bg-zinc-50 p-5 dark:border-zinc-800 dark:bg-zinc-900/70">
+      <h3 class="font-bold text-zinc-950 dark:text-white">BSON ID utility</h3>
+      <pre class="mt-3 overflow-x-auto rounded-xl bg-zinc-950 p-4 text-sm text-zinc-100"><code>{`# backend/app/core/id.py
+from bson import ObjectId
+
+def new_id() -> str:
+    return str(ObjectId())
+
+def is_valid_id(value: str) -> bool:
+    return ObjectId.is_valid(value)`}</code></pre>
+      <p class="mt-3 text-sm leading-6 text-zinc-700 dark:text-zinc-300">All table IDs should use the same utility. Store as <code>String(24)</code>. Do not generate IDs directly inside route handlers.</p>
+    </div>
+  </section>
+
+  <section class="space-y-6">
+    <h2 class="text-2xl font-bold text-zinc-950 dark:text-white">5. Frontend architecture</h2>
+    <div class="grid gap-4 md:grid-cols-3">
+      {modules.map((module) => (
+        <div class="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+          <h3 class="font-bold text-zinc-950 dark:text-white">{module.name}</h3>
+          <p class="mt-2 text-sm leading-6 text-zinc-700 dark:text-zinc-300">{module.purpose}</p>
+          <p class="mt-3 text-xs font-bold uppercase tracking-wide text-blue-600 dark:text-blue-300">{module.priority}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="space-y-6">
+    <h2 class="text-2xl font-bold text-zinc-950 dark:text-white">6. Module business flows</h2>
+    <div class="space-y-5">
+      {flows.map((flow) => (
+        <article class="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+          <h3 class="text-lg font-bold text-zinc-950 dark:text-white">{flow.title}</h3>
+          <div class="mt-4 overflow-x-auto">
+            <div class="flex min-w-max items-center gap-3">
+              {flow.steps.map((step, index) => (
+                <>
+                  <div class="rounded-2xl border-2 border-blue-300 bg-blue-50 px-4 py-3 text-sm font-bold text-blue-950 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-100">{step}</div>
+                  {index < flow.steps.length - 1 && <div class="text-xl font-bold text-blue-500">→</div>}
+                </>
+              ))}
+            </div>
+          </div>
+          <p class="mt-4 text-sm leading-6 text-zinc-700 dark:text-zinc-300">{flow.note}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section class="space-y-6">
+    <h2 class="text-2xl font-bold text-zinc-950 dark:text-white">7. Security architecture</h2>
+    <ul class="rounded-3xl border border-red-200 bg-red-50 p-6 list-disc space-y-2 pl-10 text-sm leading-7 text-red-950 dark:border-red-900/70 dark:bg-red-950/30 dark:text-red-100">
+      {securityPrinciples.map((item) => <li>{item}</li>)}
+    </ul>
+  </section>
+
+  <section class="space-y-6">
+    <h2 class="text-2xl font-bold text-zinc-950 dark:text-white">8. Recommended folder structure</h2>
+    <pre class="overflow-x-auto rounded-3xl border border-zinc-800 bg-zinc-950 p-5 text-sm leading-6 text-zinc-100"><code>{folderStructure}</code></pre>
+  </section>
+</BaseLayout>
