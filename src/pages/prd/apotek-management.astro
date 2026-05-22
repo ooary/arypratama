@@ -1,25 +1,497 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 
-const title = "Moved — Core Managed Pharmacy BRD";
-const description = "The Core Managed Pharmacy planning document has been converted from PRD to BRD and moved to /brd/apotek-management/.";
+const title = "PRD — Core Managed Pharmacy";
+const description = "Product Requirements Document for Core Managed Pharmacy, an inventory-ledger-first SaaS pharmacy management system for small to mid-sized Indonesian pharmacies.";
 ---
 
 <BaseLayout title={title} description={description}>
-  <section class="space-y-6">
-    <div class="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-bold text-blue-700 dark:border-blue-900/70 dark:bg-blue-950/40 dark:text-blue-300">
-      Document moved
-    </div>
-    <div class="space-y-4">
-      <h1 class="text-4xl font-bold tracking-tight text-zinc-950 dark:text-white sm:text-5xl">
-        Core Managed Pharmacy BRD
-      </h1>
-      <p class="max-w-3xl text-lg leading-8 text-zinc-600 dark:text-zinc-300">
-        This artifact has been converted from a Product Requirements Document into a Business Requirements Document. Use the BRD route as the source of truth going forward.
-      </p>
-      <a class="inline-flex rounded-full bg-blue-600 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-blue-700" href="/brd/apotek-management/">
-        Open BRD
-      </a>
-    </div>
-  </section>
+  <article class="space-y-10">
+    <section class="space-y-6">
+      <div class="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-bold text-blue-700 dark:border-blue-900/70 dark:bg-blue-950/40 dark:text-blue-300">
+        Product Requirements Document
+      </div>
+      <div class="space-y-4">
+        <h1 class="text-4xl font-bold tracking-tight text-zinc-950 dark:text-white sm:text-5xl">
+          Core Managed Pharmacy PRD
+        </h1>
+        <p class="max-w-4xl text-lg leading-8 text-zinc-600 dark:text-zinc-300">
+          Full PRD converted from the Core Managed Pharmacy BRD: an inventory-ledger-first SaaS system for small to mid-sized Indonesian pharmacies. POS is included, but the product center is stock accuracy, batch/expiry traceability, procurement discipline, regulatory records, and auditability.
+        </p>
+      </div>
+      <div class="grid gap-3 sm:grid-cols-3">
+        <div class="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+          <div class="text-xs font-bold uppercase tracking-wide text-zinc-500">Market</div>
+          <div class="mt-2 font-bold text-zinc-950 dark:text-white">Small to mid-sized Indonesian pharmacies</div>
+        </div>
+        <div class="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+          <div class="text-xs font-bold uppercase tracking-wide text-zinc-500">Delivery</div>
+          <div class="mt-2 font-bold text-zinc-950 dark:text-white">Multi-tenant SaaS</div>
+        </div>
+        <div class="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+          <div class="text-xs font-bold uppercase tracking-wide text-zinc-500">Core thesis</div>
+          <div class="mt-2 font-bold text-zinc-950 dark:text-white">Inventory ledger first, POS second</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+      <h2 class="text-2xl font-bold text-zinc-950 dark:text-white">Table of contents</h2>
+      <ol class="mt-4 grid gap-2 pl-5 text-sm leading-6 text-zinc-700 dark:text-zinc-300 md:grid-cols-2">
+        <li><a href="#overview">Product overview</a></li>
+        <li><a href="#problem">Problem statement</a></li>
+        <li><a href="#metrics">Goals and success metrics</a></li>
+        <li><a href="#personas">Personas and user stories</a></li>
+        <li><a href="#functional">Functional requirements</a></li>
+        <li><a href="#compliance">Regulatory and compliance requirements</a></li>
+        <li><a href="#nfr">Non-functional requirements</a></li>
+        <li><a href="#config">Config and feature flags</a></li>
+        <li><a href="#out-of-scope">Out of scope</a></li>
+        <li><a href="#roadmap">Build order and milestones</a></li>
+      </ol>
+    </section>
+
+    <section id="overview" class="prose prose-zinc max-w-none dark:prose-invert">
+      <h2>1. Product overview</h2>
+      <p><strong>Core Managed Pharmacy</strong> is a multi-tenant SaaS pharmacy management system for small to mid-sized pharmacies in Indonesia. It helps pharmacy owners, pharmacists/admins, cashiers, and warehouse/procurement staff run product master data, supplier/PBF procurement, batch-level stock, expiry control, POS, shift closing, reports, and audit trails from one operational system.</p>
+      <p>The SaaS model must support isolated tenant data, tenant-level configuration, plan/tier limits, self-serve onboarding, import/export, and future multi-outlet expansion without re-architecture. Every tenant-scoped record must carry <code>tenant_id</code>; outlet/warehouse-scoped workflows also carry <code>outlet_id</code> and/or <code>warehouse_id</code>.</p>
+      <p>The product thesis is explicit: <strong>inventory ledger first, POS second</strong>. POS is one transaction channel that posts stock movements; it is not the source of truth. The source of truth is batch-aware stock plus an append-only stock movement ledger.</p>
+    </section>
+
+    <section id="problem" class="prose prose-zinc max-w-none dark:prose-invert">
+      <h2>2. Problem statement</h2>
+      <p>Small and mid-sized Indonesian pharmacies often rely on cashier apps, spreadsheets, paper notes, WhatsApp supplier threads, and staff memory. That creates operational risk because pharmacy inventory is not ordinary retail: products have batches, expiry dates, dosage forms, purchase/sales unit conversions, regulated classifications, supplier returns, disposal flows, and audit expectations.</p>
+      <h3>Validated pain points from the BRD</h3>
+      <ul>
+        <li><strong>Stock uncertainty:</strong> staff cannot consistently trust available stock by outlet, warehouse, product, batch, and expiry date.</li>
+        <li><strong>Stockout and overstock risk:</strong> purchasing decisions are driven by manual checks rather than low-stock thresholds, movement velocity, and supplier history.</li>
+        <li><strong>Expiry loss:</strong> near-expiry and expired batches are discovered late, often during physical stock take or after customer demand has moved elsewhere.</li>
+        <li><strong>Manual reconciliation:</strong> stock cards, cashier shift closing, supplier invoices, returns, and owner reports require repeated spreadsheet work.</li>
+        <li><strong>Weak auditability:</strong> stock corrections, price changes, returns, voids, and sensitive product handling may not be traceable to user, source document, and timestamp.</li>
+      </ul>
+      <h3>Quantified working assumptions to validate</h3>
+      <ul>
+        <li>Typical manual stock reconciliation error: 5–10% of sampled SKUs per monthly stock take.</li>
+        <li>Stockout frequency for fast-moving SKUs: at least 2–4 incidents per month per outlet.</li>
+        <li>Expiry-related loss: 1–3% of monthly inventory value for pharmacies without active expiry review.</li>
+        <li>Manual report effort: 4–8 staff-hours per week for purchase, stock, and owner reporting.</li>
+        <li>Shift close time: 20–45 minutes when cash, POS, returns, and manual notes need reconciliation.</li>
+      </ul>
+      <h3>Why now</h3>
+      <ul>
+        <li>Post-pandemic consumer behavior increased demand for accessible neighborhood pharmacies and faster service.</li>
+        <li>BPOM and Indonesian healthcare digitalization trends make traceability and better records more important, especially for obat keras, narkotika, psikotropika, and precursor items.</li>
+        <li>Cloud SaaS adoption among SMEs is now normal enough for small pharmacy owners to consider subscription tools instead of local-only software.</li>
+        <li>Supplier/PBF workflows and compliance records increasingly require cleaner document trails than paper notebooks can provide.</li>
+      </ul>
+      <h3>Research assumptions before final PRD lock</h3>
+      <ul>
+        <li>Confirm the most common stockout and expiry loss rates across at least 10 target pharmacies.</li>
+        <li>Validate whether small pharmacies want approval workflows disabled by default.</li>
+        <li>Validate required SIPNAP export format expectations with pharmacists who currently submit monthly reports.</li>
+        <li>Validate offline POS expectations: expected outage duration, device count, and preferred recovery behavior.</li>
+        <li>Validate willingness to import product master data from Excel during onboarding.</li>
+      </ul>
+    </section>
+
+    <section id="metrics" class="prose prose-zinc max-w-none dark:prose-invert">
+      <h2>3. Goals and success metrics</h2>
+      <div class="overflow-x-auto not-prose">
+        <table class="min-w-full text-left text-sm">
+          <thead class="border-b border-zinc-200 text-zinc-500 dark:border-zinc-800"><tr><th class="py-3 pr-4">Goal</th><th class="py-3 pr-4">Metric</th><th class="py-3 pr-4">Baseline assumption</th><th class="py-3 pr-4">Target</th><th class="py-3 pr-4">How to measure</th></tr></thead>
+          <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800">
+            <tr><td class="py-3 pr-4">Stock accuracy</td><td class="py-3 pr-4">Reconciliation error rate</td><td class="py-3 pr-4">5–10%</td><td class="py-3 pr-4">&lt; 2% after 60 days</td><td class="py-3 pr-4">Physical stock take vs ledger delta by SKU/batch</td></tr>
+            <tr><td class="py-3 pr-4">Expiry loss reduction</td><td class="py-3 pr-4">Expired inventory value</td><td class="py-3 pr-4">1–3% monthly inventory value</td><td class="py-3 pr-4">Reduce by 50% within 90 days</td><td class="py-3 pr-4">Expiry disposal movements and loss report</td></tr>
+            <tr><td class="py-3 pr-4">Procurement discipline</td><td class="py-3 pr-4">Fast-moving SKU stockout incidents</td><td class="py-3 pr-4">2–4/month/outlet</td><td class="py-3 pr-4">Reduce by 40% within 90 days</td><td class="py-3 pr-4">Out-of-stock log plus sales demand proxy</td></tr>
+            <tr><td class="py-3 pr-4">Cashier checkout speed</td><td class="py-3 pr-4">Median POS transaction time</td><td class="py-3 pr-4">90–150 seconds</td><td class="py-3 pr-4">&lt; 45 seconds for normal sale</td><td class="py-3 pr-4">POS event timestamps from cart open to paid</td></tr>
+            <tr><td class="py-3 pr-4">Onboarding time</td><td class="py-3 pr-4">Time to first live sale</td><td class="py-3 pr-4">1–3 days manual setup</td><td class="py-3 pr-4">&lt; 2 hours for small pharmacy</td><td class="py-3 pr-4">Tenant created to first posted POS sale</td></tr>
+            <tr><td class="py-3 pr-4">Shift accountability</td><td class="py-3 pr-4">Shift close duration</td><td class="py-3 pr-4">20–45 minutes</td><td class="py-3 pr-4">&lt; 10 minutes</td><td class="py-3 pr-4">Shift close start to submitted timestamp</td></tr>
+            <tr><td class="py-3 pr-4">Auditability</td><td class="py-3 pr-4">Untraceable stock adjustments</td><td class="py-3 pr-4">Common in manual workflow</td><td class="py-3 pr-4">0 posted adjustments without user, reason, source</td><td class="py-3 pr-4">Audit report validation</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="personas" class="prose prose-zinc max-w-none dark:prose-invert">
+      <h2>4. Personas and user stories</h2>
+      <h3>P1 — Rina, Pharmacy Owner</h3>
+      <p><strong>Context:</strong> owns 1–3 outlets, medium tech-savviness, daily dashboard use and weekly purchasing review. Current workaround: cashier app plus Excel stock and WhatsApp supplier notes.</p>
+      <p><strong>Top frustrations:</strong> cannot trust stock reports; late expiry discovery; owner reports require manual consolidation.</p>
+      <ul>
+        <li><strong>US-OWN-01:</strong> As an owner, I want a daily dashboard so that I can see revenue, margin, stock risk, expiry risk, and cash variance. <br/><em>Given</em> I am logged in as Owner, <em>when</em> I open the dashboard, <em>then</em> I see today, 7-day, and 30-day filters scoped to my tenant and outlets.</li>
+        <li><strong>US-OWN-02:</strong> As an owner, I want stock valuation by outlet and warehouse so that I know capital locked in inventory. <br/><em>Given</em> stock batches exist, <em>when</em> I open stock valuation, <em>then</em> value is calculated from batch cost and current quantity.</li>
+        <li><strong>US-OWN-03:</strong> As an owner, I want low-stock and stockout alerts so that purchasing is not reactive. <br/><em>Given</em> a product falls below minimum stock, <em>when</em> defecta is generated, <em>then</em> the product appears in the low-stock queue.</li>
+        <li><strong>US-OWN-04:</strong> As an owner, I want to review price changes so that margin changes are controlled. <br/><em>Given</em> a user changes a selling price, <em>when</em> I open price history, <em>then</em> I see old price, new price, user, time, and reason.</li>
+        <li><strong>US-OWN-05:</strong> As an owner, I want exports so that I can keep my business data independent from the SaaS vendor. <br/><em>Given</em> I request export, <em>when</em> processing completes, <em>then</em> I can download machine-readable files for products, batches, movements, purchases, sales, and customers.</li>
+      </ul>
+
+      <h3>P2 — Dimas, Pharmacist/Admin</h3>
+      <p><strong>Context:</strong> manages product data and compliance records, high domain knowledge, medium tech-savviness, daily use. Current workaround: paper stock cards, Excel products, manual SIPNAP recap.</p>
+      <p><strong>Top frustrations:</strong> batch records split across documents; unit conversion mistakes; regulated items require careful manual tracking.</p>
+      <ul>
+        <li><strong>US-ADM-01:</strong> As an admin, I want product master data with batch, unit, classification, and compliance flags so that operational records are reliable. <br/><em>Given</em> I create a product, <em>when</em> I save it, <em>then</em> required fields validate by product classification.</li>
+        <li><strong>US-ADM-02:</strong> As an admin, I want unit conversion rules so that buying by box and selling by tablet stays accurate. <br/><em>Given</em> 1 box = 10 strips and 1 strip = 10 tablets, <em>when</em> 1 box is received, <em>then</em> 100 base tablets are added to stock.</li>
+        <li><strong>US-ADM-03:</strong> As an admin, I want FEFO allocation so that near-expiry stock is sold first. <br/><em>Given</em> multiple batches exist, <em>when</em> a sale is posted, <em>then</em> the earliest expiry eligible batch is deducted unless manually overridden with permission.</li>
+        <li><strong>US-ADM-04:</strong> As an admin, I want SIPNAP-ready monthly records so that narkotika and psikotropika reporting is easier. <br/><em>Given</em> regulated movements exist, <em>when</em> I export a month, <em>then</em> the report includes opening balance, incoming, outgoing, adjustments, and closing balance by item.</li>
+        <li><strong>US-ADM-05:</strong> As an admin, I want stock take corrections to be traceable so that stock cards remain auditable. <br/><em>Given</em> physical count differs from ledger, <em>when</em> I post approved adjustment, <em>then</em> reversal/adjustment movements are created with reason and actor.</li>
+      </ul>
+
+      <h3>P3 — Sari, Cashier</h3>
+      <p><strong>Context:</strong> low-to-medium tech-savviness, heavy daily use during customer queues. Current workaround: cashier app, calculator, manual debt notes, paper receipts.</p>
+      <p><strong>Top frustrations:</strong> slow search during queue; mixed payments and hutang are awkward; shift close is stressful.</p>
+      <ul>
+        <li><strong>US-CAS-01:</strong> As a cashier, I want barcode scan and fast product search so that checkout is quick. <br/><em>Given</em> a product is active and in stock, <em>when</em> I scan or search it, <em>then</em> it appears in the cart with available selling units and price.</li>
+        <li><strong>US-CAS-02:</strong> As a cashier, I want mixed payment methods so that customers can split cash, QRIS, card, and transfer. <br/><em>Given</em> a cart total is Rp150.000, <em>when</em> I record Rp50.000 cash and Rp100.000 QRIS, <em>then</em> the transaction can be completed with two payment rows.</li>
+        <li><strong>US-CAS-03:</strong> As a cashier, I want partial payment/bon so that approved customer debt is recorded. <br/><em>Given</em> bon is enabled and a customer is selected, <em>when</em> payment is less than total, <em>then</em> remaining balance becomes customer receivable and is visible in reports.</li>
+        <li><strong>US-CAS-04:</strong> As a cashier, I want prescription gating for obat keras/resep items so that restricted items are not sold casually. <br/><em>Given</em> an item requires pharmacist review, <em>when</em> I attempt checkout, <em>then</em> the system requires authorized approval or prescription note before payment.</li>
+        <li><strong>US-CAS-05:</strong> As a cashier, I want offline POS minimum mode so that sales can continue during internet outage. <br/><em>Given</em> the device is offline and has synced product cache, <em>when</em> I sell cached in-stock items, <em>then</em> the sale is queued locally and synced when online.</li>
+        <li><strong>US-CAS-06:</strong> As a cashier, I want shift close calculation so that cash variance is clear. <br/><em>Given</em> my shift has transactions, <em>when</em> I enter actual cash, <em>then</em> expected cash, variance, non-cash totals, refunds, and bon are displayed.</li>
+      </ul>
+
+      <h3>P4 — Budi, Warehouse/Procurement Staff</h3>
+      <p><strong>Context:</strong> medium tech-savviness, daily goods receipt and weekly purchasing. Current workaround: manual supplier order list, invoices, and stock cards.</p>
+      <p><strong>Top frustrations:</strong> partial supplier fulfillment is hard to track; multiple suppliers have different prices; invoice fields are retyped into reports.</p>
+      <ul>
+        <li><strong>US-WHS-01:</strong> As procurement staff, I want defecta to generate from low stock and manual demand so that purchase planning is consistent. <br/><em>Given</em> stock is below minimum, <em>when</em> defecta is generated, <em>then</em> recommended quantity uses min stock, average sales, and pending PO.</li>
+        <li><strong>US-WHS-02:</strong> As procurement staff, I want to choose among multiple suppliers per product so that I can compare price, availability, and lead time. <br/><em>Given</em> suppliers are mapped to a product, <em>when</em> I create PO, <em>then</em> I can select supplier and see last purchase price.</li>
+        <li><strong>US-WHS-03:</strong> As procurement staff, I want partial fulfillment so that backordered PO lines remain open. <br/><em>Given</em> PO quantity is 100 and goods receipt is 60, <em>when</em> receipt is posted, <em>then</em> 60 is received and 40 remains outstanding.</li>
+        <li><strong>US-WHS-04:</strong> As procurement staff, I want SP document types so that obat keras, narkotika, psikotropika, and precursor purchases use the right document trail. <br/><em>Given</em> a PO contains regulated items, <em>when</em> I generate documents, <em>then</em> the required SP type is created and linked to the PO.</li>
+        <li><strong>US-WHS-05:</strong> As warehouse staff, I want transfer workflows so that stock movement between warehouse and outlet is traceable. <br/><em>Given</em> transfer is posted, <em>when</em> source stock is deducted, <em>then</em> destination stock is added only after receipt confirmation if transfer approval is enabled.</li>
+      </ul>
+    </section>
+
+    <section id="functional" class="prose prose-zinc max-w-none dark:prose-invert">
+      <h2>5. Functional requirements</h2>
+      <p>All functional requirements are tenant-scoped. Unless stated otherwise, every read/write query must filter by <code>tenant_id</code>, and cross-tenant access must be impossible through UI, API, import, export, reports, and background jobs.</p>
+
+      <h3>5.1 Tenant & organization management</h3>
+      <p><strong>Description:</strong> SaaS foundation for registration, organization profile, plan/tier, billing state, and tenant isolation.</p>
+      <p><strong>User stories addressed:</strong> US-OWN-01, US-OWN-05.</p>
+      <ol>
+        <li><strong>FR-TEN-001:</strong> The system shall create a unique tenant when a new organization registers.</li>
+        <li><strong>FR-TEN-002:</strong> The system shall store organization legal name, display name, owner user, billing email, phone, address, timezone, and default currency.</li>
+        <li><strong>FR-TEN-003:</strong> The system shall enforce tenant isolation on all records using <code>tenant_id</code>.</li>
+        <li><strong>FR-TEN-004:</strong> The system shall support plan/tier limits for outlets, users, products, offline devices, and export frequency.</li>
+        <li><strong>FR-TEN-005:</strong> The system shall expose billing status: trial, active, past_due, suspended, canceled.</li>
+        <li><strong>FR-TEN-006:</strong> Suspended tenants shall be read-only except billing, export, and support access.</li>
+      </ol>
+      <p><strong>Config flags:</strong> plan_tier, max_outlets, max_users, max_offline_devices, billing_grace_days.</p>
+      <p><strong>Edge cases:</strong> duplicate owner email; payment failed during trial conversion; attempted API access to another tenant; tenant suspension during active POS session.</p>
+
+      <h3>5.2 Outlet, warehouse, and pharmacy profile</h3>
+      <p><strong>Description:</strong> Defines pharmacy identity, outlet locations, warehouses, licenses, document numbering, and default operational settings.</p>
+      <p><strong>User stories addressed:</strong> US-OWN-01, US-WHS-05.</p>
+      <ol>
+        <li><strong>FR-ORG-001:</strong> The system shall create at least one default outlet and one default warehouse during onboarding.</li>
+        <li><strong>FR-ORG-002:</strong> The system shall store pharmacy name, address, phone, license identifiers, pharmacist-in-charge, and receipt header/footer.</li>
+        <li><strong>FR-ORG-003:</strong> The system shall allow multiple outlets and warehouses when enabled by plan/config.</li>
+        <li><strong>FR-ORG-004:</strong> Document numbers shall be generated per tenant, document type, outlet, and configurable prefix.</li>
+        <li><strong>FR-ORG-005:</strong> Stock reports shall support filtering by outlet and warehouse.</li>
+      </ol>
+      <p><strong>Config flags:</strong> enable_multi_outlet, enable_multi_warehouse, document_number_prefixes, receipt_template_id.</p>
+      <p><strong>Edge cases:</strong> deactivate warehouse with stock; duplicate document prefix; outlet timezone mismatch; user assigned to deleted outlet.</p>
+
+      <h3>5.3 Users, roles, and permissions</h3>
+      <p><strong>Description:</strong> RBAC for owners, pharmacists/admins, cashiers, warehouse/procurement staff, and support access.</p>
+      <p><strong>User stories addressed:</strong> all persona stories.</p>
+      <ol>
+        <li><strong>FR-RBAC-001:</strong> The system shall include default roles: Owner, Pharmacist/Admin, Cashier, Warehouse/Procurement, Read-only Accountant, Support.</li>
+        <li><strong>FR-RBAC-002:</strong> The system shall enforce permission checks for stock posting, price changes, refunds, voids, regulated item checkout, exports, and config changes.</li>
+        <li><strong>FR-RBAC-003:</strong> The system shall allow users to be scoped to one or more outlets.</li>
+        <li><strong>FR-RBAC-004:</strong> The system shall require MFA for Owner and Support roles before launch.</li>
+        <li><strong>FR-RBAC-005:</strong> Support impersonation shall require tenant approval, expiry time, and audit log entry.</li>
+      </ol>
+      <p><strong>Config flags:</strong> enforce_mfa_owner, allow_support_impersonation, cashier_can_discount, cashier_can_void, pharmacist_gate_required.</p>
+      <p><strong>Edge cases:</strong> last owner removal; cashier attempts export; admin changes own role; support access after approval expiry.</p>
+
+      <h3>5.4 Pharmacy master data</h3>
+      <p><strong>Description:</strong> Product, unit, pricing, supplier/PBF, manufacturer, category, classification, location, and customer reference data.</p>
+      <p><strong>User stories addressed:</strong> US-ADM-01, US-ADM-02, US-WHS-02.</p>
+      <ol>
+        <li><strong>FR-MD-001:</strong> Products shall store SKU, barcode(s), product name, generic name, composition, dosage form, strength, manufacturer, category, classification, active status, and compliance flags.</li>
+        <li><strong>FR-MD-002:</strong> Products shall define one base unit for ledger storage and one or more purchase/selling units with conversion ratios.</li>
+        <li><strong>FR-MD-003:</strong> The system shall validate conversion chains and prevent circular or fractional conversions that cannot be represented safely.</li>
+        <li><strong>FR-MD-004:</strong> Pricing shall support retail price, member price, wholesale price, item-level discount rules, target margin, and effective dates.</li>
+        <li><strong>FR-MD-005:</strong> Price changes shall be versioned with old value, new value, user, reason, and timestamp.</li>
+        <li><strong>FR-MD-006:</strong> Suppliers/PBF shall store legal name, license number, address, contact, tax ID, payment terms, and product mappings.</li>
+        <li><strong>FR-MD-007:</strong> Product import shall support CSV/XLSX templates with validation preview before commit.</li>
+      </ol>
+      <p><strong>Config flags:</strong> enable_member_pricing, enable_wholesale_pricing, require_price_change_reason, allow_negative_margin_warning.</p>
+      <p><strong>Edge cases:</strong> duplicate barcode; inactive product with stock; unit conversion changed after movements exist; supplier removed while PO is open.</p>
+
+      <h3>5.5 Inventory batch engine and stock ledger</h3>
+      <p><strong>Description:</strong> Batch-aware stock source of truth backed by append-only movements and stock card projection.</p>
+      <p><strong>User stories addressed:</strong> US-ADM-02, US-ADM-03, US-ADM-05, US-OWN-02.</p>
+      <ol>
+        <li><strong>FR-INV-001:</strong> The system shall store stock in <code>stock_batches</code> and <code>stock_movements</code>, not as mutable <code>products.stock</code>.</li>
+        <li><strong>FR-INV-002:</strong> Every stock-affecting workflow shall create one or more append-only stock movement rows.</li>
+        <li><strong>FR-INV-003:</strong> Posted movements shall not be edited or deleted through normal application flows.</li>
+        <li><strong>FR-INV-004:</strong> Corrections shall be posted as reversal or adjustment movements with reason, source document, user, and timestamp.</li>
+        <li><strong>FR-INV-005:</strong> All movement quantities shall be stored in product base unit and may display original input unit for audit.</li>
+        <li><strong>FR-INV-006:</strong> Outgoing stock shall allocate batches by FEFO by default, with configurable FIFO/manual selection.</li>
+        <li><strong>FR-INV-007:</strong> Negative stock shall be blocked unless an audited override is enabled.</li>
+        <li><strong>FR-INV-008:</strong> Stock card shall show opening, incoming, outgoing, adjustment, transfer, quarantine, disposal, and closing balance by date range.</li>
+      </ol>
+      <p><strong>Config flags:</strong> stock_allocation_policy, allow_negative_stock, require_adjustment_approval, default_expiry_warning_days.</p>
+      <p><strong>Edge cases:</strong> concurrent sale of final batch; expired batch allocation; backdated adjustment; unit conversion with partial strips/tablets; offline sale conflict.</p>
+
+      <h3>5.6 Procurement: defecta, purchase orders, goods receipt</h3>
+      <p><strong>Description:</strong> Turns low-stock demand into supplier orders, SP documents, partial receipts, supplier invoices, and purchase movements.</p>
+      <p><strong>User stories addressed:</strong> US-WHS-01, US-WHS-02, US-WHS-03, US-WHS-04.</p>
+      <ol>
+        <li><strong>FR-PRO-001:</strong> The system shall generate defecta from low stock, fast-moving items, manual request, or owner/admin selection.</li>
+        <li><strong>FR-PRO-002:</strong> <code>require_defecta_approval</code> shall default to false for small pharmacies; when true, defecta cannot convert to PO until approved.</li>
+        <li><strong>FR-PRO-003:</strong> Purchase orders shall support multiple line items, selected supplier/PBF, expected delivery date, payment terms, tax, discount, notes, and status.</li>
+        <li><strong>FR-PRO-004:</strong> <code>require_po_approval</code> shall default to false; when true, PO cannot be sent/printed until approved.</li>
+        <li><strong>FR-PRO-005:</strong> A product may have multiple suppliers with last purchase price, lead time, and preferred supplier flag.</li>
+        <li><strong>FR-PRO-006:</strong> Goods receipt shall support partial fulfillment and keep remaining PO quantity open.</li>
+        <li><strong>FR-PRO-007:</strong> Goods receipt shall capture batch number, expiry date, quantity, purchase unit, base quantity, purchase price, discount, tax, PBF invoice number, invoice date, due date, and destination warehouse.</li>
+        <li><strong>FR-PRO-008:</strong> Posting goods receipt shall create stock batches if needed and purchase_receive stock movements.</li>
+        <li><strong>FR-PRO-009:</strong> PO aging shall show open, partially received, overdue, closed, and canceled lines.</li>
+        <li><strong>FR-PRO-010:</strong> Regulated purchase items shall generate the correct Surat Pesanan document type before receipt is finalized.</li>
+      </ol>
+      <p><strong>Config flags:</strong> require_defecta_approval, require_po_approval, auto_generate_defecta, require_sp_for_regulated_purchase, default_supplier_selection_rule.</p>
+      <p><strong>Edge cases:</strong> supplier ships substitute item; invoice quantity differs from received quantity; PO canceled after partial receipt; duplicate invoice number from same PBF; expired batch received by mistake.</p>
+
+      <h3>5.7 Stock control: stock take, transfers, returns, expiry quarantine and disposal</h3>
+      <p><strong>Description:</strong> Controls physical inventory reconciliation, movement between locations, supplier/customer returns, and expiry risk.</p>
+      <p><strong>User stories addressed:</strong> US-ADM-05, US-WHS-05, US-OWN-02.</p>
+      <ol>
+        <li><strong>FR-STK-001:</strong> Stock take shall freeze expected stock snapshot at start time.</li>
+        <li><strong>FR-STK-002:</strong> Stock take shall allow physical count by product, batch, expiry, warehouse, and unit.</li>
+        <li><strong>FR-STK-003:</strong> Posting approved stock take shall create adjustment movements for differences only.</li>
+        <li><strong>FR-STK-004:</strong> Transfers shall deduct from source and add to destination with transfer_out and transfer_in movements.</li>
+        <li><strong>FR-STK-005:</strong> If transfer confirmation is enabled, destination stock shall be pending until received.</li>
+        <li><strong>FR-STK-006:</strong> Purchase returns shall deduct stock from selected batch and link to supplier/PBF and original receipt where available.</li>
+        <li><strong>FR-STK-007:</strong> Sale returns shall restore stock to original batch when safe, or to quarantine when condition is uncertain.</li>
+        <li><strong>FR-STK-008:</strong> Near-expiry report shall identify batches by configurable warning days.</li>
+        <li><strong>FR-STK-009:</strong> Expiry quarantine shall move stock into unavailable status and block POS allocation.</li>
+        <li><strong>FR-STK-010:</strong> Disposal shall record batch, quantity, loss value, reason, approver, disposal date, and attachment/photo if enabled.</li>
+      </ol>
+      <p><strong>Config flags:</strong> require_transfer_confirmation, require_stock_take_approval, expiry_warning_days, require_disposal_approval, allow_sale_return_to_stock.</p>
+      <p><strong>Edge cases:</strong> counted unit differs from base unit; transfer lost in transit; return after batch expired; disposal entered before quarantine; stock take runs during active offline POS queue.</p>
+
+      <h3>5.8 POS and shift management</h3>
+      <p><strong>Description:</strong> Fast cashier flow that posts sales correctly into the inventory ledger and shift/cash reports.</p>
+      <p><strong>User stories addressed:</strong> US-CAS-01 through US-CAS-06.</p>
+      <ol>
+        <li><strong>FR-POS-001:</strong> POS shall require an open shift before completing transactions.</li>
+        <li><strong>FR-POS-002:</strong> POS shall support barcode scan, product search, selling unit selection, quantity change, customer selection, and notes.</li>
+        <li><strong>FR-POS-003:</strong> POS shall support item-level discounts and transaction-level discounts with permission checks and audit log.</li>
+        <li><strong>FR-POS-004:</strong> POS shall support mixed payments across cash, QRIS, card, bank transfer, e-wallet, and custom tenant methods.</li>
+        <li><strong>FR-POS-005:</strong> POS shall support partial payment/bon only when enabled and a customer is selected.</li>
+        <li><strong>FR-POS-006:</strong> POS shall create customer receivable records for unpaid balance and link repayments to original sale.</li>
+        <li><strong>FR-POS-007:</strong> POS checkout shall gate obat keras/resep items according to product flags and require pharmacist approval or prescription note when configured.</li>
+        <li><strong>FR-POS-008:</strong> Posting a sale shall allocate stock batches by configured policy and create sale stock movements atomically with payment records.</li>
+        <li><strong>FR-POS-009:</strong> Receipts shall be customizable per tenant with pharmacy profile, tax text, footer, cashier, payment methods, and customer debt note.</li>
+        <li><strong>FR-POS-010:</strong> Voids and refunds shall require permission, reason, and audit log; posted stock shall be reversed through movements, not edited.</li>
+        <li><strong>FR-POS-011:</strong> Offline POS shall allow cached product search, cart, sale, payment, receipt queue, and local transaction queue for configured devices.</li>
+        <li><strong>FR-POS-012:</strong> Offline sync shall reject or flag conflicts when server stock is insufficient; conflict resolution shall require authorized review and create adjustment/fulfillment decisions.</li>
+        <li><strong>FR-POS-013:</strong> Shift close shall summarize opening cash, cash sales, cash refunds, non-cash totals, bon, cash in/out, expected cash, actual cash, and variance.</li>
+      </ol>
+      <p><strong>Config flags:</strong> enable_offline_pos, allow_partial_payment, allowed_payment_methods, require_pharmacist_gate, receipt_template_id, cashier_discount_limit_percent, allow_pos_void_after_shift_close.</p>
+      <p><strong>Edge cases:</strong> payment captured but stock posting fails; offline duplicate transaction; mixed refund methods; bon without customer; regulated item in offline queue; batch expires before offline sync.</p>
+
+      <h3>5.9 Customer management</h3>
+      <p><strong>Description:</strong> Optional customer records for member pricing, B2B accounts, bon, purchase history, and sales notes without turning the product into a medical-record system.</p>
+      <p><strong>User stories addressed:</strong> US-CAS-03, US-OWN-05.</p>
+      <ol>
+        <li><strong>FR-CUS-001:</strong> Customer selection shall be optional for normal retail sales.</li>
+        <li><strong>FR-CUS-002:</strong> Customers shall store name, phone, optional address, customer group, tax info if needed, credit limit, and active status.</li>
+        <li><strong>FR-CUS-003:</strong> Customer groups shall support pricing tier and discount rules when enabled.</li>
+        <li><strong>FR-CUS-004:</strong> Customer receivables shall show original sale, paid amount, outstanding amount, due date, and repayment history.</li>
+        <li><strong>FR-CUS-005:</strong> The system shall avoid core doctor/patient medical-record workflows in v1.</li>
+      </ol>
+      <p><strong>Config flags:</strong> enable_customer_groups, enable_customer_receivables, require_customer_for_bon, customer_credit_limit_default.</p>
+      <p><strong>Edge cases:</strong> duplicate phone; customer deleted with receivable; credit limit exceeded; privacy request/export.</p>
+
+      <h3>5.10 Reports and dashboards</h3>
+      <p><strong>Description:</strong> Role-based operational, inventory, procurement, POS, finance-lite, compliance, and audit reporting.</p>
+      <p><strong>User stories addressed:</strong> US-OWN-01, US-OWN-02, US-OWN-03, US-ADM-04, US-CAS-06, US-WHS-03.</p>
+      <ol>
+        <li><strong>FR-REP-001:</strong> Owner dashboard shall show revenue, gross margin, stock value, critical stock, near-expiry value, expired loss, cash variance, top products, and supplier payable summary.</li>
+        <li><strong>FR-REP-002:</strong> Pharmacist/Admin dashboard shall show near-expiry batches, expired/quarantine items, regulated item movement exceptions, pending stock take, and product data issues.</li>
+        <li><strong>FR-REP-003:</strong> Cashier dashboard shall show current shift, sales count, payment totals, pending receipts, and unresolved sync items.</li>
+        <li><strong>FR-REP-004:</strong> Procurement dashboard shall show defecta queue, open POs, partial receipts, overdue POs, supplier aging, and purchase returns.</li>
+        <li><strong>FR-REP-005:</strong> Reports shall default to current outlet and current month unless the role has multi-outlet access.</li>
+        <li><strong>FR-REP-006:</strong> Reports shall export to CSV and XLSX; compliance reports shall also support PDF where needed for signatures.</li>
+        <li><strong>FR-REP-007:</strong> Stock reports shall reconcile to ledger movement totals for the selected period.</li>
+      </ol>
+      <p><strong>Config flags:</strong> dashboard_default_period, report_export_formats, enable_finance_lite, enable_multi_outlet_reports.</p>
+      <p><strong>Edge cases:</strong> report over huge date range; backdated movements; user lacks one outlet; export generated after tenant suspension.</p>
+
+      <h3>5.11 Audit trail</h3>
+      <p><strong>Description:</strong> Immutable event record for sensitive changes and operational accountability.</p>
+      <p><strong>User stories addressed:</strong> US-OWN-04, US-ADM-05, US-CAS-04.</p>
+      <ol>
+        <li><strong>FR-AUD-001:</strong> Audit log shall record actor, role, tenant_id, outlet_id, action, entity type, entity ID, old values, new values, reason, source IP/device, and timestamp.</li>
+        <li><strong>FR-AUD-002:</strong> Audit log shall be append-only and unavailable for normal user deletion.</li>
+        <li><strong>FR-AUD-003:</strong> The system shall audit stock postings, adjustments, price changes, role changes, tenant config changes, voids, refunds, bon, regulated item approvals, exports, and support impersonation.</li>
+        <li><strong>FR-AUD-004:</strong> Owners shall be able to filter audit log by date, user, module, action, and outlet.</li>
+      </ol>
+      <p><strong>Config flags:</strong> audit_retention_years, require_reason_for_sensitive_actions.</p>
+      <p><strong>Edge cases:</strong> audit write failure; high-volume POS logs; export of audit data; support actor acting inside tenant.</p>
+
+      <h3>5.12 Onboarding flow</h3>
+      <p><strong>Description:</strong> Self-serve path from registration to first live sale.</p>
+      <p><strong>User stories addressed:</strong> US-OWN-05, US-ADM-01, US-CAS-01.</p>
+      <ol>
+        <li><strong>FR-ONB-001:</strong> The onboarding flow shall be register → verify email/phone → create organization → setup outlet/pharmacy profile → invite users → import/create products → import/opening stock → configure POS → first sale.</li>
+        <li><strong>FR-ONB-002:</strong> Product import shall provide template download, validation preview, row-level errors, and commit summary.</li>
+        <li><strong>FR-ONB-003:</strong> Opening stock import shall require product, batch or generated batch, expiry where applicable, quantity, unit, cost, and warehouse.</li>
+        <li><strong>FR-ONB-004:</strong> The onboarding checklist shall show progress and block go-live only on required steps.</li>
+        <li><strong>FR-ONB-005:</strong> Demo data shall be available for trial tenants and removable before go-live.</li>
+      </ol>
+      <p><strong>Config flags:</strong> enable_demo_data, require_opening_stock_before_pos, default_import_template_language.</p>
+      <p><strong>Edge cases:</strong> bad Excel file; product imported without unit; owner skips stock import; duplicate barcode across import rows.</p>
+
+      <h3>5.13 Data export and portability</h3>
+      <p><strong>Description:</strong> Tenants can export their operational data in machine-readable formats.</p>
+      <p><strong>User stories addressed:</strong> US-OWN-05.</p>
+      <ol>
+        <li><strong>FR-EXP-001:</strong> Owners shall be able to request full tenant export for products, units, suppliers, customers, stock batches, stock movements, purchases, goods receipts, sales, payments, shifts, audit logs, and config.</li>
+        <li><strong>FR-EXP-002:</strong> Export shall be generated asynchronously and downloadable as CSV/XLSX files inside a ZIP package.</li>
+        <li><strong>FR-EXP-003:</strong> Export files shall include stable IDs and timestamps so data can be re-imported or migrated.</li>
+        <li><strong>FR-EXP-004:</strong> Export request and download shall be audited.</li>
+        <li><strong>FR-EXP-005:</strong> Suspended tenants shall retain export access during grace period.</li>
+      </ol>
+      <p><strong>Config flags:</strong> export_retention_days, max_export_frequency_per_day.</p>
+      <p><strong>Edge cases:</strong> export too large; user loses access mid-export; deleted/inactive records; sensitive narkotika records in export.</p>
+    </section>
+
+    <section id="compliance" class="prose prose-zinc max-w-none dark:prose-invert">
+      <h2>6. Regulatory and compliance requirements</h2>
+      <p>This product operates in Indonesian pharmacy workflows. The v1 system should support accurate records and manual report exports; direct government API integrations are future roadmap unless explicitly validated.</p>
+      <h3>Narkotika dan psikotropika — mandatory for launch</h3>
+      <ul>
+        <li><strong>FR-REG-001:</strong> Product master shall flag narkotika, psikotropika, precursor, obat keras, and prescription-gated products.</li>
+        <li><strong>FR-REG-002:</strong> For narkotika/psikotropika movements, the system shall capture item, batch, unit, opening balance, incoming quantity, outgoing quantity, adjustment, closing balance, source/destination, document number, transaction date, and responsible user.</li>
+        <li><strong>FR-REG-003:</strong> Monthly SIPNAP-ready export shall summarize opening, incoming, outgoing, adjustment, and closing balance by regulated item and location.</li>
+        <li><strong>FR-REG-004:</strong> v1 shall support manual SIPNAP export in CSV/XLSX and printable PDF; direct SIPNAP API submission is future roadmap.</li>
+      </ul>
+      <h3>Surat Pesanan (SP) — mandatory for launch</h3>
+      <ul>
+        <li><strong>FR-REG-005:</strong> Procurement shall support distinct SP document types for obat keras, narkotika, psikotropika, and precursor purchases.</li>
+        <li><strong>FR-REG-006:</strong> SP shall link to PO, supplier/PBF, pharmacy profile, pharmacist-in-charge, item lines, quantities, date, document number, and approval/signature status.</li>
+        <li><strong>FR-REG-007:</strong> The system shall prevent finalizing goods receipt for regulated purchase items when required SP is missing, unless an authorized override is configured and audited.</li>
+      </ul>
+      <h3>CDOB traceability — mandatory core behaviors, broader certification roadmap future</h3>
+      <ul>
+        <li><strong>FR-REG-008:</strong> Batch number, expiry date, supplier/PBF source, invoice, goods receipt, stock movement, and destination warehouse/outlet shall be traceable end to end.</li>
+        <li><strong>FR-REG-009:</strong> Quarantine and disposal workflows shall remove stock from saleable inventory and preserve audit trail.</li>
+        <li><strong>FR-REG-010:</strong> Returns shall distinguish sale return, purchase return, damaged return, and quarantine return.</li>
+        <li><strong>FR-REG-011:</strong> Full CDOB certification workflow, temperature monitoring integration, and distributor-grade QA workflows are future roadmap.</li>
+      </ul>
+      <h3>Faktur dari PBF — mandatory for launch</h3>
+      <ul>
+        <li><strong>FR-REG-012:</strong> Goods receipt shall capture PBF invoice number, invoice date, supplier/PBF identity, tax number if available, item name, batch, expiry, quantity, unit, unit price, discount, tax/PPN, total, due date, and receiver.</li>
+        <li><strong>FR-REG-013:</strong> PBF invoice attachment upload shall be supported in v1 if storage is available; otherwise it is a phase-2 compliance polish item.</li>
+      </ul>
+      <h3>Launch vs roadmap</h3>
+      <ul>
+        <li><strong>Launch mandatory:</strong> product compliance flags, SP document types, regulated item POS gates, SIPNAP-ready export, PBF invoice fields, batch/expiry ledger, quarantine/disposal, audit log.</li>
+        <li><strong>Future roadmap:</strong> direct SIPNAP API integration, BPOM/PBF online integration, advanced CDOB certification pack, temperature/IOT monitoring, e-prescription integration.</li>
+      </ul>
+    </section>
+
+    <section id="nfr" class="prose prose-zinc max-w-none dark:prose-invert">
+      <h2>7. Non-functional requirements</h2>
+      <ul>
+        <li><strong>Performance:</strong> POS product search response &lt; 500 ms for cached local/offline data and &lt; 1.5 seconds online at P95. POS checkout post &lt; 2 seconds online at P95. Stock card load &lt; 3 seconds for 12-month history at P95.</li>
+        <li><strong>Offline capability:</strong> Minimum offline scope is POS cart, cached product/price/unit data, sale posting queue, payment capture, receipt reprint queue, and shift continuation. Procurement, stock take, reporting, exports, and config changes are online-only for v1.</li>
+        <li><strong>Offline sync:</strong> Offline transactions get local IDs and idempotency keys. On reconnect, server validates tenant, device, shift, stock availability, price version, and regulated gates. Conflicts become pending review; the system must not silently mutate posted ledgers.</li>
+        <li><strong>Concurrent users:</strong> v1 shall support at least 10 concurrent sessions per small tenant, 50 concurrent sessions per multi-outlet tenant, and 3 active POS devices per outlet on standard plan.</li>
+        <li><strong>Data integrity:</strong> Stock ledger is append-only. Corrections use reversal/adjustment. Stock-affecting transactions are atomic. No silent edits to posted movements.</li>
+        <li><strong>Security:</strong> RBAC on every API; tenant isolation at application and database policy layer where possible; encryption in transit; encryption at rest for sensitive regulated records and uploaded documents; MFA for owner/support roles.</li>
+        <li><strong>Audit immutability:</strong> Audit logs are append-only and retained for configured period. Sensitive audit logs cannot be edited by tenant users.</li>
+        <li><strong>Availability:</strong> Target uptime SLA for paid tenants: 99.5% v1, roadmap to 99.9% after operational maturity.</li>
+        <li><strong>Scalability:</strong> Multi-outlet and warehouse model must exist from v1 even if plan flags hide advanced UI. No single-outlet-only table assumptions.</li>
+        <li><strong>Data retention:</strong> Sales/purchase/stock movements minimum 10 years; audit logs minimum 5 years; SIPNAP/regulatory exports minimum 10 years; offline device queue retained until sync plus 30 days; export packages retained 7 days by default.</li>
+        <li><strong>Backup and recovery:</strong> Production RPO &lt; 15 minutes and RTO &lt; 4 hours for paid tenants. Daily backup restore test in staging before launch.</li>
+      </ul>
+    </section>
+
+    <section id="config" class="prose prose-zinc max-w-none dark:prose-invert">
+      <h2>8. Config and feature flags</h2>
+      <div class="overflow-x-auto not-prose">
+        <table class="min-w-full text-left text-sm">
+          <thead class="border-b border-zinc-200 text-zinc-500 dark:border-zinc-800"><tr><th class="py-3 pr-4">Config key</th><th class="py-3 pr-4">Default small pharmacy</th><th class="py-3 pr-4">Description</th><th class="py-3 pr-4">Affects</th></tr></thead>
+          <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800">
+            <tr><td class="py-3 pr-4">require_defecta_approval</td><td class="py-3 pr-4">false</td><td class="py-3 pr-4">Require approval before defecta converts to PO</td><td class="py-3 pr-4">Procurement</td></tr>
+            <tr><td class="py-3 pr-4">require_po_approval</td><td class="py-3 pr-4">false</td><td class="py-3 pr-4">Require approval before PO is sent/printed</td><td class="py-3 pr-4">Procurement</td></tr>
+            <tr><td class="py-3 pr-4">auto_generate_defecta</td><td class="py-3 pr-4">true</td><td class="py-3 pr-4">Create defecta suggestions from low stock</td><td class="py-3 pr-4">Procurement</td></tr>
+            <tr><td class="py-3 pr-4">enable_multi_outlet</td><td class="py-3 pr-4">false</td><td class="py-3 pr-4">Unlock multiple outlets and consolidated reports</td><td class="py-3 pr-4">Tenant, reports</td></tr>
+            <tr><td class="py-3 pr-4">enable_multi_warehouse</td><td class="py-3 pr-4">true</td><td class="py-3 pr-4">Allow outlet warehouse plus optional backroom/central warehouse</td><td class="py-3 pr-4">Stock</td></tr>
+            <tr><td class="py-3 pr-4">stock_allocation_policy</td><td class="py-3 pr-4">FEFO</td><td class="py-3 pr-4">Batch deduction policy: FEFO, FIFO, manual</td><td class="py-3 pr-4">POS, stock</td></tr>
+            <tr><td class="py-3 pr-4">allow_negative_stock</td><td class="py-3 pr-4">false</td><td class="py-3 pr-4">Permit audited negative stock override</td><td class="py-3 pr-4">POS, ledger</td></tr>
+            <tr><td class="py-3 pr-4">expiry_warning_days</td><td class="py-3 pr-4">90</td><td class="py-3 pr-4">Days before expiry to mark batch as near-expiry</td><td class="py-3 pr-4">Stock, reports</td></tr>
+            <tr><td class="py-3 pr-4">require_disposal_approval</td><td class="py-3 pr-4">true</td><td class="py-3 pr-4">Require admin/owner approval for disposal</td><td class="py-3 pr-4">Expiry handling</td></tr>
+            <tr><td class="py-3 pr-4">enable_offline_pos</td><td class="py-3 pr-4">true</td><td class="py-3 pr-4">Allow configured devices to sell from cached catalog while offline</td><td class="py-3 pr-4">POS</td></tr>
+            <tr><td class="py-3 pr-4">allow_partial_payment</td><td class="py-3 pr-4">false</td><td class="py-3 pr-4">Enable bon/hutang pelanggan</td><td class="py-3 pr-4">POS, customer</td></tr>
+            <tr><td class="py-3 pr-4">allowed_payment_methods</td><td class="py-3 pr-4">cash, QRIS, card, transfer</td><td class="py-3 pr-4">Tenant payment methods available in POS</td><td class="py-3 pr-4">POS, shift</td></tr>
+            <tr><td class="py-3 pr-4">require_pharmacist_gate</td><td class="py-3 pr-4">true</td><td class="py-3 pr-4">Require approval/note for restricted product checkout</td><td class="py-3 pr-4">POS, compliance</td></tr>
+            <tr><td class="py-3 pr-4">enable_member_pricing</td><td class="py-3 pr-4">false</td><td class="py-3 pr-4">Use customer group pricing</td><td class="py-3 pr-4">Pricing, POS</td></tr>
+            <tr><td class="py-3 pr-4">require_sp_for_regulated_purchase</td><td class="py-3 pr-4">true</td><td class="py-3 pr-4">Block regulated receipt without linked SP</td><td class="py-3 pr-4">Procurement, compliance</td></tr>
+            <tr><td class="py-3 pr-4">report_export_formats</td><td class="py-3 pr-4">CSV, XLSX, PDF</td><td class="py-3 pr-4">Available export formats</td><td class="py-3 pr-4">Reports</td></tr>
+            <tr><td class="py-3 pr-4">audit_retention_years</td><td class="py-3 pr-4">5</td><td class="py-3 pr-4">Minimum audit retention period</td><td class="py-3 pr-4">Audit</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="out-of-scope" class="prose prose-zinc max-w-none dark:prose-invert">
+      <h2>9. Out of scope</h2>
+      <ul>
+        <li>Full accounting suite beyond finance-lite summary, supplier payable visibility, and payment/shift reports.</li>
+        <li>Advanced loyalty engine beyond customer groups and basic pricing segmentation.</li>
+        <li>Marketplace integration, delivery integration, online ordering, and e-commerce storefront.</li>
+        <li>Custom approval workflow UI builder; v1 uses predefined config flags, not custom workflow design.</li>
+        <li>Direct SIPNAP API integration; manual report export is sufficient for v1.</li>
+        <li>Medical-record, clinic, doctor, diagnosis, patient, or e-prescription workflow as a core module.</li>
+        <li>Any workflow not specific to pharmacy operations.</li>
+        <li>Temperature/IOT monitoring and distributor-grade CDOB certification suite.</li>
+      </ul>
+    </section>
+
+    <section id="roadmap" class="prose prose-zinc max-w-none dark:prose-invert">
+      <h2>10. Build order and milestones</h2>
+      <h3>Phase 0 — Foundation</h3>
+      <p><strong>Deliverables:</strong> app shell, database migrations, tenant model, auth, MFA for owner/support, RBAC, audit-log base, CI, seed data, billing state model.</p>
+      <p><strong>Definition of done:</strong> a tenant can register, create default outlet/warehouse, invite users, assign roles, and pass tenant isolation tests. CI runs lint/typecheck/test/build.</p>
+      <p><strong>Regulatory included:</strong> audit foundation and tenant-isolated sensitive records.</p>
+
+      <h3>Phase 1 — Core master data and ledger</h3>
+      <p><strong>Deliverables:</strong> product master, unit conversions, suppliers/PBF, pricing/history, stock_batches, stock_movements, posting service, stock card, opening stock import.</p>
+      <p><strong>Definition of done:</strong> opening stock can be imported, movements reconcile to batch balances, unit conversion tests pass, and posted movements cannot be silently edited.</p>
+      <p><strong>Regulatory included:</strong> product compliance flags, batch/expiry fields, audit of price and stock changes.</p>
+
+      <h3>Phase 2 — Procurement and stock control</h3>
+      <p><strong>Deliverables:</strong> defecta, PO, SP document types, goods receipt, partial fulfillment, PBF invoice fields, purchase return, stock take, transfer, expiry quarantine, disposal.</p>
+      <p><strong>Definition of done:</strong> a user can create defecta, convert to PO, generate required SP, receive partial goods with batch/expiry/invoice, post ledger movements, run stock take, quarantine expired goods, and dispose with audit trail.</p>
+      <p><strong>Regulatory included:</strong> SP Obat Keras/Narkotika/Psikotropika/Precursor, PBF faktur fields, quarantine/disposal traceability.</p>
+
+      <h3>Phase 3 — POS and shift</h3>
+      <p><strong>Deliverables:</strong> shift open/close, product search/barcode, cart, discounts, mixed payment, bon, regulated item gates, FEFO stock deduction, receipt customization, refunds/voids, offline POS minimum mode.</p>
+      <p><strong>Definition of done:</strong> cashier can complete normal sale under 45 seconds, mixed payment sale posts correctly, bon requires customer and creates receivable, restricted products require gate, and offline sale sync either posts or enters conflict review without silent ledger corruption.</p>
+      <p><strong>Regulatory included:</strong> checkout gate for obat keras/resep and regulated item audit trail.</p>
+
+      <h3>Phase 4 — Reports, dashboards, audit trail</h3>
+      <p><strong>Deliverables:</strong> owner/admin/cashier/procurement dashboards, stock reports, sales reports, purchase reports, finance-lite, expiry loss, SIPNAP-ready export, audit filters, CSV/XLSX/PDF exports.</p>
+      <p><strong>Definition of done:</strong> all launch metrics can be measured, reports reconcile to ledger, role visibility is enforced, and monthly regulated item export is generated from movement data.</p>
+      <p><strong>Regulatory included:</strong> SIPNAP-ready monthly export and regulatory movement report.</p>
+
+      <h3>Phase 5 — Onboarding, billing, SaaS polish</h3>
+      <p><strong>Deliverables:</strong> self-serve onboarding checklist, import templates, demo data, billing plan enforcement, data export package, support impersonation approval, backup/restore runbook, production monitoring.</p>
+      <p><strong>Definition of done:</strong> a small pharmacy can go from registration to first live sale in under 2 hours, owner can export full tenant data, suspended tenant remains export-capable during grace period, and restore drill meets RPO/RTO targets.</p>
+      <p><strong>Regulatory included:</strong> retention policy, export audit, sensitive record security review.</p>
+    </section>
+
+    <section class="rounded-3xl border border-blue-200 bg-blue-50 p-6 dark:border-blue-900/70 dark:bg-blue-950/30">
+      <h2 class="text-xl font-bold text-blue-950 dark:text-blue-100">Linked artifacts</h2>
+      <div class="mt-3 flex flex-wrap gap-3 text-sm font-semibold">
+        <a class="rounded-full bg-white px-4 py-2 text-blue-700 shadow-sm dark:bg-zinc-900 dark:text-blue-300" href="/brd/apotek-management/">View BRD</a>
+        <a class="rounded-full bg-white px-4 py-2 text-blue-700 shadow-sm dark:bg-zinc-900 dark:text-blue-300" href="/erd/apotek-management/">View ERD</a>
+      </div>
+    </section>
+  </article>
 </BaseLayout>
