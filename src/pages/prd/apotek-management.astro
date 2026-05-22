@@ -53,8 +53,8 @@ const description = "Product Requirements Document for Core Managed Pharmacy, an
 
     <section id="overview" class="prose prose-zinc max-w-none dark:prose-invert">
       <h2>1. Product overview</h2>
-      <p><strong>Core Managed Pharmacy</strong> is a multi-tenant SaaS pharmacy management system for small to mid-sized pharmacies in Indonesia. It helps pharmacy owners, pharmacists/admins, cashiers, and warehouse/procurement staff run product master data, supplier/PBF procurement, batch-level stock, expiry control, POS, shift closing, reports, and audit trails from one operational system.</p>
-      <p>The SaaS model must support isolated tenant data, tenant-level configuration, plan/tier limits, self-serve onboarding, import/export, and future multi-outlet expansion without re-architecture. Every tenant-scoped record must carry <code>tenant_id</code>; outlet/warehouse-scoped workflows also carry <code>outlet_id</code> and/or <code>warehouse_id</code>.</p>
+      <p><strong>Core Managed Pharmacy</strong> is a multi-tenant SaaS pharmacy management system for small to mid-sized pharmacies in Indonesia. It helps tenant-side pharmacy owners, pharmacists/admins, cashiers, and warehouse/procurement staff run product master data, supplier/PBF procurement, batch-level stock, expiry control, POS, shift closing, reports, and audit trails from one operational system.</p>
+      <p>The SaaS model must support isolated tenant data, tenant-level configuration, plan/tier limits, self-serve onboarding, import/export, platform administration, and future multi-outlet expansion without re-architecture. Every tenant-scoped record must carry <code>tenant_id</code>; outlet/warehouse-scoped workflows also carry <code>outlet_id</code> and/or <code>warehouse_id</code>. Platform-admin records and actions must stay outside tenant RBAC and must never bypass tenant data access controls without explicit, audited support access.</p>
       <p>The product thesis is explicit: <strong>inventory ledger first, POS second</strong>. POS is one transaction channel that posts stock movements; it is not the source of truth. The source of truth is batch-aware stock plus an append-only stock movement ledger.</p>
     </section>
 
@@ -114,8 +114,19 @@ const description = "Product Requirements Document for Core Managed Pharmacy, an
 
     <section id="personas" class="prose prose-zinc max-w-none dark:prose-invert">
       <h2>4. Personas and user stories</h2>
+      <h3>P0 — Maya, SaaS Platform Admin</h3>
+      <p><strong>Context:</strong> operates the SaaS business, high tech-savviness, daily/weekly use for tenant operations, billing, support, plan enforcement, and risk monitoring. This is not the same role as pharmacy Owner.</p>
+      <p><strong>Top frustrations:</strong> tenant support requires safe access controls; plan/billing issues need operational visibility; platform staff must not accidentally access or mutate pharmacy data.</p>
+      <ul>
+        <li><strong>US-PLT-01:</strong> As a SaaS platform admin, I want to view tenant accounts, plans, billing status, and usage so that I can operate the SaaS business. <br/><em>Given</em> I am authenticated as Platform Admin, <em>when</em> I open tenant management, <em>then</em> I see tenant metadata, plan, billing status, limits, and usage without exposing pharmacy operational records by default.</li>
+        <li><strong>US-PLT-02:</strong> As a SaaS platform admin, I want to suspend or reactivate tenants so that billing, abuse, or contractual issues can be handled. <br/><em>Given</em> a tenant is past_due or flagged, <em>when</em> I suspend the tenant, <em>then</em> tenant users become read-only except billing, export, and support-approved actions.</li>
+        <li><strong>US-PLT-03:</strong> As a SaaS platform admin, I want audited support impersonation so that I can help tenants without unsafe database access. <br/><em>Given</em> a tenant owner approves support access, <em>when</em> I impersonate a tenant user, <em>then</em> the session has an expiry, reason, actor trail, and all actions are audit logged.</li>
+        <li><strong>US-PLT-04:</strong> As a SaaS platform admin, I want to manage plan limits and feature entitlements so that advanced features are unlocked by subscription/config. <br/><em>Given</em> a tenant changes plan, <em>when</em> the billing event is processed, <em>then</em> outlet, user, offline-device, export, and feature-flag limits update consistently.</li>
+        <li><strong>US-PLT-05:</strong> As a SaaS platform admin, I want platform audit logs so that privileged actions are accountable. <br/><em>Given</em> any platform admin changes tenant status, plan, support access, or global config, <em>when</em> the action completes, <em>then</em> the platform audit log records actor, action, target tenant, before/after state, reason, and timestamp.</li>
+      </ul>
+
       <h3>P1 — Rina, Pharmacy Owner</h3>
-      <p><strong>Context:</strong> owns 1–3 outlets, medium tech-savviness, daily dashboard use and weekly purchasing review. Current workaround: cashier app plus Excel stock and WhatsApp supplier notes.</p>
+      <p><strong>Context:</strong> tenant-side pharmacy owner/admin for one pharmacy business, owns 1–3 outlets, medium tech-savviness, daily dashboard use and weekly purchasing review. Current workaround: cashier app plus Excel stock and WhatsApp supplier notes.</p>
       <p><strong>Top frustrations:</strong> cannot trust stock reports; late expiry discovery; owner reports require manual consolidation.</p>
       <ul>
         <li><strong>US-OWN-01:</strong> As an owner, I want a daily dashboard so that I can see revenue, margin, stock risk, expiry risk, and cash variance. <br/><em>Given</em> I am logged in as Owner, <em>when</em> I open the dashboard, <em>then</em> I see today, 7-day, and 30-day filters scoped to my tenant and outlets.</li>
@@ -165,8 +176,8 @@ const description = "Product Requirements Document for Core Managed Pharmacy, an
       <p>All functional requirements are tenant-scoped. Unless stated otherwise, every read/write query must filter by <code>tenant_id</code>, and cross-tenant access must be impossible through UI, API, import, export, reports, and background jobs.</p>
 
       <h3>5.1 Tenant & organization management</h3>
-      <p><strong>Description:</strong> SaaS foundation for registration, organization profile, plan/tier, billing state, and tenant isolation.</p>
-      <p><strong>User stories addressed:</strong> US-OWN-01, US-OWN-05.</p>
+      <p><strong>Description:</strong> SaaS foundation for registration, organization profile, plan/tier, billing state, tenant isolation, and platform administration.</p>
+      <p><strong>User stories addressed:</strong> US-PLT-01 through US-PLT-05, US-OWN-01, US-OWN-05.</p>
       <ol>
         <li><strong>FR-TEN-001:</strong> The system shall create a unique tenant when a new organization registers.</li>
         <li><strong>FR-TEN-002:</strong> The system shall store organization legal name, display name, owner user, billing email, phone, address, timezone, and default currency.</li>
@@ -174,9 +185,14 @@ const description = "Product Requirements Document for Core Managed Pharmacy, an
         <li><strong>FR-TEN-004:</strong> The system shall support plan/tier limits for outlets, users, products, offline devices, and export frequency.</li>
         <li><strong>FR-TEN-005:</strong> The system shall expose billing status: trial, active, past_due, suspended, canceled.</li>
         <li><strong>FR-TEN-006:</strong> Suspended tenants shall be read-only except billing, export, and support access.</li>
+        <li><strong>FR-TEN-007:</strong> The system shall provide a platform-admin console for SaaS staff to view tenant metadata, plan, billing status, limits, usage, suspension state, and support-access state.</li>
+        <li><strong>FR-TEN-008:</strong> Platform Admin shall not be a tenant role and shall not appear in tenant user management or tenant RBAC.</li>
+        <li><strong>FR-TEN-009:</strong> Platform Admin shall not access tenant pharmacy operational data by default; operational access requires explicit support impersonation approval, reason, expiry, and audit trail.</li>
+        <li><strong>FR-TEN-010:</strong> Platform Admin shall be able to suspend, reactivate, change plan/tier, adjust limits, and trigger billing/support workflows for a tenant.</li>
+        <li><strong>FR-TEN-011:</strong> Every platform-admin action shall write to a platform audit log with actor, target tenant, action, before/after state, reason, source IP/device, and timestamp.</li>
       </ol>
-      <p><strong>Config flags:</strong> plan_tier, max_outlets, max_users, max_offline_devices, billing_grace_days.</p>
-      <p><strong>Edge cases:</strong> duplicate owner email; payment failed during trial conversion; attempted API access to another tenant; tenant suspension during active POS session.</p>
+      <p><strong>Config flags:</strong> plan_tier, max_outlets, max_users, max_offline_devices, billing_grace_days, support_access_expiry_minutes, platform_admin_mfa_required.</p>
+      <p><strong>Edge cases:</strong> duplicate owner email; payment failed during trial conversion; attempted API access to another tenant; tenant suspension during active POS session; platform admin tries to open operational records without approved support access; support approval expires mid-session.</p>
 
       <h3>5.2 Outlet, warehouse, and pharmacy profile</h3>
       <p><strong>Description:</strong> Defines pharmacy identity, outlet locations, warehouses, licenses, document numbering, and default operational settings.</p>
@@ -192,17 +208,19 @@ const description = "Product Requirements Document for Core Managed Pharmacy, an
       <p><strong>Edge cases:</strong> deactivate warehouse with stock; duplicate document prefix; outlet timezone mismatch; user assigned to deleted outlet.</p>
 
       <h3>5.3 Users, roles, and permissions</h3>
-      <p><strong>Description:</strong> RBAC for owners, pharmacists/admins, cashiers, warehouse/procurement staff, and support access.</p>
+      <p><strong>Description:</strong> Tenant RBAC for owners, pharmacists/admins, cashiers, warehouse/procurement staff, read-only accountants, and controlled support access; SaaS Platform Admin is separate from tenant RBAC.</p>
       <p><strong>User stories addressed:</strong> all persona stories.</p>
       <ol>
-        <li><strong>FR-RBAC-001:</strong> The system shall include default roles: Owner, Pharmacist/Admin, Cashier, Warehouse/Procurement, Read-only Accountant, Support.</li>
+        <li><strong>FR-RBAC-001:</strong> The system shall include default tenant roles: Owner, Pharmacist/Admin, Cashier, Warehouse/Procurement, Read-only Accountant, Support.</li>
         <li><strong>FR-RBAC-002:</strong> The system shall enforce permission checks for stock posting, price changes, refunds, voids, regulated item checkout, exports, and config changes.</li>
         <li><strong>FR-RBAC-003:</strong> The system shall allow users to be scoped to one or more outlets.</li>
         <li><strong>FR-RBAC-004:</strong> The system shall require MFA for Owner and Support roles before launch.</li>
         <li><strong>FR-RBAC-005:</strong> Support impersonation shall require tenant approval, expiry time, and audit log entry.</li>
+        <li><strong>FR-RBAC-006:</strong> The system shall include a separate Platform Admin role for SaaS staff with access to tenant metadata, billing, plans, entitlements, suspension, support-access workflow, and platform audit logs.</li>
+        <li><strong>FR-RBAC-007:</strong> Platform Admin shall require MFA and shall be blocked from direct tenant operational data access unless using approved support impersonation.</li>
       </ol>
-      <p><strong>Config flags:</strong> enforce_mfa_owner, allow_support_impersonation, cashier_can_discount, cashier_can_void, pharmacist_gate_required.</p>
-      <p><strong>Edge cases:</strong> last owner removal; cashier attempts export; admin changes own role; support access after approval expiry.</p>
+      <p><strong>Config flags:</strong> enforce_mfa_owner, enforce_mfa_platform_admin, allow_support_impersonation, cashier_can_discount, cashier_can_void, pharmacist_gate_required.</p>
+      <p><strong>Edge cases:</strong> last owner removal; cashier attempts export; admin changes own role; support access after approval expiry; platform admin attempts tenant operation without impersonation.</p>
 
       <h3>5.4 Pharmacy master data</h3>
       <p><strong>Description:</strong> Product, unit, pricing, supplier/PBF, manufacturer, category, classification, location, and customer reference data.</p>
@@ -434,6 +452,9 @@ const description = "Product Requirements Document for Core Managed Pharmacy, an
             <tr><td class="py-3 pr-4">require_sp_for_regulated_purchase</td><td class="py-3 pr-4">true</td><td class="py-3 pr-4">Block regulated receipt without linked SP</td><td class="py-3 pr-4">Procurement, compliance</td></tr>
             <tr><td class="py-3 pr-4">report_export_formats</td><td class="py-3 pr-4">CSV, XLSX, PDF</td><td class="py-3 pr-4">Available export formats</td><td class="py-3 pr-4">Reports</td></tr>
             <tr><td class="py-3 pr-4">audit_retention_years</td><td class="py-3 pr-4">5</td><td class="py-3 pr-4">Minimum audit retention period</td><td class="py-3 pr-4">Audit</td></tr>
+            <tr><td class="py-3 pr-4">platform_admin_mfa_required</td><td class="py-3 pr-4">true</td><td class="py-3 pr-4">Require MFA for SaaS platform administrators</td><td class="py-3 pr-4">Platform admin, security</td></tr>
+            <tr><td class="py-3 pr-4">support_access_expiry_minutes</td><td class="py-3 pr-4">60</td><td class="py-3 pr-4">Maximum approved support impersonation session duration</td><td class="py-3 pr-4">Support, audit</td></tr>
+            <tr><td class="py-3 pr-4">allow_platform_admin_direct_data_access</td><td class="py-3 pr-4">false</td><td class="py-3 pr-4">Emergency-only break-glass operational data access; disabled by default and must be audited if ever enabled</td><td class="py-3 pr-4">Platform admin, compliance</td></tr>
           </tbody>
         </table>
       </div>
@@ -456,8 +477,8 @@ const description = "Product Requirements Document for Core Managed Pharmacy, an
     <section id="roadmap" class="prose prose-zinc max-w-none dark:prose-invert">
       <h2>10. Build order and milestones</h2>
       <h3>Phase 0 — Foundation</h3>
-      <p><strong>Deliverables:</strong> app shell, database migrations, tenant model, auth, MFA for owner/support, RBAC, audit-log base, CI, seed data, billing state model.</p>
-      <p><strong>Definition of done:</strong> a tenant can register, create default outlet/warehouse, invite users, assign roles, and pass tenant isolation tests. CI runs lint/typecheck/test/build.</p>
+      <p><strong>Deliverables:</strong> app shell, database migrations, tenant model, auth, MFA for owner/support/platform admin, tenant RBAC, platform-admin role, platform audit-log base, support impersonation model, CI, seed data, billing state model.</p>
+      <p><strong>Definition of done:</strong> a tenant can register, create default outlet/warehouse, invite users, assign roles, and pass tenant isolation tests. A Platform Admin can view tenant metadata and billing/plan status without opening operational pharmacy records. CI runs lint/typecheck/test/build.</p>
       <p><strong>Regulatory included:</strong> audit foundation and tenant-isolated sensitive records.</p>
 
       <h3>Phase 1 — Core master data and ledger</h3>
