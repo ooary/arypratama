@@ -3,91 +3,179 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import EntityCard from "../../components/EntityCard.astro";
 
 const title = "ERD — Core Managed Pharmacy";
-const description = "Entity Relationship Diagram for Core Managed Pharmacy: organization, master data, procurement, inventory ledger, POS, optional customers, expiry handling, and audit trail.";
+const description = "PRD-aligned Entity Relationship Diagram for Core Managed Pharmacy: real SaaS tenancy, platform admin separation, pharmacy master data, procurement, SP, batch ledger, POS, offline sync, compliance, exports, and audit.";
 
-const coreEntities = [
+const platformEntities = [
   {
-    name: "organizations",
-    tag: "Tenant",
-    fields: ["id PK", "name", "legal_name", "tax_id", "status", "created_at"],
+    name: "platform_admin_users",
+    tag: "SaaS operator",
+    fields: ["id PK", "name", "email UNIQUE", "password_hash", "mfa_enabled", "status", "last_login_at", "created_at"],
   },
+  {
+    name: "platform_roles",
+    tag: "Platform RBAC",
+    fields: ["id PK", "name", "permission_codes jsonb", "status"],
+  },
+  {
+    name: "platform_user_roles",
+    tag: "Platform RBAC pivot",
+    fields: ["platform_admin_user_id FK", "platform_role_id FK", "assigned_by FK", "assigned_at"],
+  },
+  {
+    name: "tenants",
+    tag: "Tenant / pharmacy business",
+    fields: ["id PK", "legal_name", "display_name", "billing_email", "phone", "address", "timezone", "currency", "billing_status", "suspension_status", "created_at"],
+  },
+  {
+    name: "plans",
+    tag: "SaaS plan",
+    fields: ["id PK", "code", "name", "max_outlets", "max_users", "max_products", "max_offline_devices", "export_limit_per_day", "status"],
+  },
+  {
+    name: "tenant_subscriptions",
+    tag: "Billing state",
+    fields: ["id PK", "tenant_id FK", "plan_id FK", "status", "trial_ends_at", "current_period_start", "current_period_end", "past_due_since", "canceled_at"],
+  },
+  {
+    name: "tenant_config_flags",
+    tag: "Config over complexity",
+    fields: ["id PK", "tenant_id FK", "config_key", "config_value jsonb", "source", "updated_by_user_id FK", "updated_by_platform_admin_id FK", "updated_at"],
+  },
+  {
+    name: "support_access_sessions",
+    tag: "Audited support access",
+    fields: ["id PK", "tenant_id FK", "approved_by_user_id FK", "platform_admin_user_id FK", "reason", "starts_at", "expires_at", "status", "revoked_at"],
+  },
+  {
+    name: "platform_audit_logs",
+    tag: "Platform audit",
+    fields: ["id PK", "platform_admin_user_id FK", "target_tenant_id FK", "action", "entity_type", "entity_id", "before_json", "after_json", "reason", "ip_address", "created_at"],
+  },
+];
+
+const tenantFoundationEntities = [
   {
     name: "outlets",
     tag: "Outlet",
-    fields: ["id PK", "organization_id FK", "name", "address", "phone", "is_default", "status"],
+    fields: ["id PK", "tenant_id FK", "name", "address", "phone", "timezone", "is_default", "status"],
   },
   {
     name: "warehouses",
     tag: "Stock location",
-    fields: ["id PK", "outlet_id FK", "name", "warehouse_type", "is_default", "status"],
+    fields: ["id PK", "tenant_id FK", "outlet_id FK", "name", "warehouse_type", "is_default", "status"],
   },
   {
     name: "pharmacy_profiles",
-    tag: "Pharmacy config",
-    fields: ["id PK", "outlet_id FK", "pharmacist_name", "sia_no", "sipa_no", "receipt_footer", "stock_policy"],
+    tag: "Licensed profile",
+    fields: ["id PK", "tenant_id FK", "outlet_id FK", "pharmacy_name", "license_no", "pharmacist_in_charge", "sipa_no", "sia_no", "receipt_header", "receipt_footer"],
   },
   {
-    name: "users",
-    tag: "Actor",
-    fields: ["id PK", "organization_id FK", "outlet_id FK", "name", "email", "password_hash", "status"],
+    name: "document_number_series",
+    tag: "Document numbering",
+    fields: ["id PK", "tenant_id FK", "outlet_id FK", "document_type", "prefix", "next_number", "reset_policy", "status"],
   },
   {
-    name: "roles",
-    tag: "Access",
-    fields: ["id PK", "organization_id FK", "name", "scope", "status"],
+    name: "tenant_users",
+    tag: "Tenant actor",
+    fields: ["id PK", "tenant_id FK", "name", "email", "phone", "password_hash", "mfa_enabled", "status", "last_login_at"],
+  },
+  {
+    name: "tenant_roles",
+    tag: "Tenant RBAC",
+    fields: ["id PK", "tenant_id FK nullable", "name", "role_type", "scope", "is_system_role", "status"],
   },
   {
     name: "permissions",
-    tag: "Access",
-    fields: ["id PK", "code", "name", "module"],
+    tag: "Permission catalog",
+    fields: ["id PK", "code UNIQUE", "module", "name", "description"],
+  },
+  {
+    name: "tenant_user_roles",
+    tag: "Tenant RBAC pivot",
+    fields: ["tenant_user_id FK", "tenant_role_id FK", "assigned_by FK", "assigned_at"],
+  },
+  {
+    name: "role_permissions",
+    tag: "Tenant RBAC pivot",
+    fields: ["tenant_role_id FK", "permission_id FK", "granted_at"],
+  },
+  {
+    name: "user_outlet_access",
+    tag: "Outlet scope",
+    fields: ["tenant_user_id FK", "outlet_id FK", "access_level", "is_default"],
   },
 ];
 
 const masterEntities = [
   {
     name: "products",
-    tag: "Product / sale item",
-    fields: ["id PK", "organization_id FK", "category_id FK", "drug_class_id FK", "manufacturer_id FK", "default_supplier_id FK", "sku", "barcode", "name", "generic_name", "strength", "dosage_form", "needs_pharmacist_review", "min_stock_base_unit", "base_unit_id FK", "status"],
+    tag: "Product / drug",
+    fields: ["id PK", "tenant_id FK", "category_id FK", "drug_class_id FK", "manufacturer_id FK", "base_unit_id FK", "sku", "barcode", "name", "generic_name", "composition", "dosage_form", "strength", "is_narcotic", "is_psychotropic", "is_precursor", "is_obat_keras", "requires_pharmacist_gate", "min_stock_base", "status"],
+  },
+  {
+    name: "product_categories",
+    tag: "Master reference",
+    fields: ["id PK", "tenant_id FK", "name", "parent_id FK", "status"],
+  },
+  {
+    name: "drug_classes",
+    tag: "Regulatory class",
+    fields: ["id PK", "tenant_id FK", "code", "name", "requires_sp_type", "requires_sipnap_reporting", "status"],
+  },
+  {
+    name: "manufacturers",
+    tag: "Manufacturer",
+    fields: ["id PK", "tenant_id FK", "name", "country", "status"],
   },
   {
     name: "product_units",
     tag: "Unit",
-    fields: ["id PK", "product_id FK", "unit_name", "unit_code", "is_base_unit", "sort_order"],
+    fields: ["id PK", "tenant_id FK", "product_id FK", "unit_name", "unit_code", "is_base_unit", "sort_order"],
   },
   {
     name: "product_unit_conversions",
     tag: "Conversion",
-    fields: ["id PK", "product_id FK", "from_unit_id FK", "to_unit_id FK", "multiplier_to_base", "is_active"],
+    fields: ["id PK", "tenant_id FK", "product_id FK", "from_unit_id FK", "to_unit_id FK", "multiplier_to_base", "is_active", "locked_after_movement"],
   },
   {
     name: "product_prices",
     tag: "Selling price",
-    fields: ["id PK", "product_id FK", "unit_id FK", "price_type", "selling_price", "margin_target", "effective_from", "effective_to", "created_by FK"],
+    fields: ["id PK", "tenant_id FK", "product_id FK", "unit_id FK", "price_type", "selling_price", "margin_target", "effective_from", "effective_to", "created_by FK"],
+  },
+  {
+    name: "price_change_logs",
+    tag: "Price audit",
+    fields: ["id PK", "tenant_id FK", "product_id FK", "unit_id FK", "old_price", "new_price", "reason", "changed_by FK", "changed_at"],
   },
   {
     name: "suppliers",
-    tag: "PBF",
-    fields: ["id PK", "organization_id FK", "name", "legal_name", "address", "contact_name", "phone", "email", "payment_terms_days", "license_no", "status"],
+    tag: "PBF / supplier",
+    fields: ["id PK", "tenant_id FK", "name", "legal_name", "license_no", "tax_id", "address", "contact_name", "phone", "email", "payment_terms_days", "status"],
   },
   {
     name: "supplier_products",
-    tag: "Supplier item",
-    fields: ["id PK", "supplier_id FK", "product_id FK", "supplier_sku", "last_purchase_price", "is_preferred"],
+    tag: "Multi-supplier map",
+    fields: ["id PK", "tenant_id FK", "supplier_id FK", "product_id FK", "supplier_sku", "last_purchase_price", "lead_time_days", "is_preferred", "status"],
   },
   {
     name: "product_locations",
-    tag: "Default rack",
-    fields: ["id PK", "product_id FK", "warehouse_id FK", "rack_code", "bin_code"],
+    tag: "Rack/bin",
+    fields: ["id PK", "tenant_id FK", "product_id FK", "warehouse_id FK", "rack_code", "bin_code"],
   },
   {
-    name: "customers",
-    tag: "Optional customer",
-    fields: ["id PK", "organization_id FK", "customer_group_id FK", "name", "phone", "address", "notes", "future_profile_ref", "status"],
+    name: "payment_methods",
+    tag: "Tenant payment config",
+    fields: ["id PK", "tenant_id FK", "code", "name", "method_type", "is_cash", "is_active", "sort_order"],
   },
   {
     name: "customer_groups",
     tag: "Customer segment",
-    fields: ["id PK", "organization_id FK", "name", "description", "status"],
+    fields: ["id PK", "tenant_id FK", "name", "pricing_tier", "discount_rule_json", "status"],
+  },
+  {
+    name: "customers",
+    tag: "Optional customer",
+    fields: ["id PK", "tenant_id FK", "customer_group_id FK", "name", "phone", "address", "tax_info", "credit_limit", "status"],
   },
 ];
 
@@ -95,37 +183,37 @@ const inventoryEntities = [
   {
     name: "stock_batches",
     tag: "Physical stock source",
-    fields: ["id PK", "outlet_id FK", "warehouse_id FK", "product_id FK", "batch_no", "expiry_date", "qty_available_base_unit", "hpp_per_base_unit", "source_type", "source_id", "status"],
+    fields: ["id PK", "tenant_id FK", "outlet_id FK", "warehouse_id FK", "product_id FK", "batch_no", "expiry_date", "qty_available_base", "qty_quarantined_base", "hpp_per_base", "source_type", "source_id", "status"],
   },
   {
     name: "stock_movements",
-    tag: "Stock ledger",
-    fields: ["id PK", "movement_no", "outlet_id FK", "warehouse_id FK", "product_id FK", "batch_id FK", "movement_type", "qty_in_base_unit", "qty_out_base_unit", "balance_after_base_unit", "unit_id FK", "display_qty", "reference_type", "reference_id", "reason", "created_by FK", "created_at"],
+    tag: "Append-only ledger",
+    fields: ["id PK", "tenant_id FK", "movement_no", "outlet_id FK", "warehouse_id FK", "product_id FK", "batch_id FK", "movement_type", "direction", "qty_base", "balance_after_base", "unit_id FK", "display_qty", "reference_type", "reference_id", "reason", "created_by FK", "created_at"],
   },
   {
-    name: "stock_opnames",
-    tag: "Stock take",
-    fields: ["id PK", "outlet_id FK", "warehouse_id FK", "opname_no", "status", "started_by FK", "posted_by FK", "posted_at"],
+    name: "stock_take_sessions",
+    tag: "Stock take header",
+    fields: ["id PK", "tenant_id FK", "outlet_id FK", "warehouse_id FK", "stock_take_no", "snapshot_at", "status", "started_by FK", "approved_by FK", "posted_by FK", "posted_at"],
   },
   {
-    name: "stock_opname_items",
+    name: "stock_take_items",
     tag: "Stock take detail",
-    fields: ["id PK", "stock_opname_id FK", "product_id FK", "batch_id FK", "system_qty_base", "physical_qty_base", "difference_qty_base", "reason"],
+    fields: ["id PK", "tenant_id FK", "stock_take_session_id FK", "product_id FK", "batch_id FK", "unit_id FK", "system_qty_base", "physical_qty_base", "difference_qty_base", "reason"],
   },
   {
-    name: "stock_mutations",
-    tag: "Warehouse/outlet transfer",
-    fields: ["id PK", "mutation_no", "from_outlet_id FK", "to_outlet_id FK", "from_warehouse_id FK", "to_warehouse_id FK", "status", "created_by FK", "posted_at"],
+    name: "stock_transfers",
+    tag: "Transfer header",
+    fields: ["id PK", "tenant_id FK", "transfer_no", "from_outlet_id FK", "to_outlet_id FK", "from_warehouse_id FK", "to_warehouse_id FK", "status", "created_by FK", "sent_at", "received_at"],
   },
   {
-    name: "stock_mutation_items",
+    name: "stock_transfer_items",
     tag: "Transfer detail",
-    fields: ["id PK", "stock_mutation_id FK", "product_id FK", "batch_id FK", "unit_id FK", "qty", "qty_base_unit"],
+    fields: ["id PK", "tenant_id FK", "stock_transfer_id FK", "product_id FK", "batch_id FK", "unit_id FK", "qty", "qty_base", "received_qty_base"],
   },
   {
-    name: "expired_actions",
-    tag: "Expiry/quarantine",
-    fields: ["id PK", "batch_id FK", "action_type", "qty_base_unit", "reference_type", "reference_id", "loss_amount", "created_by FK", "created_at"],
+    name: "expiry_actions",
+    tag: "Quarantine/disposal",
+    fields: ["id PK", "tenant_id FK", "batch_id FK", "action_type", "qty_base", "loss_amount", "reason", "approved_by FK", "attachment_id FK", "posted_movement_id FK", "created_by FK", "created_at"],
   },
 ];
 
@@ -133,167 +221,240 @@ const procurementEntities = [
   {
     name: "defecta_items",
     tag: "Procurement queue",
-    fields: ["id PK", "outlet_id FK", "product_id FK", "suggested_supplier_id FK", "source", "requested_qty_base", "status", "reviewed_by FK", "converted_po_item_id FK"],
+    fields: ["id PK", "tenant_id FK", "outlet_id FK", "product_id FK", "suggested_supplier_id FK", "source", "recommended_qty_base", "pending_po_qty_base", "status", "reviewed_by FK", "converted_po_item_id FK"],
   },
   {
     name: "purchase_orders",
     tag: "PO header",
-    fields: ["id PK", "po_no", "outlet_id FK", "supplier_id FK", "status", "order_date", "expected_date", "created_by FK"],
+    fields: ["id PK", "tenant_id FK", "po_no", "outlet_id FK", "supplier_id FK", "status", "order_date", "expected_date", "approved_by FK", "sent_at", "created_by FK"],
   },
   {
     name: "purchase_order_items",
     tag: "PO detail",
-    fields: ["id PK", "purchase_order_id FK", "product_id FK", "unit_id FK", "qty_ordered", "qty_ordered_base", "estimated_price", "qty_received_base"],
+    fields: ["id PK", "tenant_id FK", "purchase_order_id FK", "defecta_item_id FK", "product_id FK", "unit_id FK", "qty_ordered", "qty_ordered_base", "estimated_price", "qty_received_base", "line_status"],
+  },
+  {
+    name: "surat_pesanan",
+    tag: "SP document",
+    fields: ["id PK", "tenant_id FK", "purchase_order_id FK", "sp_no", "sp_type", "supplier_id FK", "pharmacy_profile_id FK", "pharmacist_user_id FK", "document_date", "status", "approved_by FK", "signed_at"],
+  },
+  {
+    name: "surat_pesanan_items",
+    tag: "SP detail",
+    fields: ["id PK", "tenant_id FK", "surat_pesanan_id FK", "purchase_order_item_id FK", "product_id FK", "unit_id FK", "qty", "qty_base"],
   },
   {
     name: "goods_receipts",
     tag: "Goods receipt",
-    fields: ["id PK", "receipt_no", "outlet_id FK", "warehouse_id FK", "supplier_id FK", "purchase_order_id FK", "invoice_no", "received_at", "status", "received_by FK"],
+    fields: ["id PK", "tenant_id FK", "receipt_no", "outlet_id FK", "warehouse_id FK", "supplier_id FK", "purchase_order_id FK", "surat_pesanan_id FK", "pbf_invoice_no", "invoice_date", "due_date", "received_at", "status", "received_by FK"],
   },
   {
     name: "goods_receipt_items",
-    tag: "Goods receipt detail",
-    fields: ["id PK", "goods_receipt_id FK", "purchase_order_item_id FK", "product_id FK", "unit_id FK", "qty_received", "qty_received_base", "purchase_price", "discount_amount", "tax_amount", "batch_no", "expiry_date", "stock_batch_id FK"],
+    tag: "Receipt detail",
+    fields: ["id PK", "tenant_id FK", "goods_receipt_id FK", "purchase_order_item_id FK", "product_id FK", "unit_id FK", "qty_received", "qty_received_base", "purchase_price", "discount_amount", "tax_amount", "batch_no", "expiry_date", "stock_batch_id FK"],
   },
   {
     name: "supplier_invoices",
     tag: "Supplier payable",
-    fields: ["id PK", "supplier_id FK", "goods_receipt_id FK", "invoice_no", "invoice_date", "due_date", "total_amount", "paid_amount", "status"],
+    fields: ["id PK", "tenant_id FK", "supplier_id FK", "goods_receipt_id FK", "invoice_no", "invoice_date", "due_date", "subtotal", "discount_total", "tax_total", "total_amount", "paid_amount", "status"],
   },
   {
     name: "supplier_payments",
     tag: "Pay payable",
-    fields: ["id PK", "supplier_invoice_id FK", "payment_date", "amount", "payment_method", "reference_no", "created_by FK"],
+    fields: ["id PK", "tenant_id FK", "supplier_invoice_id FK", "payment_date", "amount", "payment_method_id FK", "reference_no", "created_by FK"],
+  },
+  {
+    name: "purchase_returns",
+    tag: "Supplier return",
+    fields: ["id PK", "tenant_id FK", "return_no", "supplier_id FK", "outlet_id FK", "goods_receipt_id FK", "reason", "status", "created_by FK", "posted_at"],
+  },
+  {
+    name: "purchase_return_items",
+    tag: "Supplier return detail",
+    fields: ["id PK", "tenant_id FK", "purchase_return_id FK", "product_id FK", "batch_id FK", "unit_id FK", "qty", "qty_base", "refund_amount"],
   },
 ];
 
 const posEntities = [
   {
-    name: "shift_schedules",
-    tag: "Shift schedule",
-    fields: ["id PK", "outlet_id FK", "user_id FK", "scheduled_start", "scheduled_end", "status"],
+    name: "pos_devices",
+    tag: "Offline-capable device",
+    fields: ["id PK", "tenant_id FK", "outlet_id FK", "device_name", "device_key_hash", "last_sync_at", "offline_enabled", "status"],
   },
   {
     name: "shifts",
     tag: "Cashier shift",
-    fields: ["id PK", "outlet_id FK", "user_id FK", "schedule_id FK", "opened_at", "opening_cash", "closed_at", "system_cash", "physical_cash", "cash_difference", "status"],
+    fields: ["id PK", "tenant_id FK", "outlet_id FK", "cashier_id FK", "pos_device_id FK", "opened_at", "opening_cash", "closed_at", "expected_cash", "actual_cash", "cash_variance", "status"],
   },
   {
     name: "sales",
     tag: "POS transaction",
-    fields: ["id PK", "sale_no", "outlet_id FK", "shift_id FK", "cashier_id FK", "customer_id FK", "sale_note_id FK", "sale_type", "subtotal", "discount_total", "tax_total", "grand_total", "status", "posted_at"],
+    fields: ["id PK", "tenant_id FK", "sale_no", "offline_local_id", "outlet_id FK", "shift_id FK", "cashier_id FK", "customer_id FK", "subtotal", "item_discount_total", "transaction_discount_total", "tax_total", "grand_total", "paid_total", "receivable_total", "status", "posted_at"],
   },
   {
     name: "sale_items",
     tag: "Sale item",
-    fields: ["id PK", "sale_id FK", "product_id FK", "batch_id FK", "unit_id FK", "qty", "qty_base_unit", "unit_price", "discount_amount", "hpp_per_base_unit", "line_total"],
+    fields: ["id PK", "tenant_id FK", "sale_id FK", "product_id FK", "unit_id FK", "qty", "qty_base", "unit_price", "item_discount_amount", "requires_gate", "gate_approved_by FK", "prescription_note", "line_total"],
   },
   {
-    name: "payments",
-    tag: "Payment",
-    fields: ["id PK", "sale_id FK", "payment_method", "amount", "reference_no", "paid_at", "created_by FK"],
+    name: "sale_item_batch_allocations",
+    tag: "FEFO allocation",
+    fields: ["id PK", "tenant_id FK", "sale_item_id FK", "batch_id FK", "qty_base", "hpp_per_base", "stock_movement_id FK"],
+  },
+  {
+    name: "sale_payments",
+    tag: "Mixed payment",
+    fields: ["id PK", "tenant_id FK", "sale_id FK", "payment_method_id FK", "amount", "reference_no", "paid_at", "created_by FK"],
+  },
+  {
+    name: "customer_receivables",
+    tag: "Bon / hutang",
+    fields: ["id PK", "tenant_id FK", "customer_id FK", "sale_id FK", "original_amount", "paid_amount", "outstanding_amount", "due_date", "status"],
+  },
+  {
+    name: "receivable_payments",
+    tag: "Bon repayment",
+    fields: ["id PK", "tenant_id FK", "customer_receivable_id FK", "payment_method_id FK", "amount", "reference_no", "paid_at", "created_by FK"],
   },
   {
     name: "sale_returns",
     tag: "Sale return",
-    fields: ["id PK", "return_no", "sale_id FK", "outlet_id FK", "reason", "refund_amount", "status", "created_by FK", "posted_at"],
+    fields: ["id PK", "tenant_id FK", "return_no", "sale_id FK", "outlet_id FK", "reason", "refund_amount", "status", "created_by FK", "posted_at"],
   },
   {
     name: "sale_return_items",
     tag: "Sale return detail",
-    fields: ["id PK", "sale_return_id FK", "sale_item_id FK", "product_id FK", "batch_id FK", "unit_id FK", "qty", "qty_base_unit", "stock_disposition"],
+    fields: ["id PK", "tenant_id FK", "sale_return_id FK", "sale_item_id FK", "product_id FK", "batch_id FK", "unit_id FK", "qty", "qty_base", "stock_disposition"],
   },
   {
-    name: "purchase_returns",
-    tag: "Supplier return",
-    fields: ["id PK", "return_no", "supplier_id FK", "outlet_id FK", "goods_receipt_id FK", "reason", "status", "created_by FK", "posted_at"],
-  },
-  {
-    name: "purchase_return_items",
-    tag: "Supplier return detail",
-    fields: ["id PK", "purchase_return_id FK", "product_id FK", "batch_id FK", "unit_id FK", "qty", "qty_base_unit", "refund_amount"],
+    name: "offline_sync_queue",
+    tag: "Offline POS sync",
+    fields: ["id PK", "tenant_id FK", "pos_device_id FK", "local_event_id", "event_type", "payload_json", "idempotency_key", "sync_status", "conflict_reason", "server_entity_id", "created_offline_at", "synced_at"],
   },
 ];
 
-const customerOpsEntities = [
+const complianceAndOpsEntities = [
   {
-    name: "sales_note_templates",
-    tag: "Note template",
-    fields: ["id PK", "organization_id FK", "name", "note_text", "is_active"],
+    name: "regulated_monthly_reports",
+    tag: "SIPNAP-ready export",
+    fields: ["id PK", "tenant_id FK", "outlet_id FK", "report_month", "report_type", "status", "generated_by FK", "generated_at", "export_file_id FK"],
   },
   {
-    name: "sale_notes",
-    tag: "Sales note",
-    fields: ["id PK", "sale_id FK", "template_id FK", "customer_id FK", "note_text", "created_by FK", "created_at"],
+    name: "regulated_report_lines",
+    tag: "Regulated item summary",
+    fields: ["id PK", "tenant_id FK", "regulated_monthly_report_id FK", "product_id FK", "opening_balance_base", "incoming_base", "outgoing_base", "adjustment_base", "closing_balance_base"],
+  },
+  {
+    name: "attachments",
+    tag: "Invoice / disposal file",
+    fields: ["id PK", "tenant_id FK", "owner_type", "owner_id", "file_name", "mime_type", "storage_key", "uploaded_by FK", "uploaded_at"],
+  },
+  {
+    name: "data_export_jobs",
+    tag: "Tenant portability",
+    fields: ["id PK", "tenant_id FK", "requested_by FK", "export_type", "status", "file_id FK", "requested_at", "completed_at", "expires_at"],
   },
   {
     name: "audit_logs",
-    tag: "Audit trail",
-    fields: ["id PK", "organization_id FK", "outlet_id FK", "actor_id FK", "action", "entity_type", "entity_id", "before_json", "after_json", "ip_address", "created_at"],
+    tag: "Tenant audit trail",
+    fields: ["id PK", "tenant_id FK", "outlet_id FK", "actor_user_id FK", "support_session_id FK", "action", "entity_type", "entity_id", "before_json", "after_json", "reason", "ip_address", "created_at"],
   },
 ];
 
 const relationshipGroups = [
   {
-    title: "Foundation",
+    title: "Real SaaS foundation",
     items: [
-      "organizations 1—N outlets",
-      "outlets 1—N warehouses",
-      "outlets 1—1 pharmacy_profiles",
-      "organizations 1—N users / roles / suppliers / products",
-      "users N—N roles, roles N—N permissions through user_roles and role_permissions pivot tables",
+      "platform_admin_users are outside tenant RBAC and operate tenant metadata, billing, entitlements, suspension, and support-access workflows.",
+      "tenants 1—N outlets, warehouses, tenant_users, products, suppliers, reports, exports, and audit_logs.",
+      "plans 1—N tenant_subscriptions; tenant_subscriptions N—1 tenants.",
+      "tenant_config_flags store predefined config keys such as require_po_approval, enable_offline_pos, and support_access_expiry_minutes.",
+      "support_access_sessions bridge platform_admin_users to a tenant only after tenant approval, reason, expiry, and audit logging.",
+      "platform_audit_logs record privileged platform actions separately from tenant audit_logs.",
     ],
   },
   {
-    title: "Master Data",
+    title: "Tenant RBAC and outlet scope",
     items: [
-      "products N—1 product_categories / drug_classes / manufacturers",
-      "products 1—N product_units, product_prices, product_locations",
-      "products 1—N product_unit_conversions for different purchase and selling units",
-      "suppliers N—N products through supplier_products",
-      "products.default_supplier_id optionally references suppliers",
+      "tenant_users N—N tenant_roles through tenant_user_roles.",
+      "tenant_roles N—N permissions through role_permissions.",
+      "tenant_users N—N outlets through user_outlet_access for multi-outlet data visibility.",
+      "Owner is tenant-side admin; Platform Admin is not stored as a tenant role.",
     ],
   },
   {
-    title: "Inventory Ledger",
+    title: "Master data",
     items: [
-      "stock_batches N—1 products, outlets, warehouses",
-      "stock_movements N—1 stock_batches and products",
-      "all stock-affecting transactions write stock_movements with reference_type + reference_id",
-      "stock_opnames 1—N stock_opname_items; posting creates adjustment movements",
-      "stock_mutations 1—N stock_mutation_items; posting creates mutation_out and mutation_in movements",
+      "products reference product_categories, drug_classes, manufacturers, and a base product_unit.",
+      "products 1—N product_units, product_unit_conversions, product_prices, product_locations, and supplier_products.",
+      "drug_classes and product boolean flags drive SP, SIPNAP, and POS pharmacist-gate behavior.",
+      "suppliers N—N products through supplier_products so multiple PBFs can be compared per product.",
+      "customers are optional and become required only for bon / customer receivable workflows.",
     ],
   },
   {
-    title: "Procurement",
+    title: "Inventory ledger core",
     items: [
-      "defecta_items can be converted into purchase_order_items",
-      "purchase_orders 1—N purchase_order_items",
-      "goods_receipts can reference purchase_orders and own goods_receipt_items",
-      "goods_receipt_items create stock_batches and purchase_receive stock_movements",
-      "supplier_invoices N—1 goods_receipts; supplier_payments N—1 supplier_invoices",
+      "stock_batches + stock_movements are the stock source of truth; products never store primary stock.",
+      "stock_batches N—1 tenant, outlet, warehouse, product, and source document.",
+      "stock_movements N—1 stock_batches and products; all movements are append-only and idempotent via reference_type + reference_id.",
+      "stock_take_sessions 1—N stock_take_items; posting creates adjustment movements only for deltas.",
+      "stock_transfers 1—N stock_transfer_items; posting creates transfer_out and transfer_in movements, with optional pending receipt.",
+      "expiry_actions quarantine or dispose batches and create ledger movements that remove stock from saleable inventory.",
     ],
   },
   {
-    title: "POS, Notes, Returns",
+    title: "Procurement and compliance documents",
     items: [
-      "shifts 1—N sales; sales 1—N sale_items and payments",
-      "sale_items N—1 products, units, batches; sale posting creates sale stock_movements",
-      "sales 1—N sale_notes; optional customers can be referenced by sales",
-      "sale_returns 1—N sale_return_items; returned items must define stock_disposition",
-      "purchase_returns 1—N purchase_return_items; posting creates purchase_return stock_movements",
+      "defecta_items can convert into purchase_order_items, with approval controlled by require_defecta_approval.",
+      "purchase_orders 1—N purchase_order_items and support partial fulfillment through qty_received_base.",
+      "surat_pesanan links PO, supplier/PBF, pharmacy profile, pharmacist, and regulated item lines before goods receipt finalization.",
+      "goods_receipts can reference PO and SP; goods_receipt_items create stock_batches and purchase_receive stock_movements.",
+      "supplier_invoices capture faktur PBF fields; supplier_payments reduce payables.",
+      "purchase_returns deduct selected batches and create purchase_return stock_movements.",
+    ],
+  },
+  {
+    title: "POS, offline, payments, receivables",
+    items: [
+      "shifts 1—N sales; sales require an open shift except controlled recovery/admin correction flows.",
+      "sales 1—N sale_items, sale_payments, and optional customer_receivables.",
+      "sale_items 1—N sale_item_batch_allocations so FEFO can split one sale line across multiple batches.",
+      "mixed payments are represented by multiple sale_payments using tenant payment_methods.",
+      "bon / hutang pelanggan creates customer_receivables and later receivable_payments.",
+      "offline_sync_queue uses idempotency_key and conflict_reason so offline POS never silently mutates ledger state.",
+      "sale_returns and sale_return_items restore to original batch or quarantine based on stock_disposition.",
+    ],
+  },
+  {
+    title: "Reporting, export, audit",
+    items: [
+      "regulated_monthly_reports and regulated_report_lines are generated from stock_movements for SIPNAP-ready manual export.",
+      "data_export_jobs package tenant-owned products, batches, movements, purchases, sales, payments, shifts, customers, config, and audit logs.",
+      "attachments link invoices, disposal evidence, and export files without embedding binary data in operational tables.",
+      "audit_logs capture tenant actions, including support impersonation through support_session_id.",
     ],
   },
 ];
 
+const invariants = [
+  "Every tenant-owned table carries tenant_id. Platform tables do not pretend to be tenant data.",
+  "Platform Admin is not pharmacy Owner. Owner administers one tenant; Platform Admin administers SaaS metadata, billing, entitlements, and controlled support access.",
+  "Do not model products.stock as source of truth. Use stock_batches and append-only stock_movements; summaries are projections only.",
+  "All stock quantities are stored in product base unit. Purchase/sales units are input/display metadata with locked conversions after movement exists.",
+  "Posted stock_movements are immutable. Corrections use reversal or adjustment movement rows with reason and actor.",
+  "Regulated products must be visible from product → SP / goods receipt / stock movement / SIPNAP report line.",
+  "Offline POS events must use idempotency keys and conflict review. Never silently rewrite stock history during sync.",
+  "Support impersonation must always link tenant audit logs to a support_access_session.",
+];
+
 const buildOrder = [
-  "Foundation: organization, outlet, warehouse, pharmacy profile, users, roles.",
-  "Master data: product, unit conversion, price, supplier, rack, customer.",
-  "Inventory engine: stock batch, stock movement ledger, stock balance, FEFO deduction.",
-  "Procurement: defecta, PO, goods receipt, invoice, supplier payment.",
-  "Stock control: stock take, transfer, returns, expiry action.",
-  "POS & customer notes: shift, sale, payment, return, sales note.",
-  "Audit and reporting layer: audit_logs plus query/report views on top of the ledger.",
+  "Phase 0 Foundation: platform_admin_users, tenants, plans, subscriptions, config flags, support_access_sessions, tenant_users, RBAC, outlets, warehouses, pharmacy_profiles, audit foundations.",
+  "Phase 1 Master data + ledger: products, categories, drug_classes, units, conversions, prices, suppliers, supplier_products, stock_batches, stock_movements, opening stock import.",
+  "Phase 2 Procurement + stock control: defecta, purchase_orders, surat_pesanan, goods_receipts, supplier_invoices, stock_take, transfers, purchase_returns, expiry_actions.",
+  "Phase 3 POS + shift: pos_devices, shifts, sales, sale_items, batch allocations, payments, receivables, sale_returns, offline_sync_queue.",
+  "Phase 4 Reports + audit: regulated_monthly_reports, regulated_report_lines, role dashboards, tenant audit filters, export formats.",
+  "Phase 5 SaaS polish: data_export_jobs, billing enforcement, support access UX, backup/restore evidence, monitoring, plan limit enforcement.",
 ];
 ---
 
@@ -304,24 +465,24 @@ const buildOrder = [
     </div>
     <div class="space-y-4">
       <h1 class="text-4xl font-bold tracking-tight text-zinc-950 dark:text-white sm:text-5xl">
-        Core Managed Pharmacy
+        Core Managed Pharmacy ERD
       </h1>
-      <p class="max-w-3xl text-lg leading-8 text-zinc-600 dark:text-zinc-300">
-        ERD derived from the BRD <a href="/brd/apotek-management" class="font-bold text-blue-600 hover:text-blue-700 dark:text-blue-300">Core Managed Pharmacy</a>. This model is intentionally inventory-first: stock is calculated from batches and the stock movement ledger, not from a single mutable product field.
+      <p class="max-w-4xl text-lg leading-8 text-zinc-600 dark:text-zinc-300">
+        ERD derived from the current <a href="/prd/apotek-management/" class="font-bold text-blue-600 hover:text-blue-700 dark:text-blue-300">Core Managed Pharmacy PRD</a>. This version models the product as real SaaS: platform administration is separate from tenant pharmacy users, every tenant record is scoped by <code>tenant_id</code>, and stock remains ledger-first through <code>stock_batches</code> plus append-only <code>stock_movements</code>.
       </p>
     </div>
     <div class="grid gap-3 sm:grid-cols-3">
       <div class="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-        <div class="text-xs font-bold uppercase tracking-wide text-zinc-500">Source of truth</div>
+        <div class="text-xs font-bold uppercase tracking-wide text-zinc-500">SaaS boundary</div>
+        <div class="mt-2 font-bold text-zinc-950 dark:text-white">Platform Admin ≠ Tenant Owner</div>
+      </div>
+      <div class="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <div class="text-xs font-bold uppercase tracking-wide text-zinc-500">Stock source of truth</div>
         <div class="mt-2 font-bold text-zinc-950 dark:text-white">stock_batches + stock_movements</div>
       </div>
       <div class="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-        <div class="text-xs font-bold uppercase tracking-wide text-zinc-500">Scope</div>
-        <div class="mt-2 font-bold text-zinc-950 dark:text-white">Multi-outlet-ready pharmacy core</div>
-      </div>
-      <div class="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-        <div class="text-xs font-bold uppercase tracking-wide text-zinc-500">URL</div>
-        <div class="mt-2 font-bold text-zinc-950 dark:text-white">/erd/apotek-management</div>
+        <div class="text-xs font-bold uppercase tracking-wide text-zinc-500">Compliance</div>
+        <div class="mt-2 font-bold text-zinc-950 dark:text-white">SP, PBF faktur, SIPNAP-ready export</div>
       </div>
     </div>
   </section>
@@ -329,66 +490,73 @@ const buildOrder = [
   <section class="space-y-6">
     <h2 class="text-2xl font-bold text-zinc-950 dark:text-white">1. High-Level ERD</h2>
     <div class="overflow-x-auto rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-      <svg viewBox="0 0 1160 760" role="img" aria-label="High-level ERD Core Managed Pharmacy" class="h-auto w-full min-w-[760px]">
+      <svg viewBox="0 0 1240 820" role="img" aria-label="High-level ERD Core Managed Pharmacy" class="h-auto w-full min-w-[820px]">
         <defs>
           <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
             <path d="M0,0 L0,6 L9,3 z" fill="#2563eb"></path>
           </marker>
         </defs>
-        <rect x="24" y="30" width="190" height="92" rx="18" fill="#eff6ff" stroke="#93c5fd" />
-        <text x="44" y="65" font-size="18" font-weight="700" fill="#1e3a8a">Organization</text>
-        <text x="44" y="92" font-size="13" fill="#475569">outlets, warehouses</text>
-        <text x="44" y="112" font-size="13" fill="#475569">users, roles, config</text>
 
-        <rect x="304" y="30" width="200" height="92" rx="18" fill="#f8fafc" stroke="#cbd5e1" />
-        <text x="324" y="65" font-size="18" font-weight="700" fill="#0f172a">Master Data</text>
-        <text x="324" y="92" font-size="13" fill="#475569">products, units, prices</text>
-        <text x="324" y="112" font-size="13" fill="#475569">suppliers, customers</text>
+        <rect x="36" y="36" width="230" height="110" rx="18" fill="#fef2f2" stroke="#fca5a5" />
+        <text x="56" y="72" font-size="18" font-weight="800" fill="#7f1d1d">SaaS Platform</text>
+        <text x="56" y="100" font-size="13" fill="#475569">platform admins, plans</text>
+        <text x="56" y="120" font-size="13" fill="#475569">billing, support access</text>
 
-        <rect x="608" y="30" width="220" height="92" rx="18" fill="#ecfdf5" stroke="#86efac" />
-        <text x="628" y="65" font-size="18" font-weight="700" fill="#14532d">Procurement</text>
-        <text x="628" y="92" font-size="13" fill="#475569">defecta, PO</text>
-        <text x="628" y="112" font-size="13" fill="#475569">goods receipt, invoice</text>
+        <rect x="356" y="36" width="230" height="110" rx="18" fill="#eff6ff" stroke="#93c5fd" />
+        <text x="376" y="72" font-size="18" font-weight="800" fill="#1e3a8a">Tenant Foundation</text>
+        <text x="376" y="100" font-size="13" fill="#475569">tenant, outlet, warehouse</text>
+        <text x="376" y="120" font-size="13" fill="#475569">tenant users, RBAC, config</text>
 
-        <rect x="898" y="30" width="220" height="92" rx="18" fill="#fefce8" stroke="#fde047" />
-        <text x="918" y="65" font-size="18" font-weight="700" fill="#713f12">Stock Control</text>
-        <text x="918" y="92" font-size="13" fill="#475569">stock take, transfer</text>
-        <text x="918" y="112" font-size="13" fill="#475569">return, expired action</text>
+        <rect x="676" y="36" width="230" height="110" rx="18" fill="#f8fafc" stroke="#cbd5e1" />
+        <text x="696" y="72" font-size="18" font-weight="800" fill="#0f172a">Master Data</text>
+        <text x="696" y="100" font-size="13" fill="#475569">products, units, prices</text>
+        <text x="696" y="120" font-size="13" fill="#475569">suppliers/PBF, customers</text>
 
-        <rect x="370" y="296" width="420" height="142" rx="24" fill="#dbeafe" stroke="#2563eb" stroke-width="2" />
-        <text x="408" y="344" font-size="24" font-weight="800" fill="#1e3a8a">Inventory Ledger Core</text>
-        <text x="408" y="376" font-size="15" fill="#1f2937">stock_batches = physical stock by batch/expiry/location</text>
-        <text x="408" y="402" font-size="15" fill="#1f2937">stock_movements = all stock changes, append-only</text>
+        <rect x="966" y="36" width="230" height="110" rx="18" fill="#ecfdf5" stroke="#86efac" />
+        <text x="986" y="72" font-size="18" font-weight="800" fill="#14532d">Procurement</text>
+        <text x="986" y="100" font-size="13" fill="#475569">defecta, PO, SP</text>
+        <text x="986" y="120" font-size="13" fill="#475569">receipt, faktur PBF</text>
 
-        <rect x="96" y="590" width="210" height="96" rx="18" fill="#fdf2f8" stroke="#f9a8d4" />
-        <text x="116" y="628" font-size="18" font-weight="700" fill="#831843">POS & Shift</text>
-        <text x="116" y="655" font-size="13" fill="#475569">sales, items, payments</text>
-        <text x="116" y="675" font-size="13" fill="#475569">cashier shift</text>
+        <rect x="410" y="310" width="420" height="148" rx="24" fill="#dbeafe" stroke="#2563eb" stroke-width="2" />
+        <text x="448" y="360" font-size="24" font-weight="900" fill="#1e3a8a">Inventory Ledger Core</text>
+        <text x="448" y="392" font-size="15" fill="#1f2937">stock_batches = batch / expiry / location</text>
+        <text x="448" y="418" font-size="15" fill="#1f2937">stock_movements = append-only source of truth</text>
 
-        <rect x="476" y="590" width="210" height="96" rx="18" fill="#faf5ff" stroke="#d8b4fe" />
-        <text x="496" y="628" font-size="18" font-weight="700" fill="#581c87">Customer & Notes</text>
-        <text x="496" y="655" font-size="13" fill="#475569">customers optional</text>
-        <text x="496" y="675" font-size="13" fill="#475569">sales note templates</text>
+        <rect x="54" y="604" width="220" height="106" rx="18" fill="#fdf2f8" stroke="#f9a8d4" />
+        <text x="74" y="644" font-size="18" font-weight="800" fill="#831843">POS & Offline</text>
+        <text x="74" y="672" font-size="13" fill="#475569">shift, sale, payments</text>
+        <text x="74" y="692" font-size="13" fill="#475569">offline sync queue</text>
 
-        <rect x="854" y="590" width="210" height="96" rx="18" fill="#fff7ed" stroke="#fdba74" />
-        <text x="874" y="628" font-size="18" font-weight="700" fill="#7c2d12">Audit & Reports</text>
-        <text x="874" y="655" font-size="13" fill="#475569">audit_logs</text>
-        <text x="874" y="675" font-size="13" fill="#475569">reporting views</text>
+        <rect x="352" y="604" width="220" height="106" rx="18" fill="#faf5ff" stroke="#d8b4fe" />
+        <text x="372" y="644" font-size="18" font-weight="800" fill="#581c87">Customers & Bon</text>
+        <text x="372" y="672" font-size="13" fill="#475569">optional customers</text>
+        <text x="372" y="692" font-size="13" fill="#475569">receivables, repayments</text>
 
-        <line x1="214" y1="76" x2="304" y2="76" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)" />
-        <line x1="504" y1="76" x2="608" y2="76" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)" />
-        <line x1="828" y1="76" x2="898" y2="76" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)" />
-        <path d="M404 122 C404 190 460 234 510 296" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)" />
-        <path d="M718 122 C718 186 676 238 642 296" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)" />
-        <path d="M1008 122 C1008 245 852 284 790 340" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)" />
-        <path d="M201 590 C252 498 310 430 370 384" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)" />
-        <path d="M581 590 L581 438" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)" />
-        <path d="M854 638 C780 542 754 478 724 438" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)" />
-        <path d="M214 104 C278 194 316 272 370 334" fill="none" stroke="#94a3b8" stroke-width="2" stroke-dasharray="7 7" marker-end="url(#arrow)" />
+        <rect x="668" y="604" width="220" height="106" rx="18" fill="#fefce8" stroke="#fde047" />
+        <text x="688" y="644" font-size="18" font-weight="800" fill="#713f12">Stock Control</text>
+        <text x="688" y="672" font-size="13" fill="#475569">stock take, transfer</text>
+        <text x="688" y="692" font-size="13" fill="#475569">quarantine, disposal</text>
+
+        <rect x="966" y="604" width="220" height="106" rx="18" fill="#fff7ed" stroke="#fdba74" />
+        <text x="986" y="644" font-size="18" font-weight="800" fill="#7c2d12">Audit & Export</text>
+        <text x="986" y="672" font-size="13" fill="#475569">SIPNAP-ready reports</text>
+        <text x="986" y="692" font-size="13" fill="#475569">audit logs, data export</text>
+
+        <line x1="266" y1="92" x2="356" y2="92" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)" />
+        <line x1="586" y1="92" x2="676" y2="92" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)" />
+        <line x1="906" y1="92" x2="966" y2="92" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)" />
+
+        <path d="M471 146 C486 210 530 258 574 310" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)" />
+        <path d="M791 146 C776 218 716 260 678 310" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)" />
+        <path d="M1081 146 C1064 252 910 298 830 368" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)" />
+        <path d="M164 604 C246 510 326 442 410 396" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)" />
+        <path d="M778 604 C760 536 738 500 708 458" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)" />
+        <path d="M1076 604 C980 520 890 462 830 412" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)" />
+        <path d="M462 604 C492 538 532 500 574 458" fill="none" stroke="#94a3b8" stroke-width="2" stroke-dasharray="7 7" marker-end="url(#arrow)" />
       </svg>
     </div>
     <p class="text-sm leading-7 text-zinc-600 dark:text-zinc-300">
-      Solid blue arrows mean the transaction or domain creates or reads the stock ledger. The dashed line from foundation means all data remains scoped to organization, outlet, warehouse, and user.
+      Solid blue arrows represent workflows that create, read, or constrain the stock ledger. The dashed arrow means customer/bon data is optional until a sale requires customer context. Platform admin is deliberately separated from tenant operational records.
     </p>
   </section>
 
@@ -410,69 +578,60 @@ const buildOrder = [
     <h2 class="text-2xl font-bold text-zinc-950 dark:text-white">3. Entity Groups</h2>
 
     <div class="space-y-4">
-      <h3 class="text-xl font-bold text-zinc-950 dark:text-white">3.1 Foundation</h3>
+      <h3 class="text-xl font-bold text-zinc-950 dark:text-white">3.1 SaaS Platform Boundary</h3>
       <div class="grid gap-4 md:grid-cols-2">
-        {coreEntities.map((entity) => (
-          <EntityCard entity={entity} />
-        ))}
+        {platformEntities.map((entity) => <EntityCard entity={entity} />)}
       </div>
     </div>
 
     <div class="space-y-4">
-      <h3 class="text-xl font-bold text-zinc-950 dark:text-white">3.2 Master Data</h3>
+      <h3 class="text-xl font-bold text-zinc-950 dark:text-white">3.2 Tenant Foundation</h3>
       <div class="grid gap-4 md:grid-cols-2">
-        {masterEntities.map((entity) => (
-          <EntityCard entity={entity} />
-        ))}
+        {tenantFoundationEntities.map((entity) => <EntityCard entity={entity} />)}
       </div>
     </div>
 
     <div class="space-y-4">
-      <h3 class="text-xl font-bold text-zinc-950 dark:text-white">3.3 Inventory Ledger</h3>
+      <h3 class="text-xl font-bold text-zinc-950 dark:text-white">3.3 Master Data</h3>
       <div class="grid gap-4 md:grid-cols-2">
-        {inventoryEntities.map((entity) => (
-          <EntityCard entity={entity} />
-        ))}
+        {masterEntities.map((entity) => <EntityCard entity={entity} />)}
       </div>
     </div>
 
     <div class="space-y-4">
-      <h3 class="text-xl font-bold text-zinc-950 dark:text-white">3.4 Procurement</h3>
+      <h3 class="text-xl font-bold text-zinc-950 dark:text-white">3.4 Inventory Ledger</h3>
       <div class="grid gap-4 md:grid-cols-2">
-        {procurementEntities.map((entity) => (
-          <EntityCard entity={entity} />
-        ))}
+        {inventoryEntities.map((entity) => <EntityCard entity={entity} />)}
       </div>
     </div>
 
     <div class="space-y-4">
-      <h3 class="text-xl font-bold text-zinc-950 dark:text-white">3.5 POS, Shift & Return</h3>
+      <h3 class="text-xl font-bold text-zinc-950 dark:text-white">3.5 Procurement, SP & PBF Faktur</h3>
       <div class="grid gap-4 md:grid-cols-2">
-        {posEntities.map((entity) => (
-          <EntityCard entity={entity} />
-        ))}
+        {procurementEntities.map((entity) => <EntityCard entity={entity} />)}
       </div>
     </div>
 
     <div class="space-y-4">
-      <h3 class="text-xl font-bold text-zinc-950 dark:text-white">3.6 Customer Notes & Audit</h3>
+      <h3 class="text-xl font-bold text-zinc-950 dark:text-white">3.6 POS, Offline, Payments & Returns</h3>
       <div class="grid gap-4 md:grid-cols-2">
-        {customerOpsEntities.map((entity) => (
-          <EntityCard entity={entity} />
-        ))}
+        {posEntities.map((entity) => <EntityCard entity={entity} />)}
+      </div>
+    </div>
+
+    <div class="space-y-4">
+      <h3 class="text-xl font-bold text-zinc-950 dark:text-white">3.7 Compliance, Export & Audit</h3>
+      <div class="grid gap-4 md:grid-cols-2">
+        {complianceAndOpsEntities.map((entity) => <EntityCard entity={entity} />)}
       </div>
     </div>
   </section>
 
   <section class="space-y-6">
-    <h2 class="text-2xl font-bold text-zinc-950 dark:text-white">4. Ledger Rules</h2>
+    <h2 class="text-2xl font-bold text-zinc-950 dark:text-white">4. Domain Invariants</h2>
     <div class="rounded-3xl border border-blue-200 bg-blue-50 p-6 dark:border-blue-900/70 dark:bg-blue-950/30">
       <ul class="list-disc space-y-2 pl-5 text-sm leading-7 text-blue-950 dark:text-blue-100">
-        <li>Do not store primary stock in <code>products.stock</code>. If fast reads are needed, create a cache or materialized view from <code>stock_batches</code> and <code>stock_movements</code>.</li>
-        <li>All movement quantities are stored in the base unit. Selling and purchase units are display/input UX only.</li>
-        <li><code>stock_movements</code> is append-only. Stock corrections must use reversal or adjustment movements.</li>
-        <li>Every stock-affecting transaction must be idempotent through <code>reference_type</code> + <code>reference_id</code>.</li>
-        <li>Stock deduction chooses batches through the default FEFO policy, but the chosen batch remains explicitly recorded on transaction items.</li>
+        {invariants.map((item) => <li>{item}</li>)}
       </ul>
     </div>
   </section>
@@ -494,7 +653,11 @@ const buildOrder = [
   <section class="rounded-3xl border border-zinc-200 bg-zinc-50 p-6 dark:border-zinc-800 dark:bg-zinc-900/70">
     <h2 class="text-2xl font-bold text-zinc-950 dark:text-white">Design Take</h2>
     <p class="mt-3 leading-8 text-zinc-700 dark:text-zinc-300">
-      This ERD is intentionally heavier than a simple POS schema because pharmacy operations break quickly when the stock model is wrong. The key decisions: products do not store stock directly, unit conversion is a first-class model, and every stock-changing operational activity must end in an auditable ledger.
+      The ERD is intentionally heavier than a cashier-app schema because the PRD is ledger-first and SaaS-first. The critical separation is platform administration versus tenant pharmacy ownership. The critical pharmacy model is batch + movement ledger, with SP, PBF invoice fields, SIPNAP-ready reports, offline POS sync, bon receivables, and audit trails built around that ledger instead of bolted on later.
     </p>
+    <div class="mt-4 flex flex-wrap gap-3 text-sm font-semibold">
+      <a class="rounded-full bg-white px-4 py-2 text-blue-700 shadow-sm dark:bg-zinc-900 dark:text-blue-300" href="/prd/apotek-management/">View PRD</a>
+      <a class="rounded-full bg-white px-4 py-2 text-blue-700 shadow-sm dark:bg-zinc-900 dark:text-blue-300" href="/brd/apotek-management/">View BRD</a>
+    </div>
   </section>
 </BaseLayout>
