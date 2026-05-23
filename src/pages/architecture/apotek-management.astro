@@ -112,16 +112,66 @@ const posAppNotes = [
 ];
 
 const fefoRules = [
-  ["Allocation timing", "Batch allocation is resolved at payment post time, not at cart item add time. This avoids ghost reservations from abandoned carts and keeps the model simple for low-concurrency small pharmacy MVP."],
-  ["Eligible batch query", "Filter by product_id, warehouse_id, tenant_id, status = available, quantity > 0, and expiry_date > TODAY or expiry_date IS NULL. Order by expiry_date ASC NULLS LAST, created_at ASC."],
-  ["Greedy allocation", "Iterate eligible batches in order, take min(batch.available_qty, remaining_qty), append to allocation plan, and stop when remaining = 0."],
-  ["Insufficient stock", "If remaining > 0 after all eligible batches, raise InsufficientStockError and do not post partial sale."],
-  ["Transaction rule", "Execute allocation inside the DB transaction. Each batch allocation creates one stock_movement row, atomic with sale and payment records."],
-  ["Tie-breaking", "Same expiry date uses FIFO by created_at. No expiry date is NULLS LAST then created_at. Insufficient single batch splits automatically across the next eligible batch."],
-  ["Batch status eligibility", "available is eligible; quarantine, disposed, reserved, and expiry_date < TODAY are skipped. expiry_date = TODAY is configurable: warn or block."],
-  ["Offline POS allocation", "Dexie caches aggregated available_quantity per product only. No batch-level data is exposed offline. FEFO is resolved server-side at sync time; failed allocation returns ConflictError."],
-  ["Config flags", "stock_allocation_policy: fefo | fifo | manual (default fefo); expiry_today_behavior: warn | block (default warn); allow_negative_stock: false; manual allocation requires stock.override_allocation for Pharmacist/Admin, not Cashier."],
-  ["Error states", "InsufficientStockError, AllBatchesExpiredError, ExpiryTodayWarning, and NoBatchFoundError are explicit API states with cashier-safe messages."],
+  {
+    title: "Allocation timing",
+    items: ["Batch allocation is resolved at payment post time, not at cart item add time. This avoids ghost reservations from abandoned carts and keeps the model simple for low-concurrency small pharmacy MVP."],
+  },
+  {
+    title: "Algorithm",
+    items: [
+      "1. Query eligible batches filtered by product_id, warehouse_id, tenant_id, status = available, quantity > 0, and expiry_date > TODAY or expiry_date IS NULL. Ordered by expiry_date ASC NULLS LAST, created_at ASC.",
+      "2. Greedy allocation across batches: iterate batches in order, take min(batch.available_qty, remaining_qty), append to allocation plan, and stop when remaining = 0.",
+      "3. If remaining > 0 after all batches: raise InsufficientStockError and do not post partial sale.",
+      "4. Execute allocation plan inside DB transaction. Each batch allocation creates one stock_movement row. All movements are atomic with sale and payment records.",
+    ],
+  },
+  {
+    title: "Tie-breaking rules",
+    items: [
+      "Same expiry date: prefer older batch by created_at (FIFO within same expiry).",
+      "No expiry date: treated as NULLS LAST, ordered by created_at.",
+      "Insufficient single batch: split automatically across next eligible batch.",
+      "All batches insufficient: InsufficientStockError, sale blocked.",
+    ],
+  },
+  {
+    title: "Batch status eligibility",
+    items: [
+      "available → eligible.",
+      "quarantine → skip.",
+      "disposed → skip.",
+      "reserved → skip (reserved for future transfer flows).",
+      "expiry_date < TODAY → skip always.",
+      "expiry_date = TODAY → configurable: warn or block.",
+    ],
+  },
+  {
+    title: "Offline POS allocation",
+    items: [
+      "Dexie caches aggregated available_quantity per product only.",
+      "No batch-level data is exposed to the offline client.",
+      "FEFO allocation is always resolved server-side at sync time.",
+      "If server cannot allocate eligible batches at sync: ConflictError returned to cashier conflict queue.",
+    ],
+  },
+  {
+    title: "Config flags",
+    items: [
+      "stock_allocation_policy: fefo | fifo | manual (default: fefo).",
+      "expiry_today_behavior: warn | block (default: warn).",
+      "allow_negative_stock: false (default).",
+      "manual allocation requires permission: stock.override_allocation available to Pharmacist/Admin role only, not Cashier.",
+    ],
+  },
+  {
+    title: "Error states",
+    items: [
+      "InsufficientStockError: total eligible qty < requested, sale blocked, batch detail returned.",
+      "AllBatchesExpiredError: all batches expired or quarantined, sale blocked, expiry review suggested.",
+      "ExpiryTodayWarning: batch expiry = today, warning shown in cart, cashier may proceed if expiry_today_behavior = warn.",
+      "NoBatchFoundError: no batch exists for product in this warehouse, sale blocked, transfer or restock suggested.",
+    ],
+  },
 ];
 
 const testingStrategy = [
@@ -304,10 +354,12 @@ def is_valid_id(value: str) -> bool:
     <article class="rounded-3xl border border-blue-200 bg-blue-50 p-6 dark:border-blue-900/70 dark:bg-blue-950/30">
       <h3 class="text-xl font-bold text-blue-950 dark:text-blue-100">FEFO batch allocation</h3>
       <div class="mt-5 grid gap-4 md:grid-cols-2">
-        {fefoRules.map(([title, detail]) => (
+        {fefoRules.map((rule) => (
           <div class="rounded-2xl border border-blue-200 bg-white p-4 dark:border-blue-800 dark:bg-zinc-950/60">
-            <h4 class="font-bold text-blue-950 dark:text-blue-100">{title}</h4>
-            <p class="mt-2 text-sm leading-6 text-zinc-700 dark:text-zinc-300">{detail}</p>
+            <h4 class="font-bold text-blue-950 dark:text-blue-100">{rule.title}</h4>
+            <ul class="mt-2 list-disc space-y-2 pl-5 text-sm leading-6 text-zinc-700 dark:text-zinc-300">
+              {rule.items.map((item) => <li>{item}</li>)}
+            </ul>
           </div>
         ))}
       </div>
