@@ -11,8 +11,8 @@ const phases = [
     objective: "Create the private monorepo, FastAPI backend skeleton, local Docker environment, CI gates, and deploy path to apoth.arypratama.com.",
     tasks: [
       ["1.1", "Create private GitHub monorepo", "Create private repo for apoth.tech with backend/, frontend/, infra/, scripts/, docs/, README, .gitignore, and branch protection expectation."],
-      ["1.2", "Create backend Python project", "Initialize backend/ with pyproject.toml, Python 3.12+, FastAPI, uvicorn, pydantic v2, pydantic-settings, SQLAlchemy 2.0, Alembic, psycopg, loguru, python-jose or PyJWT, passlib, python-ulid, pytest, ruff, and pyright."],
-      ["1.3", "Create FastAPI app shell", "Create app/main.py, app/api/v1/router.py, /health endpoint, /version endpoint, and structured JSON error response format."],
+      ["1.2", "Create backend Python project", "Initialize backend/ with pyproject.toml, Python 3.12+, FastAPI, uvicorn, pydantic v2, pydantic-settings, SQLAlchemy 2.0, Alembic, psycopg, loguru, python-jose or PyJWT, passlib, python-ulid, scalar-fastapi, pytest, ruff, and pyright."],
+      ["1.3", "Create FastAPI app shell", "Create app/main.py, app/api/v1/router.py, /health endpoint, /version endpoint, Scalar API docs at /docs, /openapi.json schema, and structured JSON error response format."],
       ["1.4", "Create config module", "Create app/core/config.py using pydantic-settings for DATABASE_URL, APP_ENV, APP_URL, CORS_ORIGINS, SECRET_KEY, and LOG_LEVEL."],
       ["1.5", "Create database module", "Create app/core/database.py with SQLAlchemy async engine/session factory, pool_size=10, max_overflow=20, pool_pre_ping=True, and dependency for request-scoped DB sessions."],
       ["1.6", "Create ULID utility", "Create app/core/id.py with new_id(), is_valid_id(), and reusable SQLAlchemy default callable using python-ulid. Store IDs as CHAR(26)."],
@@ -23,7 +23,7 @@ const phases = [
       ["1.11", "Create CI workflow", "GitHub Actions runs backend install, ruff, pyright moderate, pytest with coverage minimum 70%, tenant isolation tests, and Alembic migration check."],
       ["1.12", "Create review deploy workflow skeleton", "Add GitHub Actions job outline for SSH deploy to VPS and target host apoth.arypratama.com; leave secrets as required setup."],
     ],
-    qa: ["Fresh clone can run local backend with one documented command.", "GET /health returns 200 locally and in Docker.", "Alembic can upgrade an empty database.", "CI fails if lint/test/typecheck fails or coverage is below 70%."],
+    qa: ["Fresh clone can run local backend with one documented command.", "GET /health returns 200 locally and in Docker.", "Scalar API docs load at /docs and point to /openapi.json.", "Alembic can upgrade an empty database.", "CI fails if lint/test/typecheck fails or coverage is below 70%."],
     security: ["No secrets committed; .env.example only.", "CORS is not wildcard in non-local env.", "DATABASE_URL never logged.", "Dependency audit baseline captured.", "Redis and Celery services do not expose public ports in production compose."],
   },
   {

@@ -5,7 +5,7 @@ const title = "Architecture — apoth.tech";
 const description = "Backend-first architecture for apoth.tech, a FastAPI and PostgreSQL pharmacy SaaS with inventory-ledger-first design, admin/tenant/POS zones, and deployment to apoth.arypratama.com.";
 
 const stack = [
-  { group: "Backend", items: ["FastAPI", "Python 3.12+", "Pydantic v2", "SQLAlchemy 2.0", "Alembic", "psycopg 3", "Loguru", "python-jose or PyJWT", "passlib", "python-ulid", "pytest", "ruff", "pyright in moderate mode"] },
+  { group: "Backend", items: ["FastAPI", "Python 3.12+", "Pydantic v2", "SQLAlchemy 2.0", "Alembic", "psycopg 3", "Loguru", "python-jose or PyJWT", "passlib", "python-ulid", "scalar-fastapi", "pytest", "ruff", "pyright in moderate mode"] },
   { group: "Database", items: ["PostgreSQL in Docker", "tenant_id scoped tables", "append-only stock_movements", "ULID stored as CHAR(26)", "transactional stock posting"] },
   { group: "Frontend", items: ["Vite", "React", "TypeScript", "Bun", "Tailwind", "shadcn/ui or Radix primitives", "TanStack Query", "Zustand", "React Hook Form", "Zod", "Dexie for POS offline cache", "Playwright"] },
   { group: "DevOps", items: ["Private GitHub monorepo", "Docker Compose local", "GitHub Actions CI/CD", "SSH deploy to VPS", "Redis for Celery broker + result backend", "Celery worker as separate Docker service", "review deployment at apoth.arypratama.com", "later production brand apoth.tech"] },
@@ -13,6 +13,7 @@ const stack = [
 
 const backendLayers = [
   ["API routes", "Thin FastAPI controllers. Parse request, call service, return schema."],
+  ["API docs", "Scalar renders the developer-facing API reference from FastAPI OpenAPI; canonical schema stays at /openapi.json."],
   ["Schemas", "Pydantic request/response contracts. No database logic here."],
   ["Services", "Business rules: tenant isolation, RBAC, stock posting, PO receipt, POS sale posting."],
   ["Repositories", "Database query layer. Every tenant-owned query filters tenant_id."],
@@ -253,6 +254,16 @@ const testingStrategy = [
         </div>
       ))}
     </div>
+    <div class="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+      <h3 class="font-bold text-zinc-950 dark:text-white">API documentation</h3>
+      <ul class="mt-3 list-disc space-y-2 pl-5 text-sm leading-6 text-zinc-700 dark:text-zinc-300">
+        <li>Use Scalar as the API documentation UI for local, staging, and review environments.</li>
+        <li>FastAPI remains the OpenAPI source of truth through <code>/openapi.json</code>.</li>
+        <li>Expose Scalar at <code>/docs</code> and reserve <code>/redoc</code> for disabled or fallback documentation only.</li>
+        <li>Auth-protected endpoints must document cookie-based JWT behavior and tenant context assumptions.</li>
+      </ul>
+    </div>
+
     <div class="rounded-2xl border border-zinc-200 bg-zinc-50 p-5 dark:border-zinc-800 dark:bg-zinc-900/70">
       <h3 class="font-bold text-zinc-950 dark:text-white">ULID utility</h3>
       <pre class="mt-3 overflow-x-auto rounded-xl bg-zinc-950 p-4 text-sm text-zinc-100"><code>{`# backend/app/core/id.py
