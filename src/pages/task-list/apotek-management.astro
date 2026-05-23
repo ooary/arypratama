@@ -210,6 +210,19 @@ const globalGates = [
   "Frontend work must not start serious forms until backend API response and error conventions are stable.",
 ];
 
+
+const taskStatusById: Record<string, "not_started" | "in_progress" | "done"> = {
+  "1.1": "done",
+};
+
+const statusMeta = {
+  not_started: { label: "Not started", className: "border-zinc-200 bg-zinc-100 text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300" },
+  in_progress: { label: "In progress", className: "border-amber-200 bg-amber-100 text-amber-800 dark:border-amber-800 dark:bg-amber-950/50 dark:text-amber-200" },
+  done: { label: "Done", className: "border-emerald-200 bg-emerald-100 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-200" },
+};
+
+const getTaskStatus = (id: string) => taskStatusById[id] ?? "not_started";
+
 const links = [["Architecture", "/architecture/apotek-management/"], ["PRD", "/prd/apotek-management/"], ["ERD", "/erd/apotek-management/"], ["BRD", "/brd/apotek-management/"]];
 ---
 
@@ -220,6 +233,9 @@ const links = [["Architecture", "/architecture/apotek-management/"], ["PRD", "/p
     <p class="max-w-4xl text-lg leading-8 text-zinc-600 dark:text-zinc-300">Granular coding plan for apoth.tech. This plan keeps the PRD/ERD direction but cuts MVP complexity: backend first, one default outlet shown as Apotek, one default warehouse, ledger-first inventory, POS after ledger, offline sync after online POS.</p>
     <div class="flex flex-wrap gap-3 text-sm font-semibold">
       {links.map(([label, href]) => <a class="rounded-full bg-white px-4 py-2 text-blue-700 shadow-sm dark:bg-zinc-900 dark:text-blue-300" href={href}>{label}</a>)}
+    </div>
+    <div class="flex flex-wrap gap-2 text-xs font-bold">
+      {Object.values(statusMeta).map((meta) => <span class={`rounded-full border px-3 py-1 ${meta.className}`}>{meta.label}</span>)}
     </div>
   </section>
 
@@ -243,15 +259,20 @@ const links = [["Architecture", "/architecture/apotek-management/"], ["PRD", "/p
         <p class="mt-2 leading-7 text-zinc-700 dark:text-zinc-300">{phase.objective}</p>
 
         <div class="mt-6 space-y-3">
-          {phase.tasks.map(([id, name, detail]) => (
-            <div class="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-950/60">
-              <div class="flex flex-wrap items-center gap-2">
-                <span class="rounded-full bg-zinc-950 px-2.5 py-1 text-xs font-bold text-white dark:bg-zinc-100 dark:text-zinc-950">{id}</span>
-                <h3 class="font-semibold text-zinc-950 dark:text-white">{name}</h3>
+          {phase.tasks.map(([id, name, detail]) => {
+            const status = getTaskStatus(id);
+            const meta = statusMeta[status];
+            return (
+              <div class="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-950/60">
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="rounded-full bg-zinc-950 px-2.5 py-1 text-xs font-bold text-white dark:bg-zinc-100 dark:text-zinc-950">{id}</span>
+                  <span class={`rounded-full border px-2.5 py-1 text-xs font-bold ${meta.className}`}>{meta.label}</span>
+                  <h3 class="font-semibold text-zinc-950 dark:text-white">{name}</h3>
+                </div>
+                <p class="mt-2 text-sm leading-6 text-zinc-700 dark:text-zinc-300">{detail}</p>
               </div>
-              <p class="mt-2 text-sm leading-6 text-zinc-700 dark:text-zinc-300">{detail}</p>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <div class="mt-6 grid gap-4 md:grid-cols-2">
