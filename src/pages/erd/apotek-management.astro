@@ -2,19 +2,19 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import EntityCard from "../../components/EntityCard.astro";
 
-const title = "ERD — Core Managed Pharmacy";
-const description = "PRD-aligned Entity Relationship Diagram for Core Managed Pharmacy: real SaaS tenancy, platform admin separation, pharmacy master data, procurement, SP, batch ledger, POS, offline sync, compliance, exports, and audit.";
+const title = "ERD — apoth.tech";
+const description = "PRD-aligned Entity Relationship Diagram for apoth.tech: real SaaS tenancy, platform admin separation, pharmacy master data, procurement, SP, batch ledger, POS, offline sync, compliance, exports, and audit.";
 
 const platformEntities = [
   {
     name: "platform_admin_users",
     tag: "SaaS operator",
-    fields: ["id PK", "name", "email UNIQUE", "password_hash", "mfa_enabled", "status", "last_login_at", "created_at"],
+    fields: ["id PK CHAR(26) ULID", "name", "email UNIQUE", "password_hash", "mfa_enabled", "mfa_secret_encrypted", "status", "last_login_at", "created_at"],
   },
   {
     name: "platform_roles",
     tag: "Platform RBAC",
-    fields: ["id PK", "name", "permission_codes jsonb", "status"],
+    fields: ["id PK CHAR(26) ULID", "name", "permission_codes jsonb", "status"],
   },
   {
     name: "platform_user_roles",
@@ -24,32 +24,37 @@ const platformEntities = [
   {
     name: "tenants",
     tag: "Tenant / pharmacy business",
-    fields: ["id PK", "legal_name", "display_name", "billing_email", "phone", "address", "timezone", "currency", "billing_status", "suspension_status", "created_at"],
+    fields: ["id PK CHAR(26) ULID", "legal_name", "display_name", "billing_email", "phone", "address", "timezone", "currency", "billing_status", "suspension_status", "created_at"],
   },
   {
     name: "plans",
     tag: "SaaS plan",
-    fields: ["id PK", "code", "name", "max_outlets", "max_users", "max_products", "max_offline_devices", "export_limit_per_day", "status"],
+    fields: ["id PK CHAR(26) ULID", "code", "name", "max_outlets", "max_users", "max_products", "max_offline_devices", "export_limit_per_day", "status"],
   },
   {
     name: "tenant_subscriptions",
     tag: "Billing state",
-    fields: ["id PK", "tenant_id FK", "plan_id FK", "status", "trial_ends_at", "current_period_start", "current_period_end", "past_due_since", "canceled_at"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "plan_id FK", "status", "trial_ends_at", "current_period_start", "current_period_end", "past_due_since", "canceled_at"],
   },
   {
     name: "tenant_config_flags",
     tag: "Config over complexity",
-    fields: ["id PK", "tenant_id FK", "config_key", "config_value jsonb", "source", "updated_by_user_id FK", "updated_by_platform_admin_id FK", "updated_at"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "config_key", "config_value jsonb", "source", "updated_by_user_id FK", "updated_by_platform_admin_id FK", "updated_at"],
+  },
+  {
+    name: "auth_sessions",
+    tag: "JWT refresh rotation",
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK nullable", "outlet_id FK nullable", "user_id", "realm", "role", "refresh_token_hash", "expires_at", "rotated_from_session_id FK nullable", "revoked_at", "created_at", "last_used_at"],
   },
   {
     name: "support_access_sessions",
     tag: "Audited support access",
-    fields: ["id PK", "tenant_id FK", "approved_by_user_id FK", "platform_admin_user_id FK", "reason", "starts_at", "expires_at", "status", "revoked_at"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "approved_by_user_id FK", "platform_admin_user_id FK", "reason", "starts_at", "expires_at", "status", "revoked_at"],
   },
   {
     name: "platform_audit_logs",
     tag: "Platform audit",
-    fields: ["id PK", "platform_admin_user_id FK", "target_tenant_id FK", "action", "entity_type", "entity_id", "before_json", "after_json", "reason", "ip_address", "created_at"],
+    fields: ["id PK CHAR(26) ULID", "platform_admin_user_id FK", "target_tenant_id FK", "action", "entity_type", "entity_id", "before_json", "after_json", "reason", "ip_address", "created_at"],
   },
 ];
 
@@ -57,37 +62,37 @@ const tenantFoundationEntities = [
   {
     name: "outlets",
     tag: "Outlet",
-    fields: ["id PK", "tenant_id FK", "name", "address", "phone", "timezone", "is_default", "status"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "name", "address", "phone", "timezone", "is_default", "status"],
   },
   {
     name: "warehouses",
     tag: "Stock location",
-    fields: ["id PK", "tenant_id FK", "outlet_id FK", "name", "warehouse_type", "is_default", "status"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "outlet_id FK", "name", "warehouse_type", "is_default", "status"],
   },
   {
     name: "pharmacy_profiles",
     tag: "Licensed profile",
-    fields: ["id PK", "tenant_id FK", "outlet_id FK", "pharmacy_name", "license_no", "pharmacist_in_charge", "sipa_no", "sia_no", "receipt_header", "receipt_footer"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "outlet_id FK", "pharmacy_name", "license_no", "pharmacist_in_charge", "sipa_no", "sia_no", "receipt_header", "receipt_footer"],
   },
   {
     name: "document_number_series",
     tag: "Document numbering",
-    fields: ["id PK", "tenant_id FK", "outlet_id FK", "document_type", "prefix", "next_number", "reset_policy", "status"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "outlet_id FK", "document_type", "prefix", "next_number", "reset_policy", "status"],
   },
   {
     name: "tenant_users",
     tag: "Tenant actor",
-    fields: ["id PK", "tenant_id FK", "name", "email", "phone", "password_hash", "mfa_enabled", "status", "last_login_at"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "name", "email", "phone", "password_hash", "mfa_enabled", "mfa_secret_encrypted", "status", "last_login_at"],
   },
   {
     name: "tenant_roles",
     tag: "Tenant RBAC",
-    fields: ["id PK", "tenant_id FK nullable", "name", "role_type", "scope", "is_system_role", "status"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK nullable", "name", "role_type", "scope", "is_system_role", "status"],
   },
   {
     name: "permissions",
     tag: "Permission catalog",
-    fields: ["id PK", "code UNIQUE", "module", "name", "description"],
+    fields: ["id PK CHAR(26) ULID", "code UNIQUE", "module", "name", "description"],
   },
   {
     name: "tenant_user_roles",
@@ -110,72 +115,72 @@ const masterEntities = [
   {
     name: "products",
     tag: "Product / drug",
-    fields: ["id PK", "tenant_id FK", "category_id FK", "drug_class_id FK", "manufacturer_id FK", "base_unit_id FK", "sku", "barcode", "name", "generic_name", "composition", "dosage_form", "strength", "is_narcotic", "is_psychotropic", "is_precursor", "is_obat_keras", "requires_pharmacist_gate", "min_stock_base", "status"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "category_id FK", "drug_class_id FK", "manufacturer_id FK", "base_unit_id FK", "sku", "barcode", "name", "generic_name", "composition", "dosage_form", "strength", "is_narcotic", "is_psychotropic", "is_precursor", "is_obat_keras", "requires_pharmacist_gate", "min_stock_base", "status"],
   },
   {
     name: "product_categories",
     tag: "Master reference",
-    fields: ["id PK", "tenant_id FK", "name", "parent_id FK", "status"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "name", "parent_id FK", "status"],
   },
   {
     name: "drug_classes",
     tag: "Regulatory class",
-    fields: ["id PK", "tenant_id FK", "code", "name", "requires_sp_type", "requires_sipnap_reporting", "status"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "code", "name", "requires_sp_type", "requires_sipnap_reporting", "status"],
   },
   {
     name: "manufacturers",
     tag: "Manufacturer",
-    fields: ["id PK", "tenant_id FK", "name", "country", "status"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "name", "country", "status"],
   },
   {
     name: "product_units",
     tag: "Unit",
-    fields: ["id PK", "tenant_id FK", "product_id FK", "unit_name", "unit_code", "is_base_unit", "sort_order"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "product_id FK", "unit_name", "unit_code", "is_base_unit", "sort_order"],
   },
   {
     name: "product_unit_conversions",
     tag: "Conversion",
-    fields: ["id PK", "tenant_id FK", "product_id FK", "from_unit_id FK", "to_unit_id FK", "multiplier_to_base", "is_active", "locked_after_movement"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "product_id FK", "from_unit_id FK", "to_unit_id FK", "multiplier_to_base", "is_active", "locked_after_movement"],
   },
   {
     name: "product_prices",
     tag: "Selling price",
-    fields: ["id PK", "tenant_id FK", "product_id FK", "unit_id FK", "price_type", "selling_price", "margin_target", "effective_from", "effective_to", "created_by FK"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "product_id FK", "unit_id FK", "price_type", "selling_price", "margin_target", "effective_from", "effective_to", "created_by FK"],
   },
   {
     name: "price_change_logs",
     tag: "Price audit",
-    fields: ["id PK", "tenant_id FK", "product_id FK", "unit_id FK", "old_price", "new_price", "reason", "changed_by FK", "changed_at"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "product_id FK", "unit_id FK", "old_price", "new_price", "reason", "changed_by FK", "changed_at"],
   },
   {
     name: "suppliers",
     tag: "PBF / supplier",
-    fields: ["id PK", "tenant_id FK", "name", "legal_name", "license_no", "tax_id", "address", "contact_name", "phone", "email", "payment_terms_days", "status"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "name", "legal_name", "license_no", "tax_id", "address", "contact_name", "phone", "email", "payment_terms_days", "status"],
   },
   {
     name: "supplier_products",
     tag: "Multi-supplier map",
-    fields: ["id PK", "tenant_id FK", "supplier_id FK", "product_id FK", "supplier_sku", "last_purchase_price", "lead_time_days", "is_preferred", "status"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "supplier_id FK", "product_id FK", "supplier_sku", "last_purchase_price", "lead_time_days", "is_preferred", "status"],
   },
   {
     name: "product_locations",
     tag: "Rack/bin",
-    fields: ["id PK", "tenant_id FK", "product_id FK", "warehouse_id FK", "rack_code", "bin_code"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "product_id FK", "warehouse_id FK", "rack_code", "bin_code"],
   },
   {
     name: "payment_methods",
     tag: "Tenant payment config",
-    fields: ["id PK", "tenant_id FK", "code", "name", "method_type", "is_cash", "is_active", "sort_order"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "code", "name", "method_type", "is_cash", "is_active", "sort_order"],
   },
   {
     name: "customer_groups",
     tag: "Customer segment",
-    fields: ["id PK", "tenant_id FK", "name", "pricing_tier", "discount_rule_json", "status"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "name", "pricing_tier", "discount_rule_json", "status"],
   },
   {
     name: "customers",
     tag: "Optional customer",
-    fields: ["id PK", "tenant_id FK", "customer_group_id FK", "name", "phone", "address", "tax_info", "credit_limit", "status"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "customer_group_id FK", "name", "phone", "address", "tax_info", "credit_limit", "status"],
   },
 ];
 
@@ -183,37 +188,37 @@ const inventoryEntities = [
   {
     name: "stock_batches",
     tag: "Physical stock source",
-    fields: ["id PK", "tenant_id FK", "outlet_id FK", "warehouse_id FK", "product_id FK", "batch_no", "expiry_date", "qty_available_base", "qty_quarantined_base", "hpp_per_base", "source_type", "source_id", "status"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "outlet_id FK", "warehouse_id FK", "product_id FK", "batch_no", "expiry_date", "qty_available_base", "qty_quarantined_base", "hpp_per_base", "source_type", "source_id", "status"],
   },
   {
     name: "stock_movements",
     tag: "Append-only ledger",
-    fields: ["id PK", "tenant_id FK", "movement_no", "outlet_id FK", "warehouse_id FK", "product_id FK", "batch_id FK", "movement_type", "direction", "qty_base", "balance_after_base", "unit_id FK", "display_qty", "reference_type", "reference_id", "reason", "created_by FK", "created_at"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "movement_no", "outlet_id FK", "warehouse_id FK", "product_id FK", "batch_id FK", "movement_type", "direction", "qty_base", "balance_after_base", "unit_id FK", "display_qty", "reference_type", "reference_id", "reason", "created_by FK", "created_at"],
   },
   {
     name: "stock_take_sessions",
     tag: "Stock take header",
-    fields: ["id PK", "tenant_id FK", "outlet_id FK", "warehouse_id FK", "stock_take_no", "snapshot_at", "status", "started_by FK", "approved_by FK", "posted_by FK", "posted_at"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "outlet_id FK", "warehouse_id FK", "stock_take_no", "snapshot_at", "status", "started_by FK", "approved_by FK", "posted_by FK", "posted_at"],
   },
   {
     name: "stock_take_items",
     tag: "Stock take detail",
-    fields: ["id PK", "tenant_id FK", "stock_take_session_id FK", "product_id FK", "batch_id FK", "unit_id FK", "system_qty_base", "physical_qty_base", "difference_qty_base", "reason"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "stock_take_session_id FK", "product_id FK", "batch_id FK", "unit_id FK", "system_qty_base", "physical_qty_base", "difference_qty_base", "reason"],
   },
   {
     name: "stock_transfers",
     tag: "Transfer header",
-    fields: ["id PK", "tenant_id FK", "transfer_no", "from_outlet_id FK", "to_outlet_id FK", "from_warehouse_id FK", "to_warehouse_id FK", "status", "created_by FK", "sent_at", "received_at"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "transfer_no", "from_outlet_id FK", "to_outlet_id FK", "from_warehouse_id FK", "to_warehouse_id FK", "status", "created_by FK", "sent_at", "received_at"],
   },
   {
     name: "stock_transfer_items",
     tag: "Transfer detail",
-    fields: ["id PK", "tenant_id FK", "stock_transfer_id FK", "product_id FK", "batch_id FK", "unit_id FK", "qty", "qty_base", "received_qty_base"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "stock_transfer_id FK", "product_id FK", "batch_id FK", "unit_id FK", "qty", "qty_base", "received_qty_base"],
   },
   {
     name: "expiry_actions",
     tag: "Quarantine/disposal",
-    fields: ["id PK", "tenant_id FK", "batch_id FK", "action_type", "qty_base", "loss_amount", "reason", "approved_by FK", "attachment_id FK", "posted_movement_id FK", "created_by FK", "created_at"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "batch_id FK", "action_type", "qty_base", "loss_amount", "reason", "approved_by FK", "attachment_id FK", "posted_movement_id FK", "created_by FK", "created_at"],
   },
 ];
 
@@ -221,57 +226,57 @@ const procurementEntities = [
   {
     name: "defecta_items",
     tag: "Procurement queue",
-    fields: ["id PK", "tenant_id FK", "outlet_id FK", "product_id FK", "suggested_supplier_id FK", "source", "recommended_qty_base", "pending_po_qty_base", "status", "reviewed_by FK", "converted_po_item_id FK"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "outlet_id FK", "product_id FK", "suggested_supplier_id FK", "source", "recommended_qty_base", "pending_po_qty_base", "status", "reviewed_by FK", "converted_po_item_id FK"],
   },
   {
     name: "purchase_orders",
     tag: "PO header",
-    fields: ["id PK", "tenant_id FK", "po_no", "outlet_id FK", "supplier_id FK", "status", "order_date", "expected_date", "approved_by FK", "sent_at", "created_by FK"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "po_no", "outlet_id FK", "supplier_id FK", "status", "order_date", "expected_date", "approved_by FK", "sent_at", "created_by FK"],
   },
   {
     name: "purchase_order_items",
     tag: "PO detail",
-    fields: ["id PK", "tenant_id FK", "purchase_order_id FK", "defecta_item_id FK", "product_id FK", "unit_id FK", "qty_ordered", "qty_ordered_base", "estimated_price", "qty_received_base", "line_status"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "purchase_order_id FK", "defecta_item_id FK", "product_id FK", "unit_id FK", "qty_ordered", "qty_ordered_base", "estimated_price", "qty_received_base", "line_status"],
   },
   {
     name: "surat_pesanan",
     tag: "SP document",
-    fields: ["id PK", "tenant_id FK", "purchase_order_id FK", "sp_no", "sp_type", "supplier_id FK", "pharmacy_profile_id FK", "pharmacist_user_id FK", "document_date", "status", "approved_by FK", "signed_at"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "purchase_order_id FK", "sp_no", "sp_type", "supplier_id FK", "pharmacy_profile_id FK", "pharmacist_user_id FK", "document_date", "status", "approved_by FK", "signed_at"],
   },
   {
     name: "surat_pesanan_items",
     tag: "SP detail",
-    fields: ["id PK", "tenant_id FK", "surat_pesanan_id FK", "purchase_order_item_id FK", "product_id FK", "unit_id FK", "qty", "qty_base"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "surat_pesanan_id FK", "purchase_order_item_id FK", "product_id FK", "unit_id FK", "qty", "qty_base"],
   },
   {
     name: "goods_receipts",
     tag: "Goods receipt",
-    fields: ["id PK", "tenant_id FK", "receipt_no", "outlet_id FK", "warehouse_id FK", "supplier_id FK", "purchase_order_id FK", "surat_pesanan_id FK", "pbf_invoice_no", "invoice_date", "due_date", "received_at", "status", "received_by FK"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "receipt_no", "outlet_id FK", "warehouse_id FK", "supplier_id FK", "purchase_order_id FK", "surat_pesanan_id FK", "pbf_invoice_no", "invoice_date", "due_date", "received_at", "status", "received_by FK"],
   },
   {
     name: "goods_receipt_items",
     tag: "Receipt detail",
-    fields: ["id PK", "tenant_id FK", "goods_receipt_id FK", "purchase_order_item_id FK", "product_id FK", "unit_id FK", "qty_received", "qty_received_base", "purchase_price", "discount_amount", "tax_amount", "batch_no", "expiry_date", "stock_batch_id FK"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "goods_receipt_id FK", "purchase_order_item_id FK", "product_id FK", "unit_id FK", "qty_received", "qty_received_base", "purchase_price", "discount_amount", "tax_amount", "batch_no", "expiry_date", "stock_batch_id FK"],
   },
   {
     name: "supplier_invoices",
     tag: "Supplier payable",
-    fields: ["id PK", "tenant_id FK", "supplier_id FK", "goods_receipt_id FK", "invoice_no", "invoice_date", "due_date", "subtotal", "discount_total", "tax_total", "total_amount", "paid_amount", "status"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "supplier_id FK", "goods_receipt_id FK", "invoice_no", "invoice_date", "due_date", "subtotal", "discount_total", "tax_total", "total_amount", "paid_amount", "status"],
   },
   {
     name: "supplier_payments",
     tag: "Pay payable",
-    fields: ["id PK", "tenant_id FK", "supplier_invoice_id FK", "payment_date", "amount", "payment_method_id FK", "reference_no", "created_by FK"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "supplier_invoice_id FK", "payment_date", "amount", "payment_method_id FK", "reference_no", "created_by FK"],
   },
   {
     name: "purchase_returns",
     tag: "Supplier return",
-    fields: ["id PK", "tenant_id FK", "return_no", "supplier_id FK", "outlet_id FK", "goods_receipt_id FK", "reason", "status", "created_by FK", "posted_at"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "return_no", "supplier_id FK", "outlet_id FK", "goods_receipt_id FK", "reason", "status", "created_by FK", "posted_at"],
   },
   {
     name: "purchase_return_items",
     tag: "Supplier return detail",
-    fields: ["id PK", "tenant_id FK", "purchase_return_id FK", "product_id FK", "batch_id FK", "unit_id FK", "qty", "qty_base", "refund_amount"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "purchase_return_id FK", "product_id FK", "batch_id FK", "unit_id FK", "qty", "qty_base", "refund_amount"],
   },
 ];
 
@@ -279,57 +284,57 @@ const posEntities = [
   {
     name: "pos_devices",
     tag: "Offline-capable device",
-    fields: ["id PK", "tenant_id FK", "outlet_id FK", "device_name", "device_key_hash", "last_sync_at", "offline_enabled", "status"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "outlet_id FK", "device_name", "device_key_hash", "last_sync_at", "offline_enabled", "status"],
   },
   {
     name: "shifts",
     tag: "Cashier shift",
-    fields: ["id PK", "tenant_id FK", "outlet_id FK", "cashier_id FK", "pos_device_id FK", "opened_at", "opening_cash", "closed_at", "expected_cash", "actual_cash", "cash_variance", "status"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "outlet_id FK", "cashier_id FK", "pos_device_id FK", "opened_at", "opening_cash", "closed_at", "expected_cash", "actual_cash", "cash_variance", "status"],
   },
   {
     name: "sales",
     tag: "POS transaction",
-    fields: ["id PK", "tenant_id FK", "sale_no", "offline_local_id", "outlet_id FK", "shift_id FK", "cashier_id FK", "customer_id FK", "subtotal", "item_discount_total", "transaction_discount_total", "tax_total", "grand_total", "paid_total", "receivable_total", "status", "posted_at"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "sale_no", "offline_local_id", "idempotency_key", "outlet_id FK", "shift_id FK", "cashier_id FK", "customer_id FK", "subtotal", "item_discount_total", "transaction_discount_total", "tax_total", "grand_total", "paid_total", "receivable_total", "status", "posted_at"],
   },
   {
     name: "sale_items",
     tag: "Sale item",
-    fields: ["id PK", "tenant_id FK", "sale_id FK", "product_id FK", "unit_id FK", "qty", "qty_base", "unit_price", "item_discount_amount", "requires_gate", "gate_approved_by FK", "prescription_note", "line_total"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "sale_id FK", "product_id FK", "unit_id FK", "qty", "qty_base", "unit_price", "item_discount_amount", "requires_gate", "gate_approved_by FK", "prescription_note", "line_total"],
   },
   {
     name: "sale_item_batch_allocations",
     tag: "FEFO allocation",
-    fields: ["id PK", "tenant_id FK", "sale_item_id FK", "batch_id FK", "qty_base", "hpp_per_base", "stock_movement_id FK"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "sale_item_id FK", "batch_id FK", "qty_base", "hpp_per_base", "stock_movement_id FK"],
   },
   {
     name: "sale_payments",
     tag: "Mixed payment",
-    fields: ["id PK", "tenant_id FK", "sale_id FK", "payment_method_id FK", "amount", "reference_no", "paid_at", "created_by FK"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "sale_id FK", "payment_method_id FK", "amount", "reference_no", "paid_at", "created_by FK"],
   },
   {
     name: "customer_receivables",
     tag: "Bon / hutang",
-    fields: ["id PK", "tenant_id FK", "customer_id FK", "sale_id FK", "original_amount", "paid_amount", "outstanding_amount", "due_date", "status"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "customer_id FK", "sale_id FK", "original_amount", "paid_amount", "outstanding_amount", "due_date", "status"],
   },
   {
     name: "receivable_payments",
     tag: "Bon repayment",
-    fields: ["id PK", "tenant_id FK", "customer_receivable_id FK", "payment_method_id FK", "amount", "reference_no", "paid_at", "created_by FK"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "customer_receivable_id FK", "payment_method_id FK", "amount", "reference_no", "paid_at", "created_by FK"],
   },
   {
     name: "sale_returns",
     tag: "Sale return",
-    fields: ["id PK", "tenant_id FK", "return_no", "sale_id FK", "outlet_id FK", "reason", "refund_amount", "status", "created_by FK", "posted_at"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "return_no", "sale_id FK", "outlet_id FK", "reason", "refund_amount", "status", "created_by FK", "posted_at"],
   },
   {
     name: "sale_return_items",
     tag: "Sale return detail",
-    fields: ["id PK", "tenant_id FK", "sale_return_id FK", "sale_item_id FK", "product_id FK", "batch_id FK", "unit_id FK", "qty", "qty_base", "stock_disposition"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "sale_return_id FK", "sale_item_id FK", "product_id FK", "batch_id FK", "unit_id FK", "qty", "qty_base", "stock_disposition"],
   },
   {
     name: "offline_sync_queue",
     tag: "Offline POS sync",
-    fields: ["id PK", "tenant_id FK", "pos_device_id FK", "local_event_id", "event_type", "payload_json", "idempotency_key", "sync_status", "conflict_reason", "server_entity_id", "created_offline_at", "synced_at"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "outlet_id FK", "pos_device_id FK", "local_event_id", "event_type", "payload_json", "idempotency_key", "sync_status", "conflict_reason", "conflict_payload_json", "server_entity_id", "created_offline_at", "synced_at"],
   },
 ];
 
@@ -337,27 +342,27 @@ const complianceAndOpsEntities = [
   {
     name: "regulated_monthly_reports",
     tag: "SIPNAP-ready export",
-    fields: ["id PK", "tenant_id FK", "outlet_id FK", "report_month", "report_type", "status", "generated_by FK", "generated_at", "export_file_id FK"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "outlet_id FK", "report_month", "report_type", "status", "generated_by FK", "generated_at", "export_file_id FK"],
   },
   {
     name: "regulated_report_lines",
     tag: "Regulated item summary",
-    fields: ["id PK", "tenant_id FK", "regulated_monthly_report_id FK", "product_id FK", "opening_balance_base", "incoming_base", "outgoing_base", "adjustment_base", "closing_balance_base"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "regulated_monthly_report_id FK", "product_id FK", "opening_balance_base", "incoming_base", "outgoing_base", "adjustment_base", "closing_balance_base"],
   },
   {
     name: "attachments",
     tag: "Invoice / disposal file",
-    fields: ["id PK", "tenant_id FK", "owner_type", "owner_id", "file_name", "mime_type", "storage_key", "uploaded_by FK", "uploaded_at"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "owner_type", "owner_id", "file_name", "mime_type", "storage_key", "uploaded_by FK", "uploaded_at"],
   },
   {
     name: "data_export_jobs",
     tag: "Tenant portability",
-    fields: ["id PK", "tenant_id FK", "requested_by FK", "export_type", "status", "file_id FK", "requested_at", "completed_at", "expires_at"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "requested_by FK", "export_type", "status", "file_id FK", "requested_at", "completed_at", "expires_at"],
   },
   {
     name: "audit_logs",
     tag: "Tenant audit trail",
-    fields: ["id PK", "tenant_id FK", "outlet_id FK", "actor_user_id FK", "support_session_id FK", "action", "entity_type", "entity_id", "before_json", "after_json", "reason", "ip_address", "created_at"],
+    fields: ["id PK CHAR(26) ULID", "tenant_id FK", "outlet_id FK", "actor_user_id FK", "support_session_id FK", "action", "entity_type", "entity_id", "before_json", "after_json", "reason", "ip_address", "created_at"],
   },
 ];
 
@@ -370,6 +375,7 @@ const relationshipGroups = [
       "plans 1—N tenant_subscriptions; tenant_subscriptions N—1 tenants.",
       "tenant_config_flags store predefined config keys such as require_po_approval, enable_offline_pos, and support_access_expiry_minutes.",
       "support_access_sessions bridge platform_admin_users to a tenant only after tenant approval, reason, expiry, and audit logging.",
+      "auth_sessions persist refresh-token rotation state for both platform and tenant realms; access tokens remain short-lived JWT cookies.",
       "platform_audit_logs record privileged platform actions separately from tenant audit_logs.",
     ],
   },
@@ -422,7 +428,7 @@ const relationshipGroups = [
       "sale_items 1—N sale_item_batch_allocations so FEFO can split one sale line across multiple batches.",
       "mixed payments are represented by multiple sale_payments using tenant payment_methods.",
       "bon / hutang pelanggan creates customer_receivables and later receivable_payments.",
-      "offline_sync_queue uses idempotency_key and conflict_reason so offline POS never silently mutates ledger state.",
+      "offline_sync_queue uses idempotency_key, outlet_id, conflict_reason, and conflict_payload_json so offline POS never silently mutates ledger state.",
       "sale_returns and sale_return_items restore to original batch or quarantine based on stock_disposition.",
     ],
   },
@@ -438,6 +444,7 @@ const relationshipGroups = [
 ];
 
 const invariants = [
+  "Every primary key uses ULID stored as CHAR(26), generated only by backend/app/core/id.py. No legacy document-store IDs.",
   "Every tenant-owned table carries tenant_id. Platform tables do not pretend to be tenant data.",
   "Platform Admin is not pharmacy Owner. Owner administers one tenant; Platform Admin administers SaaS metadata, billing, entitlements, and controlled support access.",
   "Do not model products.stock as source of truth. Use stock_batches and append-only stock_movements; summaries are projections only.",
@@ -465,10 +472,10 @@ const buildOrder = [
     </div>
     <div class="space-y-4">
       <h1 class="text-4xl font-bold tracking-tight text-zinc-950 dark:text-white sm:text-5xl">
-        Core Managed Pharmacy ERD
+        apoth.tech ERD
       </h1>
       <p class="max-w-4xl text-lg leading-8 text-zinc-600 dark:text-zinc-300">
-        ERD derived from the current <a href="/prd/apotek-management/" class="font-bold text-blue-600 hover:text-blue-700 dark:text-blue-300">Core Managed Pharmacy PRD</a>. This version models the product as real SaaS: platform administration is separate from tenant pharmacy users, every tenant record is scoped by <code>tenant_id</code>, and stock remains ledger-first through <code>stock_batches</code> plus append-only <code>stock_movements</code>.
+        ERD derived from the current <a href="/prd/apotek-management/" class="font-bold text-blue-600 hover:text-blue-700 dark:text-blue-300">apoth.tech PRD</a>. This version models the product as real SaaS: platform administration is separate from tenant pharmacy users, every tenant record is scoped by <code>tenant_id</code>, and stock remains ledger-first through <code>stock_batches</code> plus append-only <code>stock_movements</code>.
       </p>
     </div>
     <div class="grid gap-3 sm:grid-cols-3">
@@ -490,7 +497,7 @@ const buildOrder = [
   <section class="space-y-6">
     <h2 class="text-2xl font-bold text-zinc-950 dark:text-white">1. High-Level ERD</h2>
     <div class="overflow-x-auto rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-      <svg viewBox="0 0 1240 820" role="img" aria-label="High-level ERD Core Managed Pharmacy" class="h-auto w-full min-w-[820px]">
+      <svg viewBox="0 0 1240 820" role="img" aria-label="High-level ERD apoth.tech" class="h-auto w-full min-w-[820px]">
         <defs>
           <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
             <path d="M0,0 L0,6 L9,3 z" fill="#2563eb"></path>
