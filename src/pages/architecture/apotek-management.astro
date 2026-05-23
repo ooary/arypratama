@@ -5,10 +5,10 @@ const title = "Architecture — apoth.tech";
 const description = "Backend-first architecture for apoth.tech, a FastAPI and PostgreSQL pharmacy SaaS with inventory-ledger-first design, admin/tenant/POS zones, and deployment to apoth.arypratama.com.";
 
 const stack = [
-  { group: "Backend", items: ["FastAPI", "Python 3.12+", "Pydantic v2", "SQLAlchemy 2.0", "Alembic", "psycopg 3", "Loguru", "bson ObjectId utility", "pytest", "ruff", "pyright in moderate mode"] },
-  { group: "Database", items: ["PostgreSQL in Docker", "tenant_id scoped tables", "append-only stock_movements", "BSON ObjectId stored as CHAR(24)/VARCHAR(24)", "transactional stock posting"] },
+  { group: "Backend", items: ["FastAPI", "Python 3.12+", "Pydantic v2", "SQLAlchemy 2.0", "Alembic", "psycopg 3", "Loguru", "python-jose or PyJWT", "passlib", "python-ulid", "pytest", "ruff", "pyright in moderate mode"] },
+  { group: "Database", items: ["PostgreSQL in Docker", "tenant_id scoped tables", "append-only stock_movements", "ULID stored as CHAR(26)", "transactional stock posting"] },
   { group: "Frontend", items: ["Vite", "React", "TypeScript", "Bun", "Tailwind", "shadcn/ui or Radix primitives", "TanStack Query", "Zustand", "React Hook Form", "Zod", "Dexie for POS offline cache", "Playwright"] },
-  { group: "DevOps", items: ["Private GitHub monorepo", "Docker Compose local", "GitHub Actions CI/CD", "SSH deploy to VPS", "review deployment at apoth.arypratama.com", "later production brand apoth.tech"] },
+  { group: "DevOps", items: ["Private GitHub monorepo", "Docker Compose local", "GitHub Actions CI/CD", "SSH deploy to VPS", "Redis for Celery broker + result backend", "Celery worker as separate Docker service", "review deployment at apoth.arypratama.com", "later production brand apoth.tech"] },
 ];
 
 const backendLayers = [
@@ -49,8 +49,8 @@ const flows = [
   },
   {
     title: "Offline POS sync",
-    note: "Dexie stores cache and queued sale commands only. On reconnect, server validates with idempotency key and either posts or returns conflict.",
-    steps: ["Cached products/prices", "Offline sale command", "Dexie queue", "Reconnect sync", "Server validation", "Posted or conflict"],
+    note: "Default behavior on sync conflict: reject sale, notify cashier. Never post with negative stock. Regulated items follow the same reject-first rule with no override at cashier level.",
+    steps: ["Cached products/prices", "Offline sale command with idempotency_key", "Dexie queue", "Reconnect sync", "Server validates stock and idempotency_key", "Posted or Conflict", "Conflict queue visible to cashier", "Void or partial fulfill requires supervisor approval"],
   },
   {
     title: "CI/CD review deployment",
@@ -63,7 +63,13 @@ const securityPrinciples = [
   "Every tenant-owned table carries tenant_id and every API query scopes by tenant_id.",
   "Platform Admin is separate from tenant Owner and cannot access pharmacy operational data without audited support access.",
   "Stock movements and audit logs are append-only; corrections create new rows, never silent edits.",
-  "BSON ObjectId generation is centralized in backend/app/core/id.py; routes must not generate ad-hoc IDs.",
+  "ULID generation is centralized in backend/app/core/id.py; routes must not generate ad-hoc IDs.",
+  "JWT stored in httpOnly cookies; frontend never accesses raw token.",
+  "Token payload carries tenant_id, outlet_id, user_id, role, realm — tenant context is derived from token, not from client input.",
+  "Tenant context middleware blocks cross-tenant access before request reaches service layer.",
+  "MFA enforced for Platform Admin and Owner roles at middleware level.",
+  "Celery workers inherit tenant context from job payload — no worker may process cross-tenant jobs.",
+  "Idempotency keys required for all offline POS sync commands.",
   "Secrets stay server-side. Frontend env only contains public API base URL and non-secret flags.",
   "CI must run unit tests, integration tests, tenant isolation tests, lint, typecheck, and build before deploy.",
 ];
@@ -72,12 +78,20 @@ const folderStructure = `apoth/
   backend/
     app/
       api/v1/routes/
-      core/              # config, security, db, id.py, tenant context
+      core/
+        id.py          # ULID generation
+        auth.py        # JWT encode/decode
+        middleware.py  # tenant context injection
+        security.py    # password hash, MFA
       models/            # SQLAlchemy ERD tables
       schemas/           # Pydantic DTOs
       services/          # domain logic, stock posting, POS posting
       repositories/      # DB queries
-      workers/           # export/report jobs later
+      workers/
+        celery_app.py  # Celery app init
+        tasks/
+          exports.py
+          reports.py
     migrations/
     tests/
   frontend/
@@ -90,6 +104,31 @@ const folderStructure = `apoth/
   infra/
   scripts/
   docker-compose.yml`;
+
+const posAppNotes = [
+  "Dexie stores product cache and queued sale commands only.",
+  "Each queued command must include an idempotency_key generated at cart creation time.",
+  "On reconnect, server validates idempotency_key to prevent duplicate posting.",
+];
+
+const fefoRules = [
+  ["Allocation timing", "Batch allocation is resolved at payment post time, not at cart item add time. This avoids ghost reservations from abandoned carts and keeps the model simple for low-concurrency small pharmacy MVP."],
+  ["Eligible batch query", "Filter by product_id, warehouse_id, tenant_id, status = available, quantity > 0, and expiry_date > TODAY or expiry_date IS NULL. Order by expiry_date ASC NULLS LAST, created_at ASC."],
+  ["Greedy allocation", "Iterate eligible batches in order, take min(batch.available_qty, remaining_qty), append to allocation plan, and stop when remaining = 0."],
+  ["Insufficient stock", "If remaining > 0 after all eligible batches, raise InsufficientStockError and do not post partial sale."],
+  ["Transaction rule", "Execute allocation inside the DB transaction. Each batch allocation creates one stock_movement row, atomic with sale and payment records."],
+  ["Tie-breaking", "Same expiry date uses FIFO by created_at. No expiry date is NULLS LAST then created_at. Insufficient single batch splits automatically across the next eligible batch."],
+  ["Batch status eligibility", "available is eligible; quarantine, disposed, reserved, and expiry_date < TODAY are skipped. expiry_date = TODAY is configurable: warn or block."],
+  ["Offline POS allocation", "Dexie caches aggregated available_quantity per product only. No batch-level data is exposed offline. FEFO is resolved server-side at sync time; failed allocation returns ConflictError."],
+  ["Config flags", "stock_allocation_policy: fefo | fifo | manual (default fefo); expiry_today_behavior: warn | block (default warn); allow_negative_stock: false; manual allocation requires stock.override_allocation for Pharmacist/Admin, not Cashier."],
+  ["Error states", "InsufficientStockError, AllBatchesExpiredError, ExpiryTodayWarning, and NoBatchFoundError are explicit API states with cashier-safe messages."],
+];
+
+const testingStrategy = [
+  ["60% unit tests", "Services and repositories in isolation."],
+  ["30% integration tests", "API endpoints with real DB in a test schema, never production."],
+  ["10% E2E", "Playwright for critical POS and procurement flows."],
+];
 ---
 
 <BaseLayout title={title} description={description}>
@@ -165,16 +204,61 @@ const folderStructure = `apoth/
       ))}
     </div>
     <div class="rounded-2xl border border-zinc-200 bg-zinc-50 p-5 dark:border-zinc-800 dark:bg-zinc-900/70">
-      <h3 class="font-bold text-zinc-950 dark:text-white">BSON ID utility</h3>
+      <h3 class="font-bold text-zinc-950 dark:text-white">ULID utility</h3>
       <pre class="mt-3 overflow-x-auto rounded-xl bg-zinc-950 p-4 text-sm text-zinc-100"><code>{`# backend/app/core/id.py
-from bson import ObjectId
+from ulid import ULID
 
 def new_id() -> str:
-    return str(ObjectId())
+    return str(ULID())
 
 def is_valid_id(value: str) -> bool:
-    return ObjectId.is_valid(value)`}</code></pre>
-      <p class="mt-3 text-sm leading-6 text-zinc-700 dark:text-zinc-300">All table IDs should use the same utility. Store as <code>String(24)</code>. Do not generate IDs directly inside route handlers.</p>
+    try:
+        ULID.from_str(value)
+        return True
+    except ValueError:
+        return False`}</code></pre>
+      <p class="mt-3 text-sm leading-6 text-zinc-700 dark:text-zinc-300">All table IDs use ULID stored as <code>CHAR(26)</code>. Generate only via this utility. Routes must not generate IDs directly.</p>
+    </div>
+
+    <div class="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+      <h3 class="font-bold text-zinc-950 dark:text-white">Authentication & token structure</h3>
+      <ul class="mt-3 list-disc space-y-2 pl-5 text-sm leading-6 text-zinc-700 dark:text-zinc-300">
+        <li>Auth uses JWT with httpOnly cookie storage: access_token 15 min, refresh_token 7 days, rotate on use.</li>
+        <li>Token payload includes tenant_id, outlet_id, user_id, role, and realm (<code>platform</code> | <code>tenant</code>).</li>
+        <li>Platform Admin and Tenant User share the same auth endpoint but are separated by realm in token payload.</li>
+        <li>MFA is enforced at middleware level for Platform Admin and Owner roles.</li>
+      </ul>
+    </div>
+
+    <div class="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+      <h3 class="font-bold text-zinc-950 dark:text-white">Tenant context middleware</h3>
+      <ul class="mt-3 list-disc space-y-2 pl-5 text-sm leading-6 text-zinc-700 dark:text-zinc-300">
+        <li>FastAPI middleware extracts tenant_id, outlet_id, user_id, role, and realm from validated JWT on every request.</li>
+        <li>Middleware injects the result into <code>request.state.tenant_context</code>.</li>
+        <li>All services and repositories consume tenant context from request.state — never from request body or query params.</li>
+        <li>Cross-tenant requests where token tenant_id does not match resource tenant_id are blocked before reaching service code.</li>
+        <li>Platform Admin requests with <code>realm=platform</code> bypass tenant middleware but are logged to the platform audit trail.</li>
+      </ul>
+    </div>
+
+    <div class="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+      <h3 class="font-bold text-zinc-950 dark:text-white">Background jobs</h3>
+      <ul class="mt-3 list-disc space-y-2 pl-5 text-sm leading-6 text-zinc-700 dark:text-zinc-300">
+        <li>Redis is the Celery broker and result backend.</li>
+        <li>Celery worker runs as a separate Docker service.</li>
+        <li>MVP scope: export file generation and report aggregation.</li>
+        <li>Deferred: scheduled cleanup and heavy offline sync tasks.</li>
+        <li>FastAPI background tasks are used only for lightweight fire-and-forget work, such as audit log write.</li>
+      </ul>
+    </div>
+
+    <div class="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+      <h3 class="font-bold text-zinc-950 dark:text-white">Database connection pooling</h3>
+      <ul class="mt-3 list-disc space-y-2 pl-5 text-sm leading-6 text-zinc-700 dark:text-zinc-300">
+        <li>SQLAlchemy async pool: <code>pool_size=10</code>, <code>max_overflow=20</code>, <code>pool_pre_ping=True</code>.</li>
+        <li>Production adds PgBouncer in transaction pooling mode.</li>
+        <li>MVP Docker Compose can rely on the SQLAlchemy pool.</li>
+      </ul>
     </div>
   </section>
 
@@ -188,6 +272,12 @@ def is_valid_id(value: str) -> bool:
           <p class="mt-3 text-xs font-bold uppercase tracking-wide text-blue-600 dark:text-blue-300">{module.priority}</p>
         </div>
       ))}
+    </div>
+    <div class="rounded-2xl border border-pink-200 bg-pink-50 p-5 dark:border-pink-900/70 dark:bg-pink-950/30">
+      <h3 class="font-bold text-pink-950 dark:text-pink-100">POS App offline note</h3>
+      <ul class="mt-3 list-disc space-y-2 pl-5 text-sm leading-6 text-pink-950 dark:text-pink-100">
+        {posAppNotes.map((item) => <li>{item}</li>)}
+      </ul>
     </div>
   </section>
 
@@ -211,6 +301,17 @@ def is_valid_id(value: str) -> bool:
         </article>
       ))}
     </div>
+    <article class="rounded-3xl border border-blue-200 bg-blue-50 p-6 dark:border-blue-900/70 dark:bg-blue-950/30">
+      <h3 class="text-xl font-bold text-blue-950 dark:text-blue-100">FEFO batch allocation</h3>
+      <div class="mt-5 grid gap-4 md:grid-cols-2">
+        {fefoRules.map(([title, detail]) => (
+          <div class="rounded-2xl border border-blue-200 bg-white p-4 dark:border-blue-800 dark:bg-zinc-950/60">
+            <h4 class="font-bold text-blue-950 dark:text-blue-100">{title}</h4>
+            <p class="mt-2 text-sm leading-6 text-zinc-700 dark:text-zinc-300">{detail}</p>
+          </div>
+        ))}
+      </div>
+    </article>
   </section>
 
   <section class="space-y-6">
@@ -221,7 +322,30 @@ def is_valid_id(value: str) -> bool:
   </section>
 
   <section class="space-y-6">
-    <h2 class="text-2xl font-bold text-zinc-950 dark:text-white">8. Recommended folder structure</h2>
+    <h2 class="text-2xl font-bold text-zinc-950 dark:text-white">8. Testing strategy</h2>
+    <div class="grid gap-4 md:grid-cols-3">
+      {testingStrategy.map(([title, detail]) => (
+        <div class="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+          <h3 class="font-bold text-zinc-950 dark:text-white">{title}</h3>
+          <p class="mt-2 text-sm leading-6 text-zinc-700 dark:text-zinc-300">{detail}</p>
+        </div>
+      ))}
+    </div>
+    <div class="rounded-2xl border border-amber-200 bg-amber-50 p-5 dark:border-amber-900/70 dark:bg-amber-950/30">
+      <h3 class="font-bold text-amber-950 dark:text-amber-100">Tenant isolation test rule</h3>
+      <p class="mt-2 text-sm leading-6 text-amber-950 dark:text-amber-100">Every API endpoint test must include one negative case where token tenant_id does not match the target resource. Expected result: 403 or 404, never a data response.</p>
+    </div>
+    <div class="rounded-2xl border border-red-200 bg-red-50 p-5 dark:border-red-900/70 dark:bg-red-950/30">
+      <h3 class="font-bold text-red-950 dark:text-red-100">CI gate</h3>
+      <ul class="mt-3 list-disc space-y-2 pl-5 text-sm leading-6 text-red-950 dark:text-red-100">
+        <li>Coverage minimum: 70% before deploy is allowed.</li>
+        <li>Tenant isolation tests are not optional and must pass 100% before merge.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="space-y-6">
+    <h2 class="text-2xl font-bold text-zinc-950 dark:text-white">9. Recommended folder structure</h2>
     <pre class="overflow-x-auto rounded-3xl border border-zinc-800 bg-zinc-950 p-5 text-sm leading-6 text-zinc-100"><code>{folderStructure}</code></pre>
   </section>
 </BaseLayout>
