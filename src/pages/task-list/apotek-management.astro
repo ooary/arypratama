@@ -46,11 +46,11 @@ const phases = [
       ["2.12", "Implement tenant registration API", "POST /auth/register creates tenant, owner user, default subscription, default config flags, default outlet placeholder later, and default roles."],
       ["2.13", "Implement permission dependency", "Create require_permission(code) dependency and tests for allowed/denied paths using request.state.tenant_context."],
       ["2.14", "Implement platform audit for realm bypass", "Platform Admin requests with realm=platform bypass tenant middleware but always write platform audit trail."],
-      ["2.15", "Implement MFA middleware gate", "Require MFA completion for Platform Admin and Owner roles before sensitive endpoints."],
+      ["2.15", "Defer MFA middleware gate", "Postponed for MVP: MFA for Platform Admin and Owner roles is overengineering right now. Keep password + httpOnly session + RBAC + audit; revisit after sensitive workflows exist."],
       ["2.16", "Implement support access session model", "Create support_access_sessions and API skeleton requiring tenant owner approval, reason, expiry, and audit log."],
     ],
     qa: ["Register tenant creates tenant and owner user.", "Owner can login and receive tenant context through httpOnly JWT cookie.", "Default roles and permissions are seeded idempotently.", "Tenant user cannot call platform admin endpoint because realm is tenant, not platform."],
-    security: ["Every API endpoint test includes one negative tenant mismatch case returning 403 or 404, never data.", "Password hashes are never returned by API.", "Platform Admin is not a tenant role.", "MFA is enforced for Platform Admin and Owner roles at middleware level.", "Suspended tenant behavior is tested as read-only except allowed operations."],
+    security: ["Every API endpoint test includes one negative tenant mismatch case returning 403 or 404, never data.", "Password hashes are never returned by API.", "Platform Admin is not a tenant role.", "MFA gate is explicitly deferred for MVP; sensitive actions must still be RBAC-gated and audited.", "Suspended tenant behavior is tested as read-only except allowed operations."],
   },
   {
     id: "3",
@@ -211,7 +211,7 @@ const globalGates = [
 ];
 
 
-const taskStatusById: Record<string, "not_started" | "in_progress" | "done"> = {
+const taskStatusById: Record<string, "not_started" | "in_progress" | "done" | "deferred"> = {
   "1.1": "done",
   "1.2": "done",
   "1.3": "done",
@@ -237,12 +237,17 @@ const taskStatusById: Record<string, "not_started" | "in_progress" | "done"> = {
   "2.10": "done",
   "2.11": "done",
   "2.12": "done",
+  "2.13": "done",
+  "2.14": "done",
+  "2.15": "deferred",
+  "2.16": "done",
 };
 
 const statusMeta = {
   not_started: { label: "Not started", className: "border-zinc-200 bg-zinc-100 text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300" },
   in_progress: { label: "In progress", className: "border-amber-200 bg-amber-100 text-amber-800 dark:border-amber-800 dark:bg-amber-950/50 dark:text-amber-200" },
   done: { label: "Done", className: "border-emerald-200 bg-emerald-100 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-200" },
+  deferred: { label: "Deferred", className: "border-violet-200 bg-violet-100 text-violet-800 dark:border-violet-800 dark:bg-violet-950/50 dark:text-violet-200" },
 };
 
 const getTaskStatus = (id: string) => taskStatusById[id] ?? "not_started";
