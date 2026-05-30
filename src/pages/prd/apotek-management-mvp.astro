@@ -5,7 +5,7 @@ const title = "PRD — Apotek Management System MVP";
 const description = "MVP product document for an inventory-ledger-first Apotek Management System with Excel onboarding, batch/expiry stock, simple POS, Vue + Capacitor frontend, and FastAPI backend.";
 
 const phases = [
-  ["Phase 0", "Fondasi", "Scaffold repo backend/frontend, PostgreSQL, migrations, auth, app shell, healthcheck.", "Exit: login berfungsi, /auth/me kembali user, migration jalan bersih, healthcheck hijau di CI."],
+  ["Phase 0", "Fondasi", "Scaffold repo backend/frontend, PostgreSQL, migrations, auth, app shell, healthcheck, dan manajemen user dasar.", "Exit: login berfungsi, /auth/me kembali user, admin bisa membuat/nonaktifkan cashier, cashier login dengan nav terbatas, migration jalan bersih, healthcheck hijau di CI."],
   ["Phase 1", "Katalog Produk", "Product CRUD, search by nama/SKU/barcode, minimum stock, pricing fields.", "Exit: bisa create/list/update product, search by 3 kunci, SKU unik divalidasi, no stock mutation di endpoint ini."],
   ["Phase 2", "Ledger Core", "StockBatch, append-only StockMovement, receive stock, adjustment, no-negative invariant.", "Exit: on-hand = SUM(movement) terbukti via test, OUT melebihi stok ditolak 409, adjustment butuh reason."],
   ["Phase 3", "Import Excel", "Template, upload, dry-run preview, row errors, commit to product/batch/movement.", "Exit: dry-run 1.000 baris menghasilkan laporan error per baris tanpa menulis data; commit hanya jika 0 error fatal."],
@@ -18,6 +18,10 @@ const phases = [
 const endpoints = [
   ["Auth", "POST /auth/login", "Login email/password, returns access token + user."],
   ["Auth", "GET /auth/me", "Current authenticated user."],
+  ["Auth", "POST /auth/change-password", "Authenticated user changes own password."],
+  ["Users", "GET /users", "List users; admin only."],
+  ["Users", "POST /users", "Create admin/cashier with temporary password; admin only."],
+  ["Users", "PATCH /users/{id}", "Update name, role, is_active, or reset password; admin only."],
   ["Products", "GET /products", "List products with search, pagination, and computed on-hand."],
   ["Products", "POST /products", "Create product master data; no stock mutation here."],
   ["Products", "PATCH /products/{id}", "Update non-stock product fields."],
@@ -34,7 +38,7 @@ const endpoints = [
 ];
 
 const entities = [
-  ["User", "id, email, password_hash, name, role, is_active, created_at", "Creates sales, movements, batches, imports."],
+  ["User", "id, email, password_hash, name, role, is_active, created_at", "Admin manages users via /users. Cashier pertama dibuat dari UI admin, bukan DB manual."],
   ["Product", "id, sku, name, category, unit, barcode, sell_price, reorder_level, is_active", "No products.stock. On-hand is computed from ledger."],
   ["StockBatch", "id, product_id, batch_no, expiry_date, cost_price, received_at, created_by", "Batch identity/metadata; quantity comes from movements."],
   ["StockMovement", "id, product_id, batch_id, type, qty, reason, ref_type, ref_id, created_by, created_at", "Append-only ledger. IN positive, OUT negative, ADJUST signed."],
@@ -86,6 +90,7 @@ const entities = [
         <li><a href="#erd">ERD textual</a></li>
         <li><a href="#api">API contract</a></li>
         <li><a href="#design-system">Design system</a></li>
+        <li><a href="#roles-access">Roles and access</a></li>
         <li><a href="#tech-stack">Tech stack</a></li>
         <li><a href="#folder-structure">Folder structure</a></li>
         <li><a href="#layering">Backend layering</a></li>
@@ -213,8 +218,10 @@ const entities = [
       </ul>
       <h3>Navigation</h3>
       <ul>
-        <li>Mobile bottom nav: Dashboard, POS, Produk, Stok, Lainnya.</li>
-        <li>Desktop sidebar: Dashboard, POS, Produk, Stok, Import, Laporan.</li>
+        <li>MVP ships as one app with role-gated surfaces, not separate admin/POS deployments.</li>
+        <li>Cashier mobile bottom nav: Dashboard ringkas, POS, Produk lihat, Stok lihat.</li>
+        <li>Admin desktop/sidebar: Dashboard penuh, POS, Produk, Stok, Import, Laporan, User.</li>
+        <li>Admin-only items are hidden from cashier navigation and still enforced by backend 403.</li>
       </ul>
       <h3>Components</h3>
       <p>SearchBar, ProductCard, BatchTable, MovementTimeline, POSCart, NumberPad, StatCard, ImportWizard, ExportButton, ExpiryBadge, LowStockBadge, ConfirmDialog, EmptyState.</p>
@@ -226,6 +233,35 @@ const entities = [
         <li>Radius: 8 for controls, 12–16 for cards.</li>
         <li>Typography: Inter or system sans, scale 12/14/16/20/24/32.</li>
       </ul>
+    </section>
+
+    <section id="roles-access" class="space-y-5">
+      <div class="prose prose-zinc max-w-none dark:prose-invert">
+        <h2>4.1 Roles and access</h2>
+        <p>MVP punya dua role: <strong>admin</strong> dan <strong>cashier</strong>. Owner = admin di MVP; tidak ada role owner terpisah. Satu codebase melayani admin console dan POS/staff surface, dengan navigation gating di frontend dan enforcement 403 di backend.</p>
+      </div>
+      <div class="overflow-hidden rounded-3xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+        {[
+          ["Dashboard full + nilai stok", "yes", "no"],
+          ["Dashboard sales today ringkas", "yes", "yes"],
+          ["Produk lihat/cari", "yes", "yes"],
+          ["Produk create/edit", "yes", "no"],
+          ["Terima stok / batch IN", "yes", "no"],
+          ["Koreksi stok / opname", "yes", "no"],
+          ["Import Excel", "yes", "no"],
+          ["POS / penjualan", "yes", "yes"],
+          ["Void sale", "yes", "no"],
+          ["Laporan / export", "yes", "no"],
+          ["Manajemen user", "yes", "no"],
+        ].map(([surface, admin, cashier]) => (
+          <div class="grid grid-cols-12 gap-3 border-b border-zinc-100 px-4 py-3 text-sm last:border-0 dark:border-zinc-800">
+            <div class="col-span-6 font-medium text-zinc-800 dark:text-zinc-200">{surface}</div>
+            <div class="col-span-3 font-bold text-emerald-700 dark:text-emerald-300">admin: {admin}</div>
+            <div class="col-span-3 font-bold text-zinc-500 dark:text-zinc-400">cashier: {cashier}</div>
+          </div>
+        ))}
+      </div>
+      <p class="text-sm leading-6 text-zinc-600 dark:text-zinc-400">Cashier tidak boleh melihat <code>cost_price</code>, inventory value, export, atau margin-sensitive data. Admin-only actions are hidden in UI but backend authorization remains mandatory.</p>
     </section>
 
     <section id="tech-stack" class="grid gap-4 md:grid-cols-2">
@@ -363,6 +399,15 @@ frontend/
             <li>Export stock/movement/sales menghasilkan file CSV/XLSX yang terbuka di Excel tanpa korup encoding.</li>
           </ul>
         </div>
+        <div class="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+          <h3 class="text-lg font-bold text-zinc-950 dark:text-white">Roles &amp; akses</h3>
+          <ul class="mt-3 space-y-2 text-sm leading-6 text-zinc-600 dark:text-zinc-300">
+            <li>Cashier mengakses endpoint admin-only seperti <code>POST /products</code>, <code>/imports</code>, <code>/users</code>, atau void sale mendapat 403.</li>
+            <li>Cashier tidak melihat <code>cost_price</code>, inventory value, export, atau margin-sensitive fields di API response maupun UI.</li>
+            <li>User <code>is_active=false</code> kehilangan akses pada request berikutnya.</li>
+            <li>Admin bisa membuat cashier baru; cashier login dan hanya melihat surface sesuai access matrix.</li>
+          </ul>
+        </div>
       </div>
     </section>
 
@@ -385,14 +430,13 @@ frontend/
         <li>Void: admin-only after sale, requires reason, creates reversal movement.</li>
         <li>SKU: wajib dan unik per product; barcode opsional tapi unik jika diisi.</li>
         <li>Uang: integer rupiah di DB dan API; tidak ada desimal/float untuk uang.</li>
-        <li>Auth: JWT 12 jam, no refresh token; role MVP cukup <code>admin</code> dan <code>cashier</code>.</li>
+        <li>Auth: JWT 12 jam, no refresh token; role MVP cukup <code>admin</code> dan <code>cashier</code>. Owner = admin di MVP.</li>
         <li>Import template kolom wajib: sku, nama, unit, harga_jual, harga_modal, batch_no, expiry_date, qty, barcode (opsional).</li>
         <li>FEFO tie-break: expiry sama maka pilih batch <code>received_at</code> paling lama (FIFO sekunder).</li>
         <li>Sale code: di-generate server, format <code>YYYYMMDD-incremental</code>, unik.</li>
       </ul>
       <h3>Open questions</h3>
       <ul>
-        <li>Apakah cashier boleh melakukan adjustment/opname, atau admin-only? (default sementara: admin-only, butuh konfirmasi Ary).</li>
         <li>Apakah perlu cetak struk di MVP (PDF/HTML) atau cukup tampil di layar? (non-goal saat ini, tandai jika pilot minta).</li>
       </ul>
     </section>
