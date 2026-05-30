@@ -5,14 +5,14 @@ const title = "PRD — Apotek Management System MVP";
 const description = "MVP product document for an inventory-ledger-first Apotek Management System with Excel onboarding, batch/expiry stock, simple POS, Vue + Capacitor frontend, and FastAPI backend.";
 
 const phases = [
-  ["Phase 0", "Fondasi", "Scaffold repo backend/frontend, PostgreSQL, migrations, auth, app shell, healthcheck."],
-  ["Phase 1", "Katalog Produk", "Product CRUD, search by nama/SKU/barcode, minimum stock, pricing fields."],
-  ["Phase 2", "Ledger Core", "StockBatch, append-only StockMovement, receive stock, adjustment, no-negative invariant."],
-  ["Phase 3", "Import Excel", "Template, upload, dry-run preview, row errors, commit to product/batch/movement."],
-  ["Phase 4", "POS Ringan", "Search/scan, cart, FEFO allocation, sale posting, payment simple, void reversal."],
-  ["Phase 5", "Dashboard & Export", "Low stock, near-expiry, expired, inventory value, CSV/XLSX exports."],
-  ["Phase 6", "Vue App", "Mobile-first screens for dashboard, products, stock, import, POS, reports."],
-  ["Phase 7", "Android & Hardening", "Capacitor Android build, barcode scan, tests, deploy, backup basics."],
+  ["Phase 0", "Fondasi", "Scaffold repo backend/frontend, PostgreSQL, migrations, auth, app shell, healthcheck.", "Exit: login berfungsi, /auth/me kembali user, migration jalan bersih, healthcheck hijau di CI."],
+  ["Phase 1", "Katalog Produk", "Product CRUD, search by nama/SKU/barcode, minimum stock, pricing fields.", "Exit: bisa create/list/update product, search by 3 kunci, SKU unik divalidasi, no stock mutation di endpoint ini."],
+  ["Phase 2", "Ledger Core", "StockBatch, append-only StockMovement, receive stock, adjustment, no-negative invariant.", "Exit: on-hand = SUM(movement) terbukti via test, OUT melebihi stok ditolak 409, adjustment butuh reason."],
+  ["Phase 3", "Import Excel", "Template, upload, dry-run preview, row errors, commit to product/batch/movement.", "Exit: dry-run 1.000 baris menghasilkan laporan error per baris tanpa menulis data; commit hanya jika 0 error fatal."],
+  ["Phase 4", "POS Ringan", "Search/scan, cart, FEFO allocation, sale posting, payment simple, void reversal.", "Exit: sale mengurangi stok via FEFO dalam satu transaksi, void membuat reversal movement, tidak ada stok negatif."],
+  ["Phase 5", "Dashboard & Export", "Low stock, near-expiry, expired, inventory value, CSV/XLSX exports.", "Exit: dashboard summary konsisten dengan ledger, export stock/movement/sales terbuka di Excel tanpa korup."],
+  ["Phase 6", "Vue App", "Mobile-first screens for dashboard, products, stock, import, POS, reports.", "Exit: semua flow inti bisa diselesaikan dari UI tanpa hit API manual, responsive di layar HP."],
+  ["Phase 7", "Android & Hardening", "Capacitor Android build, barcode scan, tests, deploy, backup basics.", "Exit: APK debug terpasang dan scan barcode jalan, test suite hijau, deploy + backup terdokumentasi."],
 ];
 
 const endpoints = [
@@ -90,6 +90,7 @@ const entities = [
         <li><a href="#folder-structure">Folder structure</a></li>
         <li><a href="#layering">Backend layering</a></li>
         <li><a href="#task-list">Implementation task list</a></li>
+        <li><a href="#acceptance">Acceptance criteria</a></li>
         <li><a href="#risks">Risks and open decisions</a></li>
       </ol>
     </section>
@@ -174,6 +175,16 @@ const entities = [
       <div class="prose prose-zinc max-w-none dark:prose-invert">
         <h2>3. API contract</h2>
         <p>REST/JSON, JWT auth, pagination dengan <code>page</code> dan <code>size</code>. Route harus tipis; business rule masuk service layer.</p>
+        <h3>Conventions</h3>
+        <ul>
+          <li><strong>Base path:</strong> semua endpoint di-prefix <code>/api/v1</code>. Tabel di bawah menulis path relatif.</li>
+          <li><strong>Auth:</strong> Bearer JWT di header <code>Authorization</code>. Token expiry default 12 jam, no refresh token di MVP (re-login).</li>
+          <li><strong>Error shape:</strong> selalu <code>{`{ "error": { "code": "string", "message": "string", "details": [] } }`}</code> dengan HTTP status yang benar (400 validation, 401 auth, 403 role, 404 not found, 409 conflict/insufficient-stock, 422 business-rule).</li>
+          <li><strong>Pagination response:</strong> <code>{`{ "items": [], "page": 1, "size": 20, "total": 0 }`}</code>. Default size 20, max 100.</li>
+          <li><strong>Money &amp; qty:</strong> harga dan total pakai integer rupiah (no float); qty integer base unit. Hindari floating point untuk uang.</li>
+          <li><strong>Idempotency:</strong> <code>POST /sales</code> dan <code>POST /imports</code> menerima header <code>Idempotency-Key</code> opsional untuk mencegah double-submit dari mobile.</li>
+          <li><strong>Timestamps:</strong> ISO-8601 UTC di payload; konversi timezone di frontend.</li>
+        </ul>
       </div>
       <div class="overflow-hidden rounded-3xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
         <div class="grid grid-cols-12 border-b border-zinc-200 bg-zinc-50 px-4 py-3 text-xs font-bold uppercase tracking-wide text-zinc-500 dark:border-zinc-800 dark:bg-zinc-950/60">
@@ -278,11 +289,12 @@ frontend/
         <p>Urutan ini sengaja memaksa ledger core selesai sebelum import, POS, dan dashboard. Kalau ledger salah, semua fitur setelahnya cuma UI di atas data palsu.</p>
       </div>
       <div class="grid gap-4 md:grid-cols-2">
-        {phases.map(([phase, name, desc]) => (
+        {phases.map(([phase, name, desc, exit]) => (
           <div class="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
             <div class="text-xs font-bold uppercase tracking-wide text-emerald-600 dark:text-emerald-300">{phase}</div>
             <h3 class="mt-2 text-lg font-bold text-zinc-950 dark:text-white">{name}</h3>
             <p class="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-300">{desc}</p>
+            <p class="mt-3 border-t border-zinc-100 pt-3 text-xs leading-6 font-medium text-emerald-700 dark:border-zinc-800 dark:text-emerald-300">{exit}</p>
           </div>
         ))}
       </div>
@@ -294,8 +306,68 @@ frontend/
       </div>
     </section>
 
+    <section id="acceptance" class="space-y-5">
+      <div class="prose prose-zinc max-w-none dark:prose-invert">
+        <h2>9. Acceptance criteria</h2>
+        <p>Kriteria ditulis testable. Setiap baris harus bisa dijadikan test case oleh RAKA dan dicek BASKARA/SATRIA tanpa nanya ulang. Format: Given / When / Then ringkas.</p>
+      </div>
+      <div class="grid gap-4 md:grid-cols-2">
+        <div class="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+          <h3 class="text-lg font-bold text-zinc-950 dark:text-white">Auth</h3>
+          <ul class="mt-3 space-y-2 text-sm leading-6 text-zinc-600 dark:text-zinc-300">
+            <li>Login dengan kredensial salah mengembalikan 401 dengan error code, tanpa membocorkan apakah email ada.</li>
+            <li>Request ke endpoint terproteksi tanpa/kadaluarsa token mengembalikan 401.</li>
+            <li>User <code>is_active=false</code> tidak bisa login meski password benar.</li>
+          </ul>
+        </div>
+        <div class="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+          <h3 class="text-lg font-bold text-zinc-950 dark:text-white">Produk</h3>
+          <ul class="mt-3 space-y-2 text-sm leading-6 text-zinc-600 dark:text-zinc-300">
+            <li>Create product dengan SKU yang sudah ada ditolak 409.</li>
+            <li>Search by nama (partial, case-insensitive), SKU exact, dan barcode exact mengembalikan hasil yang tepat.</li>
+            <li>List product menampilkan on-hand computed dari ledger, bukan kolom stok tersimpan.</li>
+          </ul>
+        </div>
+        <div class="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+          <h3 class="text-lg font-bold text-zinc-950 dark:text-white">Ledger &amp; stok</h3>
+          <ul class="mt-3 space-y-2 text-sm leading-6 text-zinc-600 dark:text-zinc-300">
+            <li>Receive stock membuat batch (jika baru) + satu movement IN; on-hand naik sesuai qty.</li>
+            <li>OUT/penjualan yang melebihi stok tersedia ditolak 409, tidak ada movement yang tertulis.</li>
+            <li>Adjustment tanpa <code>reason</code> ditolak 422.</li>
+            <li>on-hand(product) selalu = SUM(qty movement) untuk product itu (property test).</li>
+          </ul>
+        </div>
+        <div class="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+          <h3 class="text-lg font-bold text-zinc-950 dark:text-white">Import Excel</h3>
+          <ul class="mt-3 space-y-2 text-sm leading-6 text-zinc-600 dark:text-zinc-300">
+            <li>Dry-run mengembalikan jumlah row valid/invalid dan pesan error per baris, tanpa menulis data apa pun.</li>
+            <li>Commit hanya berjalan jika tidak ada error fatal; row warning bisa di-skip atau lanjut sesuai keputusan default.</li>
+            <li>File dengan kolom template salah ditolak sebelum proses baris.</li>
+            <li>Import yang sama dikirim dua kali dengan <code>Idempotency-Key</code> sama tidak menggandakan stok.</li>
+          </ul>
+        </div>
+        <div class="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+          <h3 class="text-lg font-bold text-zinc-950 dark:text-white">POS &amp; FEFO</h3>
+          <ul class="mt-3 space-y-2 text-sm leading-6 text-zinc-600 dark:text-zinc-300">
+            <li>Sale mengalokasikan dari batch non-expired dengan expiry terdekat (NULLS LAST) lebih dulu.</li>
+            <li>Posting sale membuat OUT movement dan header sale dalam satu transaksi; gagal = rollback penuh.</li>
+            <li>Void sale (admin, dengan reason) membuat reversal movement; sale dan movement asli tidak dihapus.</li>
+            <li>Dua sale paralel atas batch yang sama tidak membuat stok negatif (row lock teruji).</li>
+          </ul>
+        </div>
+        <div class="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+          <h3 class="text-lg font-bold text-zinc-950 dark:text-white">Dashboard &amp; export</h3>
+          <ul class="mt-3 space-y-2 text-sm leading-6 text-zinc-600 dark:text-zinc-300">
+            <li>Low stock = product dengan on-hand &le; reorder_level; near-expiry = batch expiry dalam 30 hari.</li>
+            <li>Inventory value dihitung dari on-hand batch &times; cost_price.</li>
+            <li>Export stock/movement/sales menghasilkan file CSV/XLSX yang terbuka di Excel tanpa korup encoding.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
     <section id="risks" class="prose prose-zinc max-w-none dark:prose-invert">
-      <h2>9. Risks and open decisions</h2>
+      <h2>10. Risks and open decisions</h2>
       <h3>Risks</h3>
       <ul>
         <li><strong>Data stok membusuk</strong> kalau POS tidak dipakai setiap transaksi. Mitigation: POS ringan tetap P0.</li>
@@ -304,12 +376,24 @@ frontend/
         <li><strong>Concurrency batch</strong> saat dua transaksi rebut stok. Mitigation: row lock dalam sale posting transaction.</li>
       </ul>
       <h3>Default decisions</h3>
+      <p>Keputusan default ini mengikat untuk MVP supaya RAKA tidak perlu nanya per item. Ubah hanya lewat revisi PRD oleh BIMA.</p>
       <ul>
-        <li>Payment MVP: cash, QRIS/manual, transfer/manual.</li>
-        <li>Discount MVP: transaction-level only, optional.</li>
+        <li>Payment MVP: cash, QRIS/manual, transfer/manual. Tidak ada integrasi gateway.</li>
+        <li>Discount MVP: transaction-level only, optional, nominal rupiah (bukan persen).</li>
         <li>Near-expiry default: 30 hari, nanti configurable.</li>
         <li>Unit conversion: single base unit dulu; box/strip/tablet conversion masuk roadmap setelah pilot.</li>
         <li>Void: admin-only after sale, requires reason, creates reversal movement.</li>
+        <li>SKU: wajib dan unik per product; barcode opsional tapi unik jika diisi.</li>
+        <li>Uang: integer rupiah di DB dan API; tidak ada desimal/float untuk uang.</li>
+        <li>Auth: JWT 12 jam, no refresh token; role MVP cukup <code>admin</code> dan <code>cashier</code>.</li>
+        <li>Import template kolom wajib: sku, nama, unit, harga_jual, harga_modal, batch_no, expiry_date, qty, barcode (opsional).</li>
+        <li>FEFO tie-break: expiry sama maka pilih batch <code>received_at</code> paling lama (FIFO sekunder).</li>
+        <li>Sale code: di-generate server, format <code>YYYYMMDD-incremental</code>, unik.</li>
+      </ul>
+      <h3>Open questions</h3>
+      <ul>
+        <li>Apakah cashier boleh melakukan adjustment/opname, atau admin-only? (default sementara: admin-only, butuh konfirmasi Ary).</li>
+        <li>Apakah perlu cetak struk di MVP (PDF/HTML) atau cukup tampil di layar? (non-goal saat ini, tandai jika pilot minta).</li>
       </ul>
     </section>
   </article>
