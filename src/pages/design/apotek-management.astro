@@ -1,0 +1,170 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const title = "Design — Apotek Management System";
+const description = "Mobile-first design review for Apotek Management System MVP: stock accuracy, expiry control, and simple POS.";
+
+const screens = [
+  {
+    name: "Dashboard",
+    note: "Owner langsung lihat risiko: stok menipis, near-expired, expired, dan penjualan hari ini.",
+    stats: ["18 stok menipis", "42 near-expired", "Rp 1.82jt sales"],
+  },
+  {
+    name: "Jual",
+    note: "POS ringan: cari/scan barang, qty, bayar, stok berkurang via FEFO.",
+    stats: ["Scan barcode", "Cart sticky", "Cash / QRIS / Transfer"],
+  },
+  {
+    name: "Barang",
+    note: "Master produk dibuat operasional, bukan katalog enterprise.",
+    stats: ["Nama + barcode", "Harga modal/jual", "Minimum stock"],
+  },
+  {
+    name: "Stok Masuk",
+    note: "Batch dan expiry direkam saat barang masuk, tapi expiry tidak memblokir onboarding.",
+    stats: ["Batch optional", "Expiry recommended", "Movement ledger"],
+  },
+  {
+    name: "Import Excel",
+    note: "Jalur adopsi utama: upload, preview, validasi row-level, commit.",
+    stats: ["Template XLSX", "Preview errors", "Commit opening stock"],
+  },
+  {
+    name: "Koreksi",
+    note: "Stok pasti melenceng; koreksi harus cepat dan tetap append-only.",
+    stats: ["Physical count", "Reason wajib", "No edit movement"],
+  },
+];
+
+const nav = ["Dashboard", "Jual", "Barang", "Stok", "Laporan"];
+---
+
+<BaseLayout title={title} description={description}>
+  <section class="space-y-6">
+    <a href="/prd/apotek-management-mvp/" class="text-sm text-emerald-600 dark:text-emerald-400 hover:underline">← Back to MVP PRD</a>
+    <div class="rounded-3xl border border-zinc-200/80 bg-white/70 p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/60 sm:p-8">
+      <p class="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-emerald-600 dark:text-emerald-400">Design review artifact</p>
+      <h1 class="text-3xl font-bold tracking-tight text-zinc-950 dark:text-white sm:text-5xl">Apotek Management System</h1>
+      <p class="mt-4 max-w-2xl text-base leading-7 text-zinc-600 dark:text-zinc-300">
+        Mobile-first operational UI for a stock-ledger MVP: import Excel, control expiry risk, sell items quickly, and keep stock truthful without exposing enterprise complexity.
+      </p>
+      <div class="mt-6 grid gap-3 sm:grid-cols-3">
+        <div class="rounded-2xl bg-emerald-50 p-4 text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-100">
+          <div class="text-xs uppercase tracking-widest opacity-70">Primary job</div>
+          <div class="mt-1 font-bold">Prevent expired waste</div>
+        </div>
+        <div class="rounded-2xl bg-zinc-100 p-4 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">
+          <div class="text-xs uppercase tracking-widest opacity-70">Daily habit</div>
+          <div class="mt-1 font-bold">Simple sale updates stock</div>
+        </div>
+        <div class="rounded-2xl bg-zinc-950 p-4 text-white dark:bg-white dark:text-zinc-950">
+          <div class="text-xs uppercase tracking-widest opacity-70">Adoption path</div>
+          <div class="mt-1 font-bold">Excel → preview → commit</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="grid gap-4 md:grid-cols-3">
+    {[
+      ["Fast first", "Jual barang harus bisa selesai di bawah 10 detik untuk kasir yang sudah tahu barangnya."],
+      ["Operational language", "Pakai kata: stok menipis, mau expired, stok masuk, koreksi stok. Jangan pakai ledger/tenant/compliance."],
+      ["Truth with mercy", "Data expiry/batch boleh belum lengkap, tapi UI harus terus menandai gap datanya."],
+    ].map(([title, body]) => (
+      <article class="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+        <h2 class="font-bold text-zinc-950 dark:text-white">{title}</h2>
+        <p class="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400">{body}</p>
+      </article>
+    ))}
+  </section>
+
+  <section class="space-y-4">
+    <div>
+      <p class="text-xs font-bold uppercase tracking-[0.24em] text-emerald-600 dark:text-emerald-400">Navigation model</p>
+      <h2 class="mt-2 text-2xl font-bold text-zinc-950 dark:text-white">Bottom nav for daily Android use, same routes on web.</h2>
+    </div>
+    <div class="rounded-3xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+      <div class="grid grid-cols-5 gap-2 rounded-2xl bg-zinc-100 p-2 dark:bg-zinc-950">
+        {nav.map((item, index) => (
+          <div class:list={["rounded-xl px-2 py-3 text-center text-xs font-bold", index === 1 ? "bg-emerald-500 text-white shadow-sm" : "text-zinc-500 dark:text-zinc-400"]}>
+            {item}
+          </div>
+        ))}
+      </div>
+      <p class="mt-3 text-sm text-zinc-600 dark:text-zinc-400">The active default for staff is <strong>Jual</strong>. Owner can land on Dashboard. This keeps POS as the habit that maintains stock accuracy.</p>
+    </div>
+  </section>
+
+  <section class="space-y-4">
+    <div>
+      <p class="text-xs font-bold uppercase tracking-[0.24em] text-emerald-600 dark:text-emerald-400">Design system</p>
+      <h2 class="mt-2 text-2xl font-bold text-zinc-950 dark:text-white">Small token set, dense enough for operations.</h2>
+    </div>
+    <div class="grid gap-4 md:grid-cols-2">
+      <div class="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+        <h3 class="font-bold">Tokens</h3>
+        <ul class="mt-3 space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+          <li><span class="font-bold text-zinc-900 dark:text-white">Accent:</span> emerald for pharmacy trust and primary actions.</li>
+          <li><span class="font-bold text-zinc-900 dark:text-white">Neutrals:</span> zinc surfaces, high contrast text, restrained borders.</li>
+          <li><span class="font-bold text-zinc-900 dark:text-white">Radius:</span> 16–24px for cards, 12px for controls.</li>
+          <li><span class="font-bold text-zinc-900 dark:text-white">App type:</span> system sans inside product mockups; docs page keeps Space Mono.</li>
+        </ul>
+      </div>
+      <div class="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+        <h3 class="font-bold">Components</h3>
+        <div class="mt-3 flex flex-wrap gap-2 text-xs font-bold">
+          {['Risk card','Action button','Search bar','Stock row','Expiry badge','Cart item','Upload preview','Reason note'].map((item) => (
+            <span class="rounded-full border border-zinc-200 px-3 py-2 text-zinc-700 dark:border-zinc-700 dark:text-zinc-300">{item}</span>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="space-y-5">
+    <div>
+      <p class="text-xs font-bold uppercase tracking-[0.24em] text-emerald-600 dark:text-emerald-400">Screen mockups</p>
+      <h2 class="mt-2 text-2xl font-bold text-zinc-950 dark:text-white">Compact phone-frame review, not final implementation.</h2>
+    </div>
+    <div class="grid gap-5 md:grid-cols-2">
+      {screens.map((screen) => (
+        <article class="rounded-[2rem] border border-zinc-200 bg-zinc-100 p-3 dark:border-zinc-800 dark:bg-zinc-950">
+          <div class="rounded-[1.5rem] bg-white p-4 shadow-sm dark:bg-zinc-900" style="font-family: Inter, ui-sans-serif, system-ui, sans-serif;">
+            <div class="mb-4 flex items-center justify-between">
+              <div>
+                <div class="text-[11px] font-semibold uppercase tracking-widest text-emerald-600">Apotek Sehat</div>
+                <h3 class="text-xl font-black text-zinc-950 dark:text-white">{screen.name}</h3>
+              </div>
+              <div class="h-9 w-9 rounded-full bg-emerald-100 text-center text-lg leading-9 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">+</div>
+            </div>
+            <p class="text-sm leading-6 text-zinc-600 dark:text-zinc-400">{screen.note}</p>
+            <div class="mt-4 space-y-2">
+              {screen.stats.map((stat, index) => (
+                <div class:list={["flex items-center justify-between rounded-2xl px-3 py-3 text-sm", index === 0 ? "bg-emerald-50 text-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-100" : "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"]}>
+                  <span class="font-semibold">{stat}</span>
+                  <span class="text-xs opacity-60">→</span>
+                </div>
+              ))}
+            </div>
+            <div class="mt-5 grid grid-cols-4 gap-2 border-t border-zinc-100 pt-3 text-center text-[10px] font-bold text-zinc-400 dark:border-zinc-800">
+              <span>Dash</span><span class="text-emerald-600">Jual</span><span>Barang</span><span>Stok</span>
+            </div>
+          </div>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section class="rounded-3xl border border-emerald-200 bg-emerald-50 p-6 dark:border-emerald-900 dark:bg-emerald-950/30">
+    <p class="text-xs font-bold uppercase tracking-[0.24em] text-emerald-700 dark:text-emerald-300">Implementation handoff</p>
+    <h2 class="mt-2 text-2xl font-bold text-emerald-950 dark:text-emerald-50">Build order for UI</h2>
+    <ol class="mt-4 list-decimal space-y-2 pl-5 text-sm leading-6 text-emerald-950/80 dark:text-emerald-100/80">
+      <li>Ship responsive app shell and bottom navigation.</li>
+      <li>Implement Dashboard risk cards from real API projections.</li>
+      <li>Build POS flow before decorative reports, because sale is what keeps stock truthful.</li>
+      <li>Keep import wizard forgiving: preview first, row errors clear, commit explicit.</li>
+      <li>Never expose ledger language to the user; use movement data behind simple stock actions.</li>
+    </ol>
+  </section>
+</BaseLayout>
