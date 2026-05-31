@@ -1,0 +1,99 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const title = "Task List — POS Apotek Lite";
+const description = "Granular shipping task list for POS Apotek Lite MVP: FastAPI backend setup, schema/models/services/API routes, frontend shell, offline sync, Excel import/export, reports, and launch gates.";
+
+const phases = [
+  { title: "Phase 0 — Shipping Control", tasks: [
+    ["0.1", "Create repo + README", "Private repo, README links to PRD / ERD / task list, branch strategy, local run commands.", "P0"],
+    ["0.2", "Assign workers", "BE, FE, Offline Sync, QA/Docs lanes. One owner reviews schema/API contracts before coding spreads.", "P0"],
+    ["0.3", "Freeze v1 scope", "No cashier/RBAC/SIPNAP/PO/faktur pajak today. Log as roadmap only.", "P0"],
+  ]},
+  { title: "Phase 1 — Backend Environment", tasks: [
+    ["1.1", "Install uv project", "`uv init backend`, add Python 3.12, create `pyproject.toml`, `.python-version`, `.env.example`.", "P0"],
+    ["1.2", "Add backend dependencies", "`uv add fastapi uvicorn[standard] pydantic pydantic-settings psycopg[binary] sqlalchemy alembic python-multipart openpyxl scalar-fastapi`.", "P0"],
+    ["1.3", "Add dev dependencies", "`uv add --dev pytest pytest-asyncio httpx ruff pyright` and add scripts for test/lint/typecheck.", "P0"],
+    ["1.4", "Create app package layout", "Create `app/main.py`, `app/core/`, `app/db/`, `app/schema/`, `app/models/`, `app/services/`, `app/api/`, `tests/`.", "P0"],
+    ["1.5", "Wire settings", "`app/core/config.py` using pydantic-settings for DATABASE_URL, ENV, CORS_ORIGINS, SYNC_SECRET.", "P0"],
+    ["1.6", "Wire database session", "`app/db/session.py` engine/sessionmaker, `app/db/base.py` declarative base, health query helper.", "P0"],
+    ["1.7", "Setup Alembic", "`uv run alembic init migrations`, target metadata imports `app.models`, env uses DATABASE_URL.", "P0"],
+    ["1.8", "Wire FastAPI main", "`app/main.py` creates app, CORS, `/health`, Scalar docs, and includes routers from `app/api/*_api.py`.", "P0"],
+  ]},
+  { title: "Phase 2 — Backend Schema / DTO Layer", tasks: [
+    ["2.1", "Create `user_schema.py`", "Pydantic DTOs: UserCreate, UserRead, StoreCreate, StoreRead, StoreMembershipRead with role=owner for v1.", "P0"],
+    ["2.2", "Create `product_schema.py`", "DTOs for ProductCreate/Update/Read, ProductBatchCreate/Read, filters, low-stock response.", "P0"],
+    ["2.3", "Create `sale_schema.py`", "DTOs for SaleCreate, SaleItemCreate, SaleRead, PaymentMethod enum, receipt response.", "P0"],
+    ["2.4", "Create `stock_receipt_schema.py`", "DTOs for StockReceiptCreate, StockReceiptItemCreate, StockReceiptRead.", "P0"],
+    ["2.5", "Create `stock_schema.py`", "DTOs for StockMovementRead, StockAdjustmentCreate, StockCardRead, NearExpiryRead.", "P0"],
+    ["2.6", "Create `import_schema.py`", "DTOs for ImportPreviewRow, ImportPreviewResult, ImportCommitRequest, ImportJobRead.", "P0"],
+    ["2.7", "Create `sync_schema.py`", "DTOs for SyncPushRequest, SyncEventDTO, SyncPullRequest, SyncResult with idempotency keys.", "P0"],
+  ]},
+  { title: "Phase 3 — Backend DB Models", tasks: [
+    ["3.1", "Create `user_model.py`", "SQLAlchemy models: User, Store, StoreMembership. Store holds apotek profile fields used on receipt: name, address, phone, logo/header/footer.", "P0"],
+    ["3.2", "Create `product_model.py`", "Product, ProductBatch, Supplier with store-scoped indexes/unique constraints.", "P0"],
+    ["3.3", "Create `sale_model.py`", "Sale, SaleItem with `client_tx_id` uniqueness and monetary constraints.", "P0"],
+    ["3.4", "Create `stock_receipt_model.py`", "StockReceipt, StockReceiptItem linked to supplier/product/batch.", "P0"],
+    ["3.5", "Create `stock_model.py`", "StockMovement append-only, StockAdjustment, StockAdjustmentItem, movement enums/checks.", "P0"],
+    ["3.6", "Create `import_model.py`", "ImportJob stores file metadata, row counts, validation errors JSON.", "P1"],
+    ["3.7", "Create `sync_model.py`", "SyncEvent stores client event payload, operation, status, idempotency key.", "P0"],
+    ["3.8", "Create initial Alembic migration", "Generate and review migration. Verify indexes: store_id/product_id/batch_id/source/idempotency.", "P0"],
+  ]},
+  { title: "Phase 4 — Backend Services", tasks: [
+    ["4.1", "Create `product_service.py`", "CRUD product, soft delete, duplicate SKU/barcode checks, batch create/update.", "P0"],
+    ["4.2", "Create `stock_service.py`", "Single posting function for ledger movements, update read-model caches, forbid direct stock mutation.", "P0"],
+    ["4.3", "Create `sale_service.py`", "Post sale transaction idempotently, create sale_items, call stock_service with movement_type=sale, build receipt data.", "P0"],
+    ["4.4", "Create `stock_receipt_service.py`", "Post barang masuk, upsert/find batch, create stock_receipt_items, call stock_service movement_type=stock_receipt.", "P0"],
+    ["4.5", "Create `adjustment_service.py`", "Post adjustment/expired/damaged/lost corrections with required reason and ledger movements.", "P0"],
+    ["4.6", "Create `report_service.py`", "Sales summary, top products, low stock, near expiry, stock card from ledger.", "P0"],
+    ["4.7", "Create `receipt_service.py`", "Build receipt HTML/PDF-friendly payload for share/print.", "P1"],
+    ["4.8", "Create `import_service.py`", "Excel parse, preview validation, duplicate detection, commit valid product rows only.", "P0"],
+    ["4.9", "Create `sync_service.py`", "Apply client events idempotently, return accepted/rejected/conflict rows, last-write-wins only for safe profile/catalog fields.", "P0"],
+  ]},
+  { title: "Phase 5 — Backend API Routes", tasks: [
+    ["5.1", "Create `user_api.py`", "User/store bootstrap endpoints for MVP dev/demo: create user, create apotek/store profile, attach owner membership.", "P0"],
+    ["5.2", "Create `product_api.py`", "Product CRUD, batch CRUD, low stock endpoint. Thin router, calls product_service/report_service.", "P0"],
+    ["5.3", "Create `sale_api.py`", "POST sale, GET sale, list sales, GET receipt. Thin router, calls sale_service.", "P0"],
+    ["5.4", "Create `stock_receipt_api.py`", "POST stock receipt/barang masuk, list receipts, get receipt.", "P0"],
+    ["5.5", "Create `stock_api.py`", "POST adjustment, list movements, stock card, near-expiry.", "P0"],
+    ["5.6", "Create `report_api.py`", "Sales summary, top products, low stock, near expiry dashboard endpoints.", "P0"],
+    ["5.7", "Create `import_api.py`", "Upload Excel preview, commit import job, download error report.", "P0"],
+    ["5.8", "Create `sync_api.py`", "POST sync push, GET sync pull/status; idempotency key required.", "P0"],
+    ["5.9", "Include routers in `main.py`", "Import and `app.include_router(product_api.router, prefix='/api/v1/products', tags=['Products'])` pattern for every API file.", "P0"],
+  ]},
+  { title: "Phase 6 — Frontend / Offline MVP", tasks: [
+    ["6.1", "Setup Vue app", "Vue 3 + Vite + Pinia + Tailwind + Router + Capacitor Android target.", "P0"],
+    ["6.2", "Create local persistence adapter", "One interface; Android SQLite implementation, Web IndexedDB implementation.", "P0"],
+    ["6.3", "Create sync queue store", "Pinia store records local events with client_tx_id/idempotency key and retry status.", "P0"],
+    ["6.4", "Build product screens", "Product list, create/edit, batch/expired fields, low-stock marker.", "P0"],
+    ["6.5", "Build sale screen", "Fast item search, cart, payment method, offline save, receipt view.", "P0"],
+    ["6.6", "Build restock screen", "Select product/batch, qty, supplier optional, expired date optional.", "P0"],
+    ["6.6a", "Add FEFO/SOP note", "On sale screen, show selected batch/expired date when batch data exists. Add operational note: system assumes physical rack follows FEFO, with nearest expiry placed in front.", "P0"],
+    ["6.7", "Build adjustment screen", "Reason-required stock correction.", "P1"],
+    ["6.8", "Build reports dashboard", "Today sales, top products, low stock, near expiry.", "P0"],
+    ["6.9", "Build Excel import/export UI", "Template download, upload preview, validation errors, commit.", "P0"],
+  ]},
+  { title: "Phase 7 — QA / Ship Gates", tasks: [
+    ["7.1", "Backend tests", "pytest service/API tests: sale posts ledger, restock posts ledger, duplicate sync rejected, import validation works.", "P0"],
+    ["7.2", "Migration gate", "`uv run alembic upgrade head --sql` and live dev DB upgrade succeeds.", "P0"],
+    ["7.3", "OpenAPI/Scalar gate", "`/openapi.json` contains all API route tags; Scalar page loads.", "P0"],
+    ["7.4", "Offline smoke", "Android/web create sale offline, reconnect, sync once, no duplicate sale, stock correct.", "P0"],
+    ["7.5", "Demo script", "Seed 20 products, import Excel, sell 3 items, restock 1 item, see dashboard, share receipt.", "P0"],
+  ]},
+];
+---
+
+<BaseLayout title={title} description={description}>
+  <main class="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
+    <section class="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+      <p class="text-sm font-semibold uppercase tracking-[0.24em] text-blue-600">Granular Execution Plan</p>
+      <h1 class="mt-4 text-4xl font-bold tracking-tight text-slate-950 dark:text-white">POS Apotek Lite Task List</h1>
+      <p class="mt-4 max-w-3xl text-lg text-slate-600 dark:text-slate-300">Target shipping hari ini: dokumen produk, ERD, backend contract, route/service/model/schema design, dan MVP build lanes siap dikerjakan paralel.</p>
+      <div class="mt-6 flex flex-wrap gap-3"><a class="rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white" href="/prd/pos-apotek-lite/">PRD</a><a class="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white" href="/erd/pos-apotek-lite/">ERD</a></div>
+    </section>
+
+    <section class="mt-10 space-y-8">
+      {phases.map((phase) => <article class="rounded-3xl border border-slate-200 p-6 dark:border-slate-800"><h2 class="text-2xl font-bold">{phase.title}</h2><div class="mt-5 space-y-3">{phase.tasks.map(([id, name, body, priority]) => <div class="rounded-2xl bg-slate-50 p-4 dark:bg-slate-900"><div class="flex flex-wrap items-center gap-2"><span class="rounded-full bg-slate-950 px-3 py-1 text-xs font-semibold text-white dark:bg-white dark:text-slate-950">{id}</span><span class="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">{priority}</span><h3 class="font-semibold text-slate-950 dark:text-white">{name}</h3></div><p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{body}</p></div>)}</div></article>)}
+    </section>
+  </main>
+</BaseLayout>

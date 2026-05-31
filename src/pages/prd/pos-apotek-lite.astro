@@ -1,0 +1,105 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const title = "PRD — POS Apotek Lite";
+const description = "Product Requirements Document for POS Apotek Lite: offline-first Android and web POS for pharmacy owners with sales, inventory ledger, digital receipts, Excel import/export, cloud sync, and MVP roadmap.";
+
+const modules = [
+  ["Produk", "Master produk obat/barang dengan SKU, barcode opsional, satuan, harga beli/jual, stok minimal, batch, expired date, dan status aktif."],
+  ["Penjualan", "Owner membuat transaksi, item otomatis mengurangi stok via ledger movement, pembayaran cash/transfer/QRIS manual, dan struk digital."],
+  ["Barang Masuk / Stock Receipt", "Input stok masuk dari pembelian/restock dengan supplier opsional, batch number, expired date, dan harga beli."],
+  ["Penyesuaian Stok", "Koreksi stok untuk rusak, expired, hilang, atau opname. Semua koreksi wajib masuk ledger, bukan update angka diam-diam."],
+  ["Laporan", "Omzet harian/range tanggal, transaksi, estimasi laba kotor, produk terlaris, stok menipis, stok mendekati expired, dan riwayat movement."],
+  ["Struk Digital", "Struk HTML/PDF/share WhatsApp berisi identitas apotek, nomor transaksi, item, total, metode bayar, dan footer."],
+  ["Excel Import/Export", "Import produk dengan preview-validasi; export produk, stok, transaksi, dan laporan sederhana."],
+  ["Offline Sync", "Android dan web tetap bisa jalan offline. Client menyimpan perubahan lokal lalu sync ke cloud saat online."],
+];
+
+const outOfScope = ["Cashier role", "RBAC", "Shift kasir", "Multi-outlet", "SIPNAP", "Faktur pajak", "Purchase order supplier", "Printer thermal wajib", "Retur kompleks", "Accounting/pajak lengkap"];
+
+const roadmap = [
+  ["v1 — Ship Hari Ini", "Owner-only POS: produk, penjualan, restock, penyesuaian stok, ledger inventory, batch/expired opsional, laporan dasar, struk digital, Excel import/export, offline-first client contract, FastAPI backend spec."],
+  ["v1.5 — Operasional Lebih Enak", "Barcode scanner kamera, printer thermal, retur sederhana, supplier lebih rapi, notifikasi stok menipis/expired, laporan laba lebih akurat."],
+  ["v2 — Kasir & Tim", "Cashier role, RBAC, shift kasir, audit log, multi-device sync lebih serius, permission per fitur."],
+  ["v3 — Apotek Compliance", "SIPNAP, faktur pajak, PO supplier, permintaan obat, dokumen supplier, reporting regulasi, batch/expired lebih ketat."],
+];
+
+const acceptance = [
+  "Owner bisa tambah/edit produk dan batch/expired opsional.",
+  "Owner bisa import produk dari Excel dengan preview validasi sebelum commit.",
+  "Owner bisa transaksi penjualan saat offline.",
+  "Penjualan otomatis membuat stock movement bertipe sale dan mengurangi stok read model.",
+  "Owner bisa input restock dan stok bertambah via stock movement.",
+  "Owner bisa koreksi stok lewat adjustment dengan alasan wajib.",
+  "Owner bisa lihat laporan penjualan hari ini, stok menipis, dan produk mendekati expired.",
+  "Owner bisa generate/share struk digital.",
+  "Saat internet balik, perubahan lokal bisa sync ke cloud tanpa double-post transaksi.",
+];
+---
+
+<BaseLayout title={title} description={description}>
+  <main class="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
+    <section class="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+      <p class="text-sm font-semibold uppercase tracking-[0.24em] text-blue-600">Product Requirements Document</p>
+      <h1 class="mt-4 text-4xl font-bold tracking-tight text-slate-950 dark:text-white">POS Apotek Lite</h1>
+      <p class="mt-4 max-w-3xl text-lg text-slate-600 dark:text-slate-300">POS apotek sederhana untuk owner: tetap bisa jualan saat internet mati, stok rapi berbasis ledger, laporan harian jelas, struk digital, Excel import/export, dan sync cloud ringan.</p>
+      <div class="mt-6 grid gap-3 sm:grid-cols-3">
+        <div class="rounded-2xl bg-blue-50 p-4 dark:bg-blue-950/40"><b>Target:</b><br />User owner apotek single-outlet</div>
+        <div class="rounded-2xl bg-emerald-50 p-4 dark:bg-emerald-950/40"><b>Platform:</b><br />Android + Web offline-first</div>
+        <div class="rounded-2xl bg-amber-50 p-4 dark:bg-amber-950/40"><b>Backend:</b><br />FastAPI + PostgreSQL</div>
+      </div>
+    </section>
+
+    <section class="mt-10 grid gap-6 lg:grid-cols-2">
+      <div class="rounded-3xl border border-slate-200 p-6 dark:border-slate-800">
+        <h2 class="text-2xl font-bold">Problem</h2>
+        <p class="mt-3 text-slate-600 dark:text-slate-300">Owner apotek kecil butuh alat yang cepat untuk jualan dan menjaga stok tanpa bergantung internet. Spreadsheet terlalu mudah rusak, POS umum kurang peduli batch/expired, sementara software apotek lengkap sering terlalu berat untuk mulai.</p>
+      </div>
+      <div class="rounded-3xl border border-slate-200 p-6 dark:border-slate-800">
+        <h2 class="text-2xl font-bold">Product Principle</h2>
+        <p class="mt-3 text-slate-600 dark:text-slate-300">Jangan jadi ERP dulu. Ship core transaksi + stok + laporan. Semua perubahan stok wajib tercatat sebagai ledger movement; current stock hanya read model/cache.</p>
+      </div>
+    </section>
+
+    <section class="mt-10">
+      <h2 class="text-2xl font-bold">MVP Modules</h2>
+      <div class="mt-5 grid gap-4 md:grid-cols-2">
+        {modules.map(([name, body]) => <article class="rounded-2xl border border-slate-200 p-5 dark:border-slate-800"><h3 class="font-semibold text-slate-950 dark:text-white">{name}</h3><p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{body}</p></article>)}
+      </div>
+    </section>
+
+    <section class="mt-10 rounded-3xl border border-slate-200 p-6 dark:border-slate-800">
+      <h2 class="text-2xl font-bold">Inventory Ledger Rule</h2>
+      <p class="mt-3 text-slate-600 dark:text-slate-300">Source of truth stok adalah <code>stock_movements</code>. Setiap sale, restock, adjustment, expired, atau reversal membuat baris ledger append-only. <code>products.current_stock</code> dan <code>product_batches.available_qty</code> boleh disimpan untuk performa UI, tapi harus bisa direkonsiliasi ulang dari ledger. Data apotek untuk struk disimpan di <code>stores</code>: nama apotek, alamat, telepon, logo/header/footer.</p>
+    </section>
+
+    <section class="mt-10 rounded-3xl border border-amber-200 bg-amber-50 p-6 dark:border-amber-900 dark:bg-amber-950/30">
+      <h2 class="text-2xl font-bold">Batch, Barcode, and Physical Rack SOP</h2>
+      <p class="mt-3 text-slate-700 dark:text-slate-300">Barcode MVP diasumsikan sebagai identitas produk/SKU, bukan identitas batch. Batch number dan expired date diinput saat barang masuk. Saat penjualan, sistem bisa otomatis memilih batch dengan expired date paling dekat (FEFO), tapi data hanya akurat kalau fisik rak mengikuti SOP: obat dengan expired terdekat diletakkan paling depan dan kasir mengambil dari depan. Kalau rak dicampur, sistem tidak bisa menjamin batch fisik yang keluar sama dengan batch yang tercatat.</p>
+    </section>
+
+    <section class="mt-10">
+      <h2 class="text-2xl font-bold">Roadmap</h2>
+      <div class="mt-5 space-y-4">{roadmap.map(([name, body]) => <div class="rounded-2xl border border-slate-200 p-5 dark:border-slate-800"><h3 class="font-semibold">{name}</h3><p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{body}</p></div>)}</div>
+    </section>
+
+    <section class="mt-10 grid gap-6 lg:grid-cols-2">
+      <div class="rounded-3xl border border-slate-200 p-6 dark:border-slate-800">
+        <h2 class="text-2xl font-bold">Out of Scope v1</h2>
+        <ul class="mt-4 space-y-2 text-sm text-slate-600 dark:text-slate-300">{outOfScope.map((item) => <li>• {item}</li>)}</ul>
+      </div>
+      <div class="rounded-3xl border border-slate-200 p-6 dark:border-slate-800">
+        <h2 class="text-2xl font-bold">Acceptance Criteria</h2>
+        <ul class="mt-4 space-y-2 text-sm text-slate-600 dark:text-slate-300">{acceptance.map((item) => <li>• {item}</li>)}</ul>
+      </div>
+    </section>
+
+    <section class="mt-10 rounded-3xl bg-slate-950 p-6 text-white">
+      <h2 class="text-2xl font-bold">Related Build Docs</h2>
+      <div class="mt-4 flex flex-wrap gap-3">
+        <a class="rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-950" href="/task-list/pos-apotek-lite/">Task List</a>
+        <a class="rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-950" href="/erd/pos-apotek-lite/">ERD</a>
+      </div>
+    </section>
+  </main>
+</BaseLayout>

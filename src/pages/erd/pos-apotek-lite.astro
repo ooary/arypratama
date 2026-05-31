@@ -1,0 +1,81 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import EntityCard from "../../components/EntityCard.astro";
+
+const title = "ERD — POS Apotek Lite";
+const description = "Entity Relationship Diagram for POS Apotek Lite covering owner, store, products, batches, sales, stock ledger, receipts, Excel imports, and sync events.";
+
+const identityEntities = [
+  { name: "users", tag: "User account", fields: ["id PK", "name", "email unique", "password_hash", "created_at", "updated_at"] },
+  { name: "stores", tag: "Data apotek/outlet", fields: ["id PK", "name", "legal_name nullable", "address", "phone", "email nullable", "logo_url nullable", "receipt_header", "receipt_footer", "tax_no nullable", "created_at", "updated_at"] },
+  { name: "store_memberships", tag: "User ↔ apotek", fields: ["id PK", "store_id FK", "user_id FK", "role=owner for v1", "status", "created_at", "updated_at"] },
+];
+const catalogEntities = [
+  { name: "products", tag: "Master product", fields: ["id PK", "store_id FK", "sku", "barcode nullable", "name", "category", "unit", "buy_price", "sell_price", "minimum_stock", "current_stock cache", "is_active", "created_at", "updated_at", "deleted_at"] },
+  { name: "product_batches", tag: "Batch + expiry", fields: ["id PK", "store_id FK", "product_id FK", "batch_no nullable", "expiry_date nullable", "available_qty cache", "status", "created_at", "updated_at"] },
+  { name: "suppliers", tag: "Light supplier", fields: ["id PK", "store_id FK", "name", "phone", "address", "is_active", "created_at"] },
+];
+const transactionEntities = [
+  { name: "sales", tag: "POS transaction", fields: ["id PK", "store_id FK", "sale_no unique", "status", "subtotal", "discount_amount", "total_amount", "payment_method", "paid_amount", "change_amount", "sold_at", "client_tx_id unique"] },
+  { name: "sale_items", tag: "Sold items", fields: ["id PK", "sale_id FK", "product_id FK", "batch_id FK nullable", "qty", "unit_price", "discount_amount", "line_total"] },
+  { name: "stock_receipts", tag: "Barang masuk", fields: ["id PK", "store_id FK", "supplier_id FK nullable", "receipt_no unique", "note", "received_at", "client_tx_id unique"] },
+  { name: "stock_receipt_items", tag: "Received items", fields: ["id PK", "stock_receipt_id FK", "product_id FK", "batch_id FK", "qty", "buy_price"] },
+];
+const ledgerEntities = [
+  { name: "stock_movements", tag: "Append-only ledger", fields: ["id PK", "store_id FK", "product_id FK", "batch_id FK nullable", "movement_type", "direction in|out", "qty", "quantity_delta", "balance_after", "source_type", "source_id", "reason", "note", "created_at", "client_tx_id"] },
+  { name: "stock_adjustments", tag: "Manual correction", fields: ["id PK", "store_id FK", "adjustment_no unique", "reason", "note", "adjusted_at", "client_tx_id unique"] },
+  { name: "stock_adjustment_items", tag: "Correction lines", fields: ["id PK", "adjustment_id FK", "product_id FK", "batch_id FK nullable", "qty_delta", "reason"] },
+];
+const opsEntities = [
+  { name: "receipt_templates", tag: "Digital receipt", fields: ["id PK", "store_id FK", "logo_url", "header_text", "footer_text", "paper_width", "updated_at"] },
+  { name: "import_jobs", tag: "Excel import", fields: ["id PK", "store_id FK", "import_type", "file_name", "status", "total_rows", "valid_rows", "error_rows", "error_report_json", "created_at"] },
+  { name: "sync_events", tag: "Cloud sync", fields: ["id PK", "store_id FK", "client_id", "entity_type", "entity_id", "operation", "payload_json", "status", "idempotency_key unique", "created_at", "synced_at"] },
+];
+
+const relationships = [
+  "users many ↔ many stores through store_memberships; v1 only role=owner",
+  "stores 1 → many products, product_batches, sales, stock_receipts, stock_movements, import_jobs, sync_events",
+  "products 1 → many product_batches, sale_items, stock_receipt_items, stock_movements",
+  "sales 1 → many sale_items; each sale item creates stock_movements with movement_type=sale",
+  "stock_receipts 1 → many stock_receipt_items; each stock receipt item creates stock_movements with movement_type=stock_receipt",
+  "stock_adjustments 1 → many stock_adjustment_items; each item creates stock_movements with movement_type=adjustment/expired/damaged/lost",
+  "product_batches cache available_qty is derived from stock_movements per batch",
+  "products current_stock cache is derived from stock_movements per product",
+];
+---
+
+<BaseLayout title={title} description={description}>
+  <main class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+    <section class="rounded-3xl bg-gradient-to-br from-orange-50 via-white to-blue-50 p-8 ring-1 ring-slate-200 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950 dark:ring-slate-800">
+      <p class="text-sm font-semibold uppercase tracking-[0.24em] text-blue-600">Entity Relationship Diagram</p>
+      <h1 class="mt-4 text-4xl font-bold tracking-tight text-slate-950 dark:text-white">POS Apotek Lite ERD</h1>
+      <p class="mt-4 max-w-3xl text-lg text-slate-600 dark:text-slate-300">Schema v1 dibuat untuk owner-only single outlet, tapi akun tetap memakai <code>users</code> dan relasi ke apotek lewat <code>store_memberships</code>. Semua transaksi scoped ke <code>store_id</code> supaya v2 cashier/RBAC/multi-device tidak perlu bongkar total.</p>
+    </section>
+
+    <section class="mt-10 rounded-3xl border border-slate-200 p-6 dark:border-slate-800">
+      <h2 class="text-2xl font-bold">Relationship Map</h2>
+      <div class="mt-5 grid gap-3 md:grid-cols-2">{relationships.map((item) => <div class="rounded-2xl bg-slate-50 p-4 text-sm text-slate-700 dark:bg-slate-900 dark:text-slate-300">{item}</div>)}</div>
+    </section>
+
+    <section class="mt-10 grid gap-8 lg:grid-cols-2">
+      <div><h2 class="mb-4 text-xl font-bold">Identity</h2><div class="space-y-4">{identityEntities.map((entity) => <EntityCard entity={entity} />)}</div></div>
+      <div><h2 class="mb-4 text-xl font-bold">Catalog</h2><div class="space-y-4">{catalogEntities.map((entity) => <EntityCard entity={entity} />)}</div></div>
+      <div><h2 class="mb-4 text-xl font-bold">Transactions</h2><div class="space-y-4">{transactionEntities.map((entity) => <EntityCard entity={entity} />)}</div></div>
+      <div><h2 class="mb-4 text-xl font-bold">Inventory Ledger</h2><div class="space-y-4">{ledgerEntities.map((entity) => <EntityCard entity={entity} />)}</div></div>
+      <div class="lg:col-span-2"><h2 class="mb-4 text-xl font-bold">Ops, Import, Sync</h2><div class="grid gap-4 md:grid-cols-3">{opsEntities.map((entity) => <EntityCard entity={entity} />)}</div></div>
+    </section>
+
+    <section class="mt-10 rounded-3xl bg-slate-950 p-6 text-white">
+      <h2 class="text-2xl font-bold">Domain Invariants</h2>
+      <ul class="mt-4 space-y-2 text-sm text-slate-200">
+        <li>• <code>stock_movements</code> append-only; tidak ada edit/delete normal untuk movement yang sudah posted.</li>
+        <li>• Semua perubahan stok harus punya <code>source_type</code> dan <code>source_id</code>.</li>
+        <li>• <code>client_tx_id</code> / idempotency key wajib untuk transaksi offline agar sync tidak double-post.</li>
+        <li>• Produk soft delete via <code>deleted_at</code>; transaksi lama tetap valid.</li>
+        <li>• Batch/expired opsional, tapi kalau batch dipakai, movement harus menyimpan <code>batch_id</code>.</li>
+        <li>• Barcode diasumsikan level produk/SKU, bukan batch. Batch number dan expired date diinput saat barang masuk.</li>
+        <li>• FEFO sistem memilih batch expired terdekat, tapi akurasi fisik bergantung SOP rak: batch expired terdekat harus diletakkan paling depan.</li>
+      </ul>
+    </section>
+  </main>
+</BaseLayout>
