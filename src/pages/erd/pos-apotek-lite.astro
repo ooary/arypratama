@@ -12,8 +12,8 @@ const identityEntities = [
 ];
 const catalogEntities = [
   { name: "products", tag: "Master product", fields: ["id PK", "store_id FK", "sku", "barcode nullable", "name", "category", "unit", "buy_price", "sell_price", "minimum_stock", "current_stock derived", "is_active", "created_at", "updated_at", "deleted_at"] },
-  { name: "product_batches", tag: "Batch + expiry", fields: ["id PK", "store_id FK", "product_id FK", "batch_no nullable", "expiry_date nullable", "available_qty derived", "status", "created_at", "updated_at"] },
-  { name: "suppliers", tag: "Light supplier", fields: ["id PK", "store_id FK", "name", "phone", "address", "is_active", "created_at"] },
+  { name: "product_batches", tag: "Batch + expiry", fields: ["id PK", "store_id FK", "product_id FK", "supplier_id FK nullable", "batch_no", "expiry_date nullable", "qty_initial", "available_qty derived", "created_at", "updated_at"] },
+  { name: "suppliers", tag: "Light supplier", fields: ["id PK", "store_id FK", "name", "phone nullable", "created_at"] },
 ];
 const transactionEntities = [
   { name: "sales", tag: "POS transaction", fields: ["id PK", "store_id FK", "sale_no unique", "status", "subtotal", "discount_amount", "total_amount", "payment_method", "paid_amount", "change_amount", "sold_at", "client_tx_id unique"] },
@@ -36,7 +36,9 @@ const opsEntities = [
 const relationships = [
   "users many ↔ many stores through store_memberships; v1 only role=owner",
   "stores 1 → many products, product_batches, sales, stock_receipts, stock_movements, import_jobs, sync_events, admin_activity_events",
+  "stores 1 → many suppliers; suppliers are store-scoped, not user-owned",
   "products 1 → many product_batches, sale_items, stock_receipt_items, stock_movements",
+  "suppliers 1 → many stock_receipts and optionally product_batches",
   "sales 1 → many sale_items; each sale item creates stock_movements with movement_type=sale",
   "stock_receipts 1 → many stock_receipt_items; each stock receipt item creates stock_movements with movement_type=stock_receipt",
   "stock_adjustments 1 → many stock_adjustment_items; each item creates stock_movements with movement_type=adjustment/expired/damaged/lost",
