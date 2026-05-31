@@ -5,15 +5,44 @@ const title = "Task List — POS Apotek Lite";
 const description = "Backend-first module task list and API contract for POS Apotek Lite MVP.";
 
 const apiContracts = [
-  ["Auth/User", "POST /api/v1/users/bootstrap, GET /api/v1/users/me", "Create first owner user, create apotek store, return active store membership."],
-  ["Products", "GET/POST /api/v1/products, GET/PATCH /api/v1/products/{id}, POST /api/v1/products/{id}/batches", "FE product catalog, barcode lookup, batch/expired management."],
-  ["Sales", "POST /api/v1/sales, GET /api/v1/sales/{id}, GET /api/v1/sales/{id}/receipt", "Offline-safe sale posting with client_tx_id; returns receipt payload and stock effect."],
-  ["Stock Receipts", "POST /api/v1/stock-receipts, GET /api/v1/stock-receipts/{id}", "Barang masuk with stock_receipt_items, batch creation/update, ledger movement posting."],
-  ["Stock", "POST /api/v1/stock/adjustments, GET /api/v1/stock/movements, GET /api/v1/stock/card", "Manual adjustment, ledger history, stock card report."],
-  ["Reports", "GET /api/v1/reports/dashboard, /low-stock, /near-expiry, /top-products", "Dashboard metrics used by owner home screen."],
-  ["Import/Export", "POST /api/v1/imports/products/preview, POST /api/v1/imports/products/commit, GET /api/v1/exports/*", "Excel template, validation preview, commit, and exports."],
-  ["Sync", "POST /api/v1/sync/push, GET /api/v1/sync/pull", "FE offline queue contract. Idempotency key required per event."],
-  ["Admin", "GET /api/v1/admin/overview, /users, /stores, /activity, /sync-errors", "Ary internal monitoring panel for signups, stores, transactions, sync/import activity."],
+  ["Auth/User", "POST", "/api/v1/users/register", "Daftar owner dengan email, password, nomor HP, dan data apotek awal.", "UserRegisterRequest", "UserSessionResponse", "Auto-create users, stores, store_memberships role owner."],
+  ["Auth/User", "POST", "/api/v1/auth/login", "Login owner pakai email + password.", "LoginRequest", "UserSessionResponse", "Return access token + active store context."],
+  ["Auth/User", "GET", "/api/v1/users/me", "Ambil profil user login dan active store.", "-", "UserMeResponse", "Dipakai FE saat app boot."],
+  ["Store", "PATCH", "/api/v1/stores/{store_id}", "Update data apotek untuk struk.", "StoreUpdateRequest", "StoreRead", "Nama, alamat, phone, email, logo/header/footer struk."],
+  ["Products", "GET", "/api/v1/products", "List/search produk.", "ProductListQuery", "ProductListResponse", "Support q, barcode, category, is_active, pagination."],
+  ["Products", "POST", "/api/v1/products", "Buat produk baru.", "ProductCreate", "ProductRead", "SKU unik per store; barcode optional."],
+  ["Products", "GET", "/api/v1/products/{product_id}", "Detail produk + batch aktif.", "-", "ProductDetailRead", "Include current_stock derived."],
+  ["Products", "PATCH", "/api/v1/products/{product_id}", "Update produk.", "ProductUpdate", "ProductRead", "Tidak langsung update stok."],
+  ["Products", "GET", "/api/v1/products/barcode/{barcode}", "Cari produk dari scan barcode kamera.", "-", "ProductRead", "Return 404 kalau barcode belum terdaftar."],
+  ["Product Batches", "GET", "/api/v1/products/{product_id}/batches", "List batch produk.", "-", "ProductBatchListResponse", "Ordered by nearest expiry."],
+  ["Sales", "POST", "/api/v1/sales", "Post transaksi penjualan.", "SaleCreate", "SaleRead", "Wajib client_tx_id; otomatis create stock_movements type sale."],
+  ["Sales", "GET", "/api/v1/sales", "List transaksi.", "SaleListQuery", "SaleListResponse", "Filter tanggal, payment method, sync status."],
+  ["Sales", "GET", "/api/v1/sales/{sale_id}", "Detail transaksi.", "-", "SaleDetailRead", "Include sale_items."],
+  ["Receipts", "GET", "/api/v1/sales/{sale_id}/receipt", "Ambil payload struk.", "-", "ReceiptRead", "FE render share PDF/thermal print dari payload ini."],
+  ["Stock Receipts", "POST", "/api/v1/stock-receipts", "Input barang masuk.", "StockReceiptCreate", "StockReceiptRead", "Create/update batch, create stock_movements type stock_receipt."],
+  ["Stock Receipts", "GET", "/api/v1/stock-receipts", "List barang masuk.", "StockReceiptListQuery", "StockReceiptListResponse", "Filter tanggal/supplier."],
+  ["Stock Receipts", "GET", "/api/v1/stock-receipts/{receipt_id}", "Detail barang masuk.", "-", "StockReceiptDetailRead", "Include items, batch, product."],
+  ["Stock", "POST", "/api/v1/stock/adjustments", "Koreksi stok/manual adjustment.", "StockAdjustmentCreate", "StockAdjustmentRead", "Untuk rusak, expired, hilang, opname."],
+  ["Stock", "GET", "/api/v1/stock/movements", "List ledger movement.", "StockMovementQuery", "StockMovementListResponse", "Filter product, batch, movement_type, date."],
+  ["Stock", "GET", "/api/v1/stock/card", "Kartu stok produk.", "StockCardQuery", "StockCardResponse", "Menampilkan masuk/keluar/saldo berjalan."],
+  ["Reports", "GET", "/api/v1/reports/dashboard", "Dashboard owner.", "DashboardQuery", "DashboardRead", "Omzet hari ini, transaksi, top products, low stock, near expiry."],
+  ["Reports", "GET", "/api/v1/reports/low-stock", "List stok menipis.", "LowStockQuery", "LowStockListResponse", "Based on products.current_stock <= minimum_stock."],
+  ["Reports", "GET", "/api/v1/reports/near-expiry", "List batch mendekati expired.", "NearExpiryQuery", "NearExpiryListResponse", "Default threshold 90 hari."],
+  ["Reports", "GET", "/api/v1/reports/top-products", "Produk terlaris.", "TopProductsQuery", "TopProductsResponse", "Based on sale_items."],
+  ["Import", "GET", "/api/v1/imports/products/template", "Download template Excel produk.", "-", "FileResponse", "Kolom sesuai PRD."],
+  ["Import", "POST", "/api/v1/imports/products/preview", "Preview import produk.", "multipart/form-data", "ImportPreviewResult", "Belum commit ke DB."],
+  ["Import", "POST", "/api/v1/imports/products/commit", "Commit hasil import valid.", "ImportCommitRequest", "ImportJobRead", "Invalid rows ditolak."],
+  ["Export", "GET", "/api/v1/exports/products", "Export produk.", "ExportProductsQuery", "FileResponse", "Excel."],
+  ["Export", "GET", "/api/v1/exports/sales", "Export transaksi.", "ExportSalesQuery", "FileResponse", "Filter date range."],
+  ["Export", "GET", "/api/v1/exports/stock", "Export stok.", "ExportStockQuery", "FileResponse", "Include current stock + batch if any."],
+  ["Sync", "POST", "/api/v1/sync/push", "Push offline events dari client.", "SyncPushRequest", "SyncPushResult", "Per event wajib idempotency_key."],
+  ["Sync", "GET", "/api/v1/sync/pull", "Pull perubahan cloud ke client.", "SyncPullQuery", "SyncPullResponse", "Cursor-based."],
+  ["Sync", "GET", "/api/v1/sync/status", "Cek status sync client/store.", "SyncStatusQuery", "SyncStatusRead", "Untuk indikator pending/synced/failed di FE."],
+  ["Admin", "GET", "/api/v1/admin/overview", "Overview internal Ary.", "AdminOverviewQuery", "AdminOverviewRead", "Total users, stores, sales, GMV, active today, errors."],
+  ["Admin", "GET", "/api/v1/admin/users", "List user daftar.", "AdminUserQuery", "AdminUserListResponse", "Search/filter by date/activity."],
+  ["Admin", "GET", "/api/v1/admin/stores", "List apotek/store.", "AdminStoreQuery", "AdminStoreListResponse", "Include owner, city/address, last activity."],
+  ["Admin", "GET", "/api/v1/admin/activity", "Activity feed.", "AdminActivityQuery", "AdminActivityListResponse", "Signup, sale posted, stock receipt, import, sync events."],
+  ["Admin", "GET", "/api/v1/admin/sync-errors", "Pantau sync/import error.", "AdminSyncErrorQuery", "AdminSyncErrorListResponse", "Untuk debugging early users."],
 ];
 
 const statusClass = {
@@ -32,7 +61,7 @@ const modules = [
     ["1.1", "Create `user_schema.py`", "UserCreate, UserRead, StoreCreate, StoreRead, StoreMembershipRead.", "P0"],
     ["1.2", "Create `user_model.py`", "User, Store, StoreMembership. Store has name, legal_name, address, phone, email, logo_url, receipt_header, receipt_footer, tax_no.", "P0"],
     ["1.3", "Create `user_service.py`", "Bootstrap first user/store, attach owner membership, get active store context.", "P0"],
-    ["1.4", "Create `user_api.py`", "Bootstrap/me/store profile endpoints. Include router in main.py.", "P0"],
+    ["1.4", "Create `user_api.py`", "Register/login/me/store profile endpoints. Include user_api.py and auth_api.py routers in main.py.", "P0"],
 
   ]},
   { title: "Module 2 — Products and Batches", tasks: [
@@ -124,16 +153,24 @@ const modules = [
           <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-900 dark:text-slate-400">
             <tr>
               <th class="px-4 py-3 font-semibold">Domain</th>
-              <th class="px-4 py-3 font-semibold">Endpoints</th>
-              <th class="px-4 py-3 font-semibold">Frontend Contract</th>
+              <th class="px-4 py-3 font-semibold">Method</th>
+              <th class="px-4 py-3 font-semibold">Endpoint</th>
+              <th class="px-4 py-3 font-semibold">Purpose</th>
+              <th class="px-4 py-3 font-semibold">Request DTO</th>
+              <th class="px-4 py-3 font-semibold">Response DTO</th>
+              <th class="px-4 py-3 font-semibold">Notes</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-200 bg-white dark:divide-slate-800 dark:bg-slate-950">
-            {apiContracts.map(([domain, endpoints, purpose]) => (
+            {apiContracts.map(([domain, method, endpoint, purpose, requestDto, responseDto, notes]) => (
               <tr class="align-top">
                 <td class="whitespace-nowrap px-4 py-4 font-semibold text-slate-950 dark:text-white">{domain}</td>
-                <td class="px-4 py-4 text-slate-700 dark:text-slate-300"><code class="whitespace-pre-wrap break-words">{endpoints}</code></td>
+                <td class="whitespace-nowrap px-4 py-4"><span class="rounded-full bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-700">{method}</span></td>
+                <td class="px-4 py-4 text-slate-700 dark:text-slate-300"><code class="whitespace-pre-wrap break-words">{endpoint}</code></td>
                 <td class="px-4 py-4 text-slate-600 dark:text-slate-300">{purpose}</td>
+                <td class="px-4 py-4 text-slate-700 dark:text-slate-300"><code>{requestDto}</code></td>
+                <td class="px-4 py-4 text-slate-700 dark:text-slate-300"><code>{responseDto}</code></td>
+                <td class="px-4 py-4 text-slate-600 dark:text-slate-300">{notes}</td>
               </tr>
             ))}
           </tbody>
