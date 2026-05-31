@@ -9,14 +9,17 @@ const apiContracts = [
   ["Auth/User", "POST", "/api/v1/auth/login", "Login owner pakai email + password.", "LoginRequest", "UserSessionResponse", "Return access token + active store context."],
   ["Auth/User", "GET", "/api/v1/users/me", "Ambil profil user login dan active store.", "-", "UserMeResponse", "Dipakai FE saat app boot."],
   ["Store", "PATCH", "/api/v1/stores/{store_id}", "Update data apotek untuk struk.", "StoreUpdateRequest", "StoreRead", "Nama, alamat, phone, email, logo/header/footer struk."],
-  ["Products", "GET", "/api/v1/products", "List/search produk.", "ProductListQuery", "ProductListResponse", "Support q, barcode, category, is_active, pagination."],
-  ["Products", "POST", "/api/v1/products", "Buat produk baru.", "ProductCreate", "ProductRead", "SKU unik per store; barcode optional."],
-  ["Products", "GET", "/api/v1/products/{product_id}", "Detail produk + batch aktif.", "-", "ProductDetailRead", "Include current_stock derived."],
-  ["Products", "PATCH", "/api/v1/products/{product_id}", "Update produk.", "ProductUpdate", "ProductRead", "Tidak langsung update stok."],
-  ["Products", "DELETE", "/api/v1/products/{product_id}", "Soft delete produk.", "-", "204 No Content", "Produk lama tetap valid untuk transaksi historis."],
-  ["Products", "GET", "/api/v1/products/barcode/{barcode}", "Cari produk dari scan barcode kamera.", "-", "ProductRead", "Return 404 kalau barcode belum terdaftar."],
-  ["Suppliers", "POST", "/api/v1/suppliers", "Buat supplier toko.", "SupplierCreate", "SupplierRead", "Supplier scoped per store; dipakai oleh barang masuk dan batch."],
-  ["Suppliers", "GET", "/api/v1/suppliers", "List/search supplier.", "SupplierListQuery", "SupplierListResponse", "Needed for FE barang masuk supplier picker. Belum implemented di backend saat ini."],
+  ["Master Data / Products", "GET", "/api/v1/products", "List/search master produk.", "ProductListQuery", "ProductListResponse", "Support q, barcode, category, is_active, pagination."],
+  ["Master Data / Products", "POST", "/api/v1/products", "Buat master produk baru.", "ProductCreate", "ProductRead", "SKU unik per store; barcode optional. Tidak berarti stok masuk."],
+  ["Master Data / Products", "GET", "/api/v1/products/{product_id}", "Detail master produk + batch aktif.", "-", "ProductDetailRead", "Include current_stock derived. Belum implemented di backend saat ini."],
+  ["Master Data / Products", "PATCH", "/api/v1/products/{product_id}", "Update master produk.", "ProductUpdate", "ProductRead", "Tidak langsung update stok."],
+  ["Master Data / Products", "DELETE", "/api/v1/products/{product_id}", "Soft delete produk.", "-", "204 No Content", "Produk lama tetap valid untuk transaksi historis."],
+  ["Master Data / Products", "GET", "/api/v1/products/barcode/{barcode}", "Cari master produk dari scan barcode kamera.", "-", "ProductRead", "Return 404 kalau barcode belum terdaftar."],
+  ["Master Data / Suppliers", "GET", "/api/v1/suppliers", "List/search master supplier.", "SupplierListQuery", "SupplierListResponse", "Needed for FE barang masuk supplier picker. Belum implemented di backend saat ini."],
+  ["Master Data / Suppliers", "POST", "/api/v1/suppliers", "Buat master supplier toko.", "SupplierCreate", "SupplierRead", "Supplier scoped per store; dipakai oleh barang masuk dan batch."],
+  ["Master Data / Suppliers", "GET", "/api/v1/suppliers/{supplier_id}", "Detail master supplier.", "-", "SupplierRead", "Belum implemented di backend saat ini."],
+  ["Master Data / Suppliers", "PATCH", "/api/v1/suppliers/{supplier_id}", "Update master supplier.", "SupplierUpdate", "SupplierRead", "Belum implemented di backend saat ini."],
+  ["Master Data / Suppliers", "DELETE", "/api/v1/suppliers/{supplier_id}", "Nonaktifkan/soft delete supplier.", "-", "204 No Content", "Belum implemented di backend saat ini."],
   ["Product Batches", "POST", "/api/v1/products/{product_id}/batches", "Buat batch produk/manual bootstrap batch.", "ProductBatchCreate", "ProductBatchRead", "Catatan: jalur ini perlu dirapikan agar ledger-driven atau bootstrap-only."],
   ["Product Batches", "GET", "/api/v1/products/{product_id}/batches", "List batch produk.", "-", "ProductBatchListResponse", "Ordered by nearest expiry. Belum implemented di backend saat ini."],
   ["Sales", "POST", "/api/v1/sales", "Post transaksi penjualan.", "SaleCreate", "SaleRead", "Wajib client_tx_id; otomatis create stock_movements type sale."],
@@ -68,11 +71,14 @@ const modules = [
     ["1.4", "Create `user_api.py`", "Register/login/me/store profile endpoints. Include user_api.py and auth_api.py routers in main.py. Done by BonBon: local commit `5123cd3`.", "P0", "Done"],
 
   ]},
-  { title: "Module 2 — Products and Batches", tasks: [
-    ["2.1", "Create `product_schema.py`", "ProductCreate/Update/Read, ProductBatchCreate/Read, ProductSearch, LowStockRead. Done by BonBon: pushed commit `9ec968c`.", "P0", "Done"],
+  { title: "Module 2 — Master Data: Products and Suppliers", tasks: [
+    ["2.1", "Create `product_schema.py`", "ProductCreate/Update/Read, SupplierCreate/Read, ProductBatchCreate/Read, ProductSearch, LowStockRead. Done by BonBon: pushed commit `9ec968c`.", "P0", "Done"],
     ["2.2", "Create `product_model.py`", "Product, ProductBatch, Supplier; store-scoped SKU/barcode uniqueness; soft delete. Done by BonBon: pushed commit `9ec968c`.", "P0", "Done"],
-    ["2.3", "Create `product_service.py`", "CRUD product, duplicate checks, barcode lookup, batch create/update, current stock reads. Done by BonBon: pushed commit `9ec968c`.", "P0", "Done"],
-    ["2.4", "Create `product_api.py`", "Product CRUD, barcode lookup, batch endpoints, low-stock endpoint. Include router in main.py. Done by BonBon: pushed commit `9ec968c`.", "P0", "Done"],
+    ["2.3", "Create `product_service.py`", "CRUD product, create supplier, duplicate checks, barcode lookup, batch create/update, current stock reads. Done by BonBon: pushed commit `9ec968c`.", "P0", "Done"],
+    ["2.4", "Create `product_api.py`", "Product CRUD, create supplier, barcode lookup, batch create endpoint, low-stock endpoint. Include router in main.py. Done by BonBon: pushed commit `9ec968c`.", "P0", "Done"],
+    ["2.5", "Complete supplier master data API", "Add list/detail/update/delete supplier endpoints, store-scoped filtering, schema tests, OpenAPI contract coverage. Needed before FE barang masuk supplier picker.", "P0"],
+    ["2.6", "Complete product detail and batch list API", "Add GET product detail and GET product batches endpoints or update contract if intentionally out of scope.", "P0"],
+    ["2.7", "Clarify bootstrap batch path", "Decide whether POST product batch is bootstrap-only or must post opening_stock movement. Avoid stock mutation outside ledger.", "P0"],
 
   ]},
   { title: "Module 3 — Stock Ledger Core", tasks: [
@@ -148,6 +154,14 @@ const modules = [
       <h1 class="mt-4 text-4xl font-bold tracking-tight text-slate-950 dark:text-white">POS Apotek Lite Task List</h1>
       <p class="mt-4 max-w-3xl text-lg text-slate-600 dark:text-slate-300">Task list disusun backend-first per module. Setiap backend module harus clear dulu: schema, model, service, API, tests, OpenAPI contract. UI/UX dipisah sebagai next track setelah contract stabil.</p>
       <div class="mt-6 flex flex-wrap gap-3"><a class="rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white" href="/prd/pos-apotek-lite/">PRD</a><a class="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white" href="/erd/pos-apotek-lite/">ERD</a></div>
+    </section>
+
+    <section class="mt-10 rounded-3xl border border-slate-200 bg-slate-50 p-6 dark:border-slate-800 dark:bg-slate-900">
+      <h2 class="text-2xl font-bold">Master Data Boundary</h2>
+      <div class="mt-4 grid gap-4 md:grid-cols-2">
+        <div class="rounded-2xl bg-white p-4 text-sm leading-6 text-slate-700 dark:bg-slate-950 dark:text-slate-300"><strong class="text-slate-950 dark:text-white">Master Data</strong><br />Products dan Suppliers adalah data referensi store-scoped. Membuat produk/supplier tidak otomatis menambah stok.</div>
+        <div class="rounded-2xl bg-white p-4 text-sm leading-6 text-slate-700 dark:bg-slate-950 dark:text-slate-300"><strong class="text-slate-950 dark:text-white">Stock Operations</strong><br />Barang masuk, batch/expiry, kartu stok, dan adjustment masuk domain inventory. Stok berubah lewat stock ledger, bukan edit master data.</div>
+      </div>
     </section>
 
     <section class="mt-10 rounded-3xl border border-slate-200 p-6 dark:border-slate-800">
