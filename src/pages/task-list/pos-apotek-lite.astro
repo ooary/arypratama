@@ -74,11 +74,12 @@ const modules = [
   { title: "Module 2 — Master Data: Products and Suppliers", tasks: [
     ["2.1", "Create `product_schema.py`", "ProductCreate/Update/Read, SupplierCreate/Read, ProductBatchCreate/Read, ProductSearch, LowStockRead. Done by BonBon: pushed commit `9ec968c`.", "P0", "Done"],
     ["2.2", "Create `product_model.py`", "Product, ProductBatch, Supplier; store-scoped SKU/barcode uniqueness; soft delete. Done by BonBon: pushed commit `9ec968c`.", "P0", "Done"],
-    ["2.3", "Create `product_service.py`", "CRUD product, create supplier, duplicate checks, barcode lookup, batch create/update, current stock reads. Done by BonBon: pushed commit `9ec968c`.", "P0", "Done"],
-    ["2.4", "Create `product_api.py`", "Product CRUD, create supplier, barcode lookup, batch create endpoint, low-stock endpoint. Include router in main.py. Done by BonBon: pushed commit `9ec968c`.", "P0", "Done"],
+    ["2.3", "Create `product_service.py`", "Product create/list/update/soft-delete, create supplier, duplicate checks, barcode lookup, batch create, current stock reads. Done by BonBon: pushed commit `9ec968c`.", "P0", "Done"],
+    ["2.4", "Create `product_api.py`", "Product create/list/update/delete, create supplier, barcode lookup, batch create endpoint, low-stock endpoint. Include router in main.py. Done by BonBon: pushed commit `9ec968c`.", "P0", "Done"],
     ["2.5", "Complete supplier master data API", "Add list/detail/update/delete supplier endpoints, store-scoped filtering, schema tests, OpenAPI contract coverage. Needed before FE barang masuk supplier picker.", "P0"],
     ["2.6", "Complete product detail and batch list API", "Add GET product detail and GET product batches endpoints or update contract if intentionally out of scope.", "P0"],
     ["2.7", "Clarify bootstrap batch path", "Decide whether POST product batch is bootstrap-only or must post opening_stock movement. Avoid stock mutation outside ledger.", "P0"],
+    ["2.8", "Fix batch supplier tenant validation", "When creating a product batch with supplier_id, verify supplier.store_id matches active store. Prevent cross-store supplier reference before stock receipt/import flows depend on it.", "P0"],
 
   ]},
   { title: "Module 3 — Stock Ledger Core", tasks: [
