@@ -2,7 +2,7 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 
 const title = "Task List — POS Apotek Lite";
-const description = "Module-based implementation task list and API contract for POS Apotek Lite MVP.";
+const description = "Backend-first module task list and API contract for POS Apotek Lite MVP.";
 
 const apiContracts = [
   ["Auth/User", "POST /api/v1/users/bootstrap, GET /api/v1/users/me", "Create first owner user, create apotek store, return active store membership."],
@@ -20,22 +20,21 @@ const modules = [
   { title: "Module 0 — Project Foundation", tasks: [
     ["0.1", "Setup repo", "Create backend/frontend app structure, README links to PRD/ERD/task-list, .env.example, local run commands.", "P0"],
     ["0.2", "Setup backend env", "uv init, Python 3.12, FastAPI, uvicorn, pydantic-settings, SQLAlchemy, psycopg, Alembic, Scalar.", "P0"],
-    ["0.3", "Setup frontend env", "Vue 3 + Vite + Pinia + Tailwind + Router + Capacitor Android target.", "P0"],
-    ["0.4", "Setup quality gates", "pytest, ruff, pyright, frontend lint/build, GitHub Actions or local ship script.", "P0"],
+    ["0.3", "Setup backend quality gates", "pytest, ruff, pyright, Alembic offline SQL check, OpenAPI route contract test.", "P0"],
   ]},
   { title: "Module 1 — Users, Store, and Apotek Profile", tasks: [
     ["1.1", "Create `user_schema.py`", "UserCreate, UserRead, StoreCreate, StoreRead, StoreMembershipRead.", "P0"],
     ["1.2", "Create `user_model.py`", "User, Store, StoreMembership. Store has name, legal_name, address, phone, email, logo_url, receipt_header, receipt_footer, tax_no.", "P0"],
     ["1.3", "Create `user_service.py`", "Bootstrap first user/store, attach owner membership, get active store context.", "P0"],
     ["1.4", "Create `user_api.py`", "Bootstrap/me/store profile endpoints. Include router in main.py.", "P0"],
-    ["1.5", "Build apotek profile UI", "Owner can edit apotek name/address/phone/footer; receipt preview uses this data.", "P0"],
+
   ]},
   { title: "Module 2 — Products and Batches", tasks: [
     ["2.1", "Create `product_schema.py`", "ProductCreate/Update/Read, ProductBatchCreate/Read, ProductSearch, LowStockRead.", "P0"],
     ["2.2", "Create `product_model.py`", "Product, ProductBatch, Supplier; store-scoped SKU/barcode uniqueness; soft delete.", "P0"],
     ["2.3", "Create `product_service.py`", "CRUD product, duplicate checks, barcode lookup, batch create/update, current stock reads.", "P0"],
     ["2.4", "Create `product_api.py`", "Product CRUD, barcode lookup, batch endpoints, low-stock endpoint. Include router in main.py.", "P0"],
-    ["2.5", "Build product UI", "List/search/create/edit product, SKU/barcode, prices, min stock, batch/expired optional.", "P0"],
+
   ]},
   { title: "Module 3 — Stock Ledger Core", tasks: [
     ["3.1", "Create `stock_schema.py`", "StockMovementRead, StockPostCommand, StockAdjustmentCreate, StockCardRead, NearExpiryRead.", "P0"],
@@ -50,46 +49,55 @@ const modules = [
     ["4.3", "Create `sale_service.py`", "Post sale, pick FEFO batch when available, create sale_items, call stock_service movement_type=sale.", "P0"],
     ["4.4", "Create `receipt_service.py`", "Build receipt payload from sale + store profile. HTML/PDF/share-ready.", "P0"],
     ["4.5", "Create `sale_api.py`", "POST/list/get sale and GET receipt. Include router in main.py.", "P0"],
-    ["4.6", "Build sale UI", "Fast search/barcode, cart, payment method, offline save, FEFO selected batch note, receipt screen.", "P0"],
+
   ]},
   { title: "Module 5 — Stock Receipts / Barang Masuk", tasks: [
     ["5.1", "Create `stock_receipt_schema.py`", "StockReceiptCreate, StockReceiptItemCreate, StockReceiptRead.", "P0"],
     ["5.2", "Create `stock_receipt_model.py`", "StockReceipt and StockReceiptItem linked to supplier/product/batch.", "P0"],
     ["5.3", "Create `stock_receipt_service.py`", "Post barang masuk, upsert/find batch, create items, call stock_service movement_type=stock_receipt.", "P0"],
     ["5.4", "Create `stock_receipt_api.py`", "POST/list/get stock receipts. Include router in main.py.", "P0"],
-    ["5.5", "Build barang masuk UI", "Select product, qty, buy price, supplier optional, batch_no, expired_date, SOP note.", "P0"],
+
   ]},
   { title: "Module 6 — Reports", tasks: [
     ["6.1", "Create `report_schema.py`", "DashboardRead, SalesSummaryRead, TopProductRead, LowStockRead, NearExpiryRead.", "P0"],
     ["6.2", "Create `report_service.py`", "Sales summary, top products, low stock, near expiry, gross profit estimate, stock card from ledger.", "P0"],
     ["6.3", "Create `report_api.py`", "Dashboard, sales summary, top products, low stock, near-expiry endpoints. Include router in main.py.", "P0"],
-    ["6.4", "Build reports UI", "Owner dashboard: today sales, transaction count, top products, low stock, near expiry.", "P0"],
+
   ]},
   { title: "Module 7 — Excel Import / Export", tasks: [
     ["7.1", "Create `import_schema.py`", "ImportPreviewRow, ImportPreviewResult, ImportCommitRequest, ImportJobRead.", "P0"],
     ["7.2", "Create `import_model.py`", "ImportJob stores file name, type, row counts, validation errors JSON.", "P0"],
     ["7.3", "Create `import_service.py`", "Parse product Excel, validate SKU/barcode/date/price, preview errors, commit valid rows.", "P0"],
     ["7.4", "Create `import_api.py`", "Upload preview, commit import, download template/error report. Include router in main.py.", "P0"],
-    ["7.5", "Build import/export UI", "Template download, upload preview, error list, commit, product/stock/sales exports.", "P0"],
+
   ]},
   { title: "Module 8 — Offline Sync", tasks: [
     ["8.1", "Create `sync_schema.py`", "SyncEventDTO, SyncPushRequest, SyncPullRequest, SyncResult, conflict response.", "P0"],
     ["8.2", "Create `sync_model.py`", "SyncEvent with client_id, entity_type, entity_id, operation, payload_json, status, idempotency_key.", "P0"],
     ["8.3", "Create `sync_service.py`", "Apply events idempotently, reject duplicates, return per-event accepted/rejected state.", "P0"],
     ["8.4", "Create `sync_api.py`", "POST push and GET pull/status. Include router in main.py.", "P0"],
-    ["8.5", "Build local persistence adapter", "Android SQLite adapter and Web IndexedDB adapter behind one interface.", "P0"],
-    ["8.6", "Build sync queue UI/state", "Pinia queue with pending/synced/failed state and retry.", "P0"],
+    ["8.5", "Define frontend sync contract", "Document required client event shape, idempotency_key behavior, retry states, and pull cursor semantics for FE implementation.", "P0"],
   ]},
   { title: "Module 9 — Admin Panel for Ary", tasks: [
     ["9.1", "Create `admin_schema.py`", "AdminOverviewRead, AdminUserRead, AdminStoreRead, AdminActivityRead, AdminSyncErrorRead.", "P0"],
     ["9.2", "Create `admin_service.py`", "Aggregate signups, stores, sales count, GMV, active users, sync failures, import failures, latest activity.", "P0"],
     ["9.3", "Create `admin_api.py`", "GET overview/users/stores/activity/sync-errors. Protect behind admin token/env for MVP.", "P0"],
-    ["9.4", "Build admin panel UI", "Internal dashboard for Ary: total users, apotek registered, sales activity, sync/import errors, newest stores/users.", "P0"],
+    ["9.4", "Add admin activity instrumentation", "Record user signup, store created, sale posted, stock receipt posted, import preview/commit, sync failure, sync success.", "P0"],
   ]},
-  { title: "Module 10 — Ship Gates", tasks: [
+  { title: "Module 10 — Backend Ship Gates", tasks: [
     ["10.1", "Backend gate", "pytest + ruff + pyright + Alembic offline SQL + /openapi.json route tags.", "P0"],
-    ["10.2", "Frontend gate", "Build passes; Android/web smoke with offline sale and sync retry.", "P0"],
-    ["10.3", "Demo script", "Seed 20 products, import Excel, sell 3 items, stock receipt 1 item, see dashboard, share receipt, admin panel shows activity.", "P0"],
+    ["10.2", "API contract gate", "Every endpoint in the API Contract section has schema tests and appears in /openapi.json with stable request/response DTOs.", "P0"],
+    ["10.3", "Backend demo script", "Seed user/store/20 products, import Excel, post sale, post stock receipt, run dashboard report, verify admin activity.", "P0"],
+  ]},
+  { title: "Next Track — UI/UX After Backend Contract", tasks: [
+    ["UI.1", "Apotek profile UI", "Owner edits apotek name/address/phone/footer; receipt preview uses store data.", "P1"],
+    ["UI.2", "Product UI", "List/search/create/edit product, SKU/barcode, prices, min stock, batch/expired optional.", "P1"],
+    ["UI.3", "Sale UI", "Fast search/barcode, cart, payment method, offline save, FEFO selected batch note, receipt screen.", "P1"],
+    ["UI.4", "Stock receipt UI", "Barang masuk form with supplier optional, batch_no, expired_date, SOP note.", "P1"],
+    ["UI.5", "Reports UI", "Owner dashboard: today sales, transaction count, top products, low stock, near expiry.", "P1"],
+    ["UI.6", "Import/export UI", "Template download, upload preview, error list, commit, exports.", "P1"],
+    ["UI.7", "Offline sync UI/state", "Pinia queue with pending/synced/failed state, Android SQLite and Web IndexedDB adapter.", "P1"],
+    ["UI.8", "Admin panel UI", "Ary internal dashboard: users, apotek registered, sales activity, sync/import errors, newest stores/users.", "P1"],
   ]},
 ];
 ---
@@ -99,7 +107,7 @@ const modules = [
     <section class="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-950">
       <p class="text-sm font-semibold uppercase tracking-[0.24em] text-blue-600">Granular Execution Plan</p>
       <h1 class="mt-4 text-4xl font-bold tracking-tight text-slate-950 dark:text-white">POS Apotek Lite Task List</h1>
-      <p class="mt-4 max-w-3xl text-lg text-slate-600 dark:text-slate-300">Task list disusun per module supaya worker bisa jalan paralel: setiap module punya schema, model, service, API, dan UI bila perlu.</p>
+      <p class="mt-4 max-w-3xl text-lg text-slate-600 dark:text-slate-300">Task list disusun backend-first per module. Setiap backend module harus clear dulu: schema, model, service, API, tests, OpenAPI contract. UI/UX dipisah sebagai next track setelah contract stabil.</p>
       <div class="mt-6 flex flex-wrap gap-3"><a class="rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white" href="/prd/pos-apotek-lite/">PRD</a><a class="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white" href="/erd/pos-apotek-lite/">ERD</a></div>
     </section>
 
