@@ -125,6 +125,13 @@ const modules = [
     ["8.4", "Create `sync_api.py`", "POST /sync/push, GET /sync/pull, GET /sync/status/{idempotency_key}; router included in main.py. Done by BonBon: pushed commit `bc96ea4`.", "P0", "Done"],
     ["8.5", "Define frontend sync contract", "FE event shape documented in API contract: client_id, entity_type, entity_id, operation, payload_json, idempotency_key; retry duplicate returns rejected, pull uses next_cursor. Done by BonBon: pushed commit `bc96ea4`.", "P0", "Done"],
   ]},
+  { title: "Module 8B — PBF Invoice + FEFO COGS Foundation", tasks: [
+    ["8B.1", "Enrich stock receipt item cost fields", "Add discount_amount, tax_amount, line_total to stock_receipt_items so PBF invoice lines carry actual received cost detail. Keep supplier_id name; UI can call it PBF.", "P0"],
+    ["8B.2", "Trace batches back to receipt item", "Add stock_receipt_item_id to product_batches so every FEFO batch can be traced to the PBF invoice line that created it.", "P0"],
+    ["8B.3", "Lock COGS and profit at sale time", "Sale posting must allocate stock via FEFO, calculate revenue/cogs/gross_profit, and persist sale_items.cogs_amount + sale_items.gross_profit.", "P0"],
+    ["8B.4", "Persist batch-level cost on stock movements", "Add unit_cost and total_cost to stock_movements; sale movements must point to the consumed batch and locked cost.", "P0"],
+    ["8B.5", "Update reports to use locked COGS", "Reports must use sale_items.cogs_amount for COGS/profit instead of products.purchase_price estimate.", "P0"],
+  ]},
   { title: "Module 9 — Admin Panel for Ary", tasks: [
     ["9.1", "Create `admin_schema.py`", "AdminOverviewRead, AdminUserRead, AdminStoreRead, AdminActivityRead, AdminSyncErrorRead.", "P0"],
     ["9.2", "Create `admin_service.py`", "Aggregate signups, stores, sales count, GMV, active users, sync failures, import failures, latest activity.", "P0"],
