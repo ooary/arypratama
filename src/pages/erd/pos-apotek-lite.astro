@@ -30,11 +30,12 @@ const opsEntities = [
   { name: "receipt_templates", tag: "Digital receipt", fields: ["id PK", "store_id FK", "logo_url", "header_text", "footer_text", "paper_width", "updated_at"] },
   { name: "import_jobs", tag: "Excel import", fields: ["id PK", "store_id FK", "import_type", "file_name", "status", "total_rows", "valid_rows", "error_rows", "error_report_json", "created_at"] },
   { name: "sync_events", tag: "Cloud sync", fields: ["id PK", "store_id FK", "client_id", "entity_type", "entity_id", "operation", "payload_json", "status", "idempotency_key unique", "created_at", "synced_at"] },
+  { name: "admin_activity_events", tag: "Ary monitoring", fields: ["id PK", "user_id FK nullable", "store_id FK nullable", "event_type", "entity_type", "entity_id", "metadata_json", "created_at"] },
 ];
 
 const relationships = [
   "users many ↔ many stores through store_memberships; v1 only role=owner",
-  "stores 1 → many products, product_batches, sales, stock_receipts, stock_movements, import_jobs, sync_events",
+  "stores 1 → many products, product_batches, sales, stock_receipts, stock_movements, import_jobs, sync_events, admin_activity_events",
   "products 1 → many product_batches, sale_items, stock_receipt_items, stock_movements",
   "sales 1 → many sale_items; each sale item creates stock_movements with movement_type=sale",
   "stock_receipts 1 → many stock_receipt_items; each stock receipt item creates stock_movements with movement_type=stock_receipt",
