@@ -11,8 +11,8 @@ const identityEntities = [
   { name: "store_memberships", tag: "User ↔ apotek", fields: ["id PK", "store_id FK", "user_id FK", "role=owner for v1", "status", "created_at", "updated_at"] },
 ];
 const catalogEntities = [
-  { name: "products", tag: "Master product", fields: ["id PK", "store_id FK", "sku", "barcode nullable", "name", "category", "unit", "buy_price", "sell_price", "minimum_stock", "current_stock cache", "is_active", "created_at", "updated_at", "deleted_at"] },
-  { name: "product_batches", tag: "Batch + expiry", fields: ["id PK", "store_id FK", "product_id FK", "batch_no nullable", "expiry_date nullable", "available_qty cache", "status", "created_at", "updated_at"] },
+  { name: "products", tag: "Master product", fields: ["id PK", "store_id FK", "sku", "barcode nullable", "name", "category", "unit", "buy_price", "sell_price", "minimum_stock", "current_stock derived", "is_active", "created_at", "updated_at", "deleted_at"] },
+  { name: "product_batches", tag: "Batch + expiry", fields: ["id PK", "store_id FK", "product_id FK", "batch_no nullable", "expiry_date nullable", "available_qty derived", "status", "created_at", "updated_at"] },
   { name: "suppliers", tag: "Light supplier", fields: ["id PK", "store_id FK", "name", "phone", "address", "is_active", "created_at"] },
 ];
 const transactionEntities = [
@@ -40,8 +40,8 @@ const relationships = [
   "sales 1 → many sale_items; each sale item creates stock_movements with movement_type=sale",
   "stock_receipts 1 → many stock_receipt_items; each stock receipt item creates stock_movements with movement_type=stock_receipt",
   "stock_adjustments 1 → many stock_adjustment_items; each item creates stock_movements with movement_type=adjustment/expired/damaged/lost",
-  "product_batches cache available_qty is derived from stock_movements per batch",
-  "products current_stock cache is derived from stock_movements per product",
+  "product_batches available_qty is a derived read model from stock_movements per batch",
+  "products current_stock is a derived read model from stock_movements per product",
 ];
 ---
 
