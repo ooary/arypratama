@@ -32,10 +32,11 @@ const apiContracts = [
   ["Stock", "POST", "/api/v1/stock/adjustments", "Koreksi stok/manual adjustment.", "StockAdjustmentCreate", "StockAdjustmentRead", "Untuk rusak, expired, hilang, opname."],
   ["Stock", "GET", "/api/v1/stock/movements", "List ledger movement.", "StockMovementQuery", "StockMovementListResponse", "Filter product, batch, movement_type, date."],
   ["Stock", "GET", "/api/v1/stock/card", "Kartu stok produk.", "StockCardQuery", "StockCardResponse", "Menampilkan masuk/keluar/saldo berjalan."],
-  ["Reports", "GET", "/api/v1/reports/dashboard", "Dashboard owner.", "DashboardQuery", "DashboardRead", "Omzet hari ini, transaksi, top products, low stock, near expiry."],
-  ["Reports", "GET", "/api/v1/reports/low-stock", "List stok menipis.", "LowStockQuery", "LowStockListResponse", "Based on products.current_stock <= minimum_stock."],
-  ["Reports", "GET", "/api/v1/reports/near-expiry", "List batch mendekati expired.", "NearExpiryQuery", "NearExpiryListResponse", "Default threshold 90 hari."],
-  ["Reports", "GET", "/api/v1/reports/top-products", "Produk terlaris.", "TopProductsQuery", "TopProductsResponse", "Based on sale_items."],
+  ["Reports", "GET", "/api/v1/reports/dashboard", "Dashboard owner.", "near_expiry_days", "DashboardRead", "Sales summary, top products, low stock, near expiry. Done backend commit `b77224b`."],
+  ["Reports", "GET", "/api/v1/reports/sales-summary", "Ringkasan penjualan.", "-", "SalesSummaryRead", "Gross/net sales, transaction count, items sold, gross profit estimate. Done backend commit `b77224b`."],
+  ["Reports", "GET", "/api/v1/reports/low-stock", "List stok menipis.", "-", "ReportLowStockRead[]", "Based on products.current_stock <= min_stock. Done backend commit `b77224b`."],
+  ["Reports", "GET", "/api/v1/reports/near-expiry", "List batch mendekati expired.", "days", "NearExpiryRead[]", "Default threshold 90 hari. Done backend commit `b77224b`."],
+  ["Reports", "GET", "/api/v1/reports/top-products", "Produk terlaris.", "limit", "TopProductRead[]", "Based on sale_items; store-scoped. Done backend commit `b77224b`."],
   ["Import", "GET", "/api/v1/imports/products/template", "Download template Excel produk.", "-", "FileResponse", "Kolom sesuai PRD."],
   ["Import", "POST", "/api/v1/imports/products/preview", "Preview import produk.", "multipart/form-data", "ImportPreviewResult", "Belum commit ke DB."],
   ["Import", "POST", "/api/v1/imports/products/commit", "Commit hasil import valid.", "ImportCommitRequest", "ImportJobRead", "Invalid rows ditolak."],
@@ -105,9 +106,9 @@ const modules = [
 
   ]},
   { title: "Module 6 — Reports", tasks: [
-    ["6.1", "Create `report_schema.py`", "DashboardRead, SalesSummaryRead, TopProductRead, LowStockRead, NearExpiryRead.", "P0"],
-    ["6.2", "Create `report_service.py`", "Sales summary, top products, low stock, near expiry, gross profit estimate, stock card from ledger.", "P0"],
-    ["6.3", "Create `report_api.py`", "Dashboard, sales summary, top products, low stock, near-expiry endpoints. Include router in main.py.", "P0"],
+    ["6.1", "Create `report_schema.py`", "DashboardRead, SalesSummaryRead, TopProductRead, ReportLowStockRead, NearExpiryRead. Done by BonBon: pushed commit `b77224b`.", "P0", "Done"],
+    ["6.2", "Create `report_service.py`", "Sales summary, top products, low stock, near expiry, gross profit estimate from product purchase_price. Done by BonBon: pushed commit `b77224b`.", "P0", "Done"],
+    ["6.3", "Create `report_api.py`", "Dashboard, sales summary, top products, low-stock, near-expiry endpoints. Router included in main.py. Done by BonBon: pushed commit `b77224b`.", "P0", "Done"],
 
   ]},
   { title: "Module 7 — Excel Import / Export", tasks: [
