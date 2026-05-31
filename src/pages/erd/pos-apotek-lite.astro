@@ -3,7 +3,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import EntityCard from "../../components/EntityCard.astro";
 
 const title = "ERD — POS Apotek Lite";
-const description = "Entity Relationship Diagram for POS Apotek Lite covering owner, store, products, batches, sales, stock ledger, receipts, Excel imports, and sync events.";
+const description = "Entity Relationship Diagram for POS Apotek Lite covering owner, store, products, batches, sales, FEFO COGS, stock ledger, PBF receipts, Excel imports, and sync events.";
 
 const identityEntities = [
   { name: "users", tag: "User account", fields: ["id PK", "name", "email unique", "password_hash", "created_at", "updated_at"] },
@@ -11,18 +11,18 @@ const identityEntities = [
   { name: "store_memberships", tag: "User ↔ apotek", fields: ["id PK", "store_id FK", "user_id FK", "role=owner for v1", "status", "created_at", "updated_at"] },
 ];
 const catalogEntities = [
-  { name: "products", tag: "Master product", fields: ["id PK", "store_id FK", "sku", "barcode nullable", "name", "category", "unit", "buy_price", "sell_price", "minimum_stock", "current_stock derived", "is_active", "created_at", "updated_at", "deleted_at"] },
-  { name: "product_batches", tag: "Batch + expiry", fields: ["id PK", "store_id FK", "product_id FK", "supplier_id FK nullable", "batch_no", "expiry_date nullable", "qty_initial", "available_qty derived", "created_at", "updated_at"] },
+  { name: "products", tag: "Master product", fields: ["id PK", "store_id FK", "sku", "barcode nullable", "name", "category", "unit", "purchase_price/latest reference", "selling_price", "minimum_stock", "current_stock derived", "is_active", "created_at", "updated_at", "deleted_at"] },
+  { name: "product_batches", tag: "Batch + expiry + COGS source", fields: ["id PK", "store_id FK", "product_id FK", "supplier_id FK nullable", "stock_receipt_item_id FK nullable", "batch_no", "expiry_date nullable", "purchase_price", "qty_initial", "available_qty derived", "created_at", "updated_at"] },
   { name: "suppliers", tag: "Light supplier", fields: ["id PK", "store_id FK", "name", "phone nullable", "created_at"] },
 ];
 const transactionEntities = [
-  { name: "sales", tag: "POS transaction", fields: ["id PK", "store_id FK", "sale_no unique", "status", "subtotal", "discount_amount", "total_amount", "payment_method", "paid_amount", "change_amount", "sold_at", "client_tx_id unique"] },
-  { name: "sale_items", tag: "Sold items", fields: ["id PK", "sale_id FK", "product_id FK", "batch_id FK nullable", "qty", "unit_price", "discount_amount", "line_total"] },
-  { name: "stock_receipts", tag: "Barang masuk", fields: ["id PK", "store_id FK", "supplier_id FK nullable", "receipt_no unique", "note", "received_at", "client_tx_id unique"] },
-  { name: "stock_receipt_items", tag: "Received items", fields: ["id PK", "stock_receipt_id FK", "product_id FK", "batch_id FK", "qty", "buy_price"] },
+  { name: "sales", tag: "POS transaction", fields: ["id PK", "store_id FK", "sale_no unique", "status", "subtotal", "discount_amount", "total_amount/revenue", "payment_method", "paid_amount", "change_amount", "sold_at", "client_tx_id unique"] },
+  { name: "sale_items", tag: "Sold items + locked margin", fields: ["id PK", "sale_id FK", "product_id FK", "qty", "unit_price", "discount_amount", "line_total/revenue", "cogs_amount locked", "gross_profit locked"] },
+  { name: "stock_receipts", tag: "Barang masuk / faktur PBF", fields: ["id PK", "store_id FK", "supplier_id FK nullable", "receipt_no/invoice_no unique", "note", "received_at", "client_tx_id unique"] },
+  { name: "stock_receipt_items", tag: "PBF invoice lines", fields: ["id PK", "stock_receipt_id FK", "product_id FK", "batch_id FK", "qty", "purchase_price", "discount_amount", "tax_amount", "line_total"] },
 ];
 const ledgerEntities = [
-  { name: "stock_movements", tag: "Append-only ledger", fields: ["id PK", "store_id FK", "product_id FK", "batch_id FK nullable", "movement_type", "direction in|out", "qty", "quantity_delta", "balance_after", "source_type", "source_id", "reason", "note", "created_at", "client_tx_id"] },
+  { name: "stock_movements", tag: "Append-only ledger + cost", fields: ["id PK", "store_id FK", "product_id FK", "batch_id FK nullable", "movement_type", "direction in|out", "qty", "quantity_delta", "balance_after", "unit_cost", "total_cost", "source_type", "source_id", "reason", "note", "created_at", "client_tx_id"] },
   { name: "stock_adjustments", tag: "Manual correction", fields: ["id PK", "store_id FK", "adjustment_no unique", "reason", "note", "adjusted_at", "client_tx_id unique"] },
   { name: "stock_adjustment_items", tag: "Correction lines", fields: ["id PK", "adjustment_id FK", "product_id FK", "batch_id FK nullable", "qty_delta", "reason"] },
 ];
@@ -39,11 +39,15 @@ const relationships = [
   "stores 1 → many suppliers; suppliers are store-scoped, not user-owned",
   "products 1 → many product_batches, sale_items, stock_receipt_items, stock_movements",
   "suppliers 1 → many stock_receipts and optionally product_batches",
-  "sales 1 → many sale_items; each sale item creates stock_movements with movement_type=sale",
-  "stock_receipts 1 → many stock_receipt_items; each stock receipt item creates stock_movements with movement_type=stock_receipt",
+  "sales 1 → many sale_items; sale posting allocates stock by FEFO and locks sale_items.cogs_amount + gross_profit",
+  "sale_items 1 → many stock_movements when one sale line consumes multiple batches; each movement stores batch_id, unit_cost, total_cost",
+  "stock_receipts 1 → many stock_receipt_items; each stock receipt item creates/updates one product_batch and creates stock_movements with movement_type=stock_receipt",
+  "stock_receipt_items 1 → many/one product_batches through product_batches.stock_receipt_item_id for faktur PBF traceability",
   "stock_adjustments 1 → many stock_adjustment_items; each item creates stock_movements with movement_type=adjustment/expired/damaged/lost",
   "product_batches available_qty is a derived read model from stock_movements per batch",
+  "product_batches purchase_price from stock_receipt_items is the COGS source; expiry_date only selects FEFO order",
   "products current_stock is a derived read model from stock_movements per product",
+  "reports calculate COGS/profit from locked sale_items.cogs_amount, not products.purchase_price estimates",
 ];
 ---
 
@@ -76,6 +80,10 @@ const relationships = [
         <li>• <code>client_tx_id</code> / idempotency key wajib untuk transaksi offline agar sync tidak double-post.</li>
         <li>• Produk soft delete via <code>deleted_at</code>; transaksi lama tetap valid.</li>
         <li>• Batch/expired opsional, tapi kalau batch dipakai, movement harus menyimpan <code>batch_id</code>.</li>
+        <li>• Faktur PBF masuk lewat <code>stock_receipts</code>; detail biaya per baris disimpan di <code>stock_receipt_items</code>.</li>
+        <li>• <code>product_batches.stock_receipt_item_id</code> menjaga traceability batch ke baris faktur PBF asal.</li>
+        <li>• COGS/HPP dikunci saat sale dari batch FEFO: <code>sale_items.cogs_amount</code> dan <code>sale_items.gross_profit</code>.</li>
+        <li>• <code>stock_movements.unit_cost</code> dan <code>total_cost</code> menyimpan cost aktual per batch movement.</li>
         <li>• Barcode diasumsikan level produk/SKU, bukan batch. Batch number dan expired date diinput saat barang masuk.</li>
         <li>• FEFO sistem memilih batch expired terdekat, tapi akurasi fisik bergantung SOP rak: batch expired terdekat harus diletakkan paling depan.</li>
       </ul>
