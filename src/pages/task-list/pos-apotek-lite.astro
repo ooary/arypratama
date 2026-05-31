@@ -37,9 +37,9 @@ const apiContracts = [
   ["Reports", "GET", "/api/v1/reports/low-stock", "List stok menipis.", "-", "ReportLowStockRead[]", "Based on products.current_stock <= min_stock. Done backend commit `b77224b`."],
   ["Reports", "GET", "/api/v1/reports/near-expiry", "List batch mendekati expired.", "days", "NearExpiryRead[]", "Default threshold 90 hari. Done backend commit `b77224b`."],
   ["Reports", "GET", "/api/v1/reports/top-products", "Produk terlaris.", "limit", "TopProductRead[]", "Based on sale_items; store-scoped. Done backend commit `b77224b`."],
-  ["Import", "GET", "/api/v1/imports/products/template", "Download template Excel produk.", "-", "FileResponse", "Kolom sesuai PRD."],
-  ["Import", "POST", "/api/v1/imports/products/preview", "Preview import produk.", "multipart/form-data", "ImportPreviewResult", "Belum commit ke DB."],
-  ["Import", "POST", "/api/v1/imports/products/commit", "Commit hasil import valid.", "ImportCommitRequest", "ImportJobRead", "Invalid rows ditolak."],
+  ["Import", "GET", "/api/v1/imports/products/template", "Download template Excel produk.", "-", "FileResponse", "Headers: name, sku, barcode, unit, purchase_price, selling_price, min_stock. Done backend commit `837c467`."],
+  ["Import", "POST", "/api/v1/imports/products/preview", "Preview import produk.", "multipart/form-data", "ImportPreviewResult", "Validasi row, duplicate SKU, price/min_stock. Belum commit ke products. Done backend commit `837c467`."],
+  ["Import", "POST", "/api/v1/imports/products/commit", "Commit hasil import valid.", "ImportCommitRequest", "ImportJobRead", "Only valid rows committed; current_stock tetap 0, tidak stock masuk. Done backend commit `837c467`."],
   ["Export", "GET", "/api/v1/exports/products", "Export produk.", "ExportProductsQuery", "FileResponse", "Excel."],
   ["Export", "GET", "/api/v1/exports/sales", "Export transaksi.", "ExportSalesQuery", "FileResponse", "Filter date range."],
   ["Export", "GET", "/api/v1/exports/stock", "Export stok.", "ExportStockQuery", "FileResponse", "Include current stock + batch if any."],
@@ -112,10 +112,10 @@ const modules = [
 
   ]},
   { title: "Module 7 — Excel Import / Export", tasks: [
-    ["7.1", "Create `import_schema.py`", "ImportPreviewRow, ImportPreviewResult, ImportCommitRequest, ImportJobRead.", "P0"],
-    ["7.2", "Create `import_model.py`", "ImportJob stores file name, type, row counts, validation errors JSON.", "P0"],
-    ["7.3", "Create `import_service.py`", "Parse product Excel, validate SKU/barcode/date/price, preview errors, commit valid rows.", "P0"],
-    ["7.4", "Create `import_api.py`", "Upload preview, commit import, download template/error report. Include router in main.py.", "P0"],
+    ["7.1", "Create `import_schema.py`", "ImportPreviewRow, ImportPreviewResult, ImportCommitRequest, ImportJobRead. Done by BonBon: pushed commit `837c467`.", "P0", "Done"],
+    ["7.2", "Create `import_model.py`", "ImportJob stores file name, type, row counts, preview rows, validation errors JSON, commit status. Done by BonBon: pushed commit `837c467`.", "P0", "Done"],
+    ["7.3", "Create `import_service.py`", "Parse product Excel, validate SKU/required fields/price/min_stock, preview errors, commit valid rows as master data only. Done by BonBon: pushed commit `837c467`.", "P0", "Done"],
+    ["7.4", "Create `import_api.py`", "Download template, upload preview, commit import. Router included in main.py. Done by BonBon: pushed commit `837c467`.", "P0", "Done"],
 
   ]},
   { title: "Module 8 — Offline Sync", tasks: [
