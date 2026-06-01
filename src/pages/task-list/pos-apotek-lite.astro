@@ -46,11 +46,12 @@ const apiContracts = [
   ["Sync", "POST", "/api/v1/sync/push", "Push offline events dari client.", "SyncPushRequest", "SyncResult", "events[] wajib: client_id, entity_type, entity_id, operation(create/update/delete), payload_json, idempotency_key. Duplicate idempotency_key per store rejected. Done backend commit `bc96ea4`."],
   ["Sync", "GET", "/api/v1/sync/pull", "Pull perubahan cloud ke client.", "cursor, limit", "SyncPullResponse", "Cursor is offset token returned as next_cursor; limit capped 100. Store-scoped. Done backend commit `bc96ea4`."],
   ["Sync", "GET", "/api/v1/sync/status/{idempotency_key}", "Cek status sync event.", "idempotency_key", "SyncEventRead", "Store-scoped status lookup for pending/synced/failed UI. Done backend commit `bc96ea4`."],
-  ["Admin", "GET", "/api/v1/admin/overview", "Overview internal Ary.", "AdminOverviewQuery", "AdminOverviewRead", "Total users, stores, sales, GMV, active today, errors."],
-  ["Admin", "GET", "/api/v1/admin/users", "List user daftar.", "AdminUserQuery", "AdminUserListResponse", "Search/filter by date/activity."],
-  ["Admin", "GET", "/api/v1/admin/stores", "List apotek/store.", "AdminStoreQuery", "AdminStoreListResponse", "Include owner, city/address, last activity."],
-  ["Admin", "GET", "/api/v1/admin/activity", "Activity feed.", "AdminActivityQuery", "AdminActivityListResponse", "Signup, sale posted, stock receipt, import, sync events."],
-  ["Admin", "GET", "/api/v1/admin/sync-errors", "Pantau sync/import error.", "AdminSyncErrorQuery", "AdminSyncErrorListResponse", "Untuk debugging early users."],
+  ["Admin", "GET", "/api/v1/admin/overview", "Overview internal Ary.", "AdminOverviewQuery", "AdminOverviewRead", "Role-based platform admin only; totals users/stores/sales, gross_sales, cogs_total, gross_profit, sync/import error counts. Done backend commits `e923290` + `44846d9`."],
+  ["Admin", "GET", "/api/v1/admin/users", "List user daftar.", "limit", "AdminUserListResponse", "Role-based platform admin only; includes platform_role. Done backend commits `e923290` + `44846d9`."],
+  ["Admin", "GET", "/api/v1/admin/stores", "List apotek/store.", "limit", "AdminStoreListResponse", "Role-based platform admin only; latest stores. Done backend commits `e923290` + `44846d9`."],
+  ["Admin", "GET", "/api/v1/admin/activity", "Activity feed.", "limit", "AdminActivityListResponse", "Signup/store/sale/stock receipt/sync events from admin_activity_events. Done backend commits `e923290` + `44846d9`."],
+  ["Admin", "GET", "/api/v1/admin/sync-errors", "Pantau sync error.", "limit", "AdminSyncErrorListResponse", "Rejected sync events only. Done backend commits `e923290` + `44846d9`."],
+  ["Admin", "GET", "/api/v1/admin/import-errors", "Pantau import error.", "limit", "AdminImportErrorListResponse", "Import jobs with invalid rows only. Done backend commits `e923290` + `44846d9`."],
 ];
 
 const statusClass = {
@@ -133,10 +134,10 @@ const modules = [
     ["8B.5", "Update reports to use locked COGS", "Reports use sale_items.cogs_amount for COGS/profit instead of products.purchase_price estimate. Done backend commit `1e2b312`.", "Done"],
   ]},
   { title: "Module 9 — Admin Panel for Ary", tasks: [
-    ["9.1", "Create `admin_schema.py`", "AdminOverviewRead, AdminUserRead, AdminStoreRead, AdminActivityRead, AdminSyncErrorRead.", "P0"],
-    ["9.2", "Create `admin_service.py`", "Aggregate signups, stores, sales count, GMV, active users, sync failures, import failures, latest activity.", "P0"],
-    ["9.3", "Create `admin_api.py`", "GET overview/users/stores/activity/sync-errors. Protect behind admin token/env for MVP.", "P0"],
-    ["9.4", "Add admin activity instrumentation", "Record user signup, store created, sale posted, stock receipt posted, import preview/commit, sync failure, sync success.", "P0"],
+    ["9.1", "Create `admin_schema.py`", "AdminOverviewRead, AdminUserRead, AdminStoreRead, AdminActivityRead, AdminSyncErrorRead, AdminImportErrorRead. Done backend commit `e923290`.", "Done"],
+    ["9.2", "Create `admin_service.py`", "Aggregate signups, stores, sales count, gross sales, locked COGS/profit, sync failures, import failures, latest activity. Done backend commit `e923290`.", "Done"],
+    ["9.3", "Create `admin_api.py`", "Routes: /admin/overview, /admin/users, /admin/stores, /admin/activity, /admin/sync-errors, /admin/import-errors. Role-based users.platform_role=admin. Done backend commit `e923290`.", "Done"],
+    ["9.4", "Add admin activity instrumentation", "Record user_registered, store_created, sale_posted, stock_receipt_posted, sync_event_accepted/rejected events. Done backend commits `e923290` + `44846d9`.", "Done"],
   ]},
   { title: "Module 10 — Backend Ship Gates", tasks: [
     ["10.1", "Backend gate", "pytest + ruff + pyright + Alembic offline SQL + /openapi.json route tags.", "P0"],

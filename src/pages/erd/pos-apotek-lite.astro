@@ -3,10 +3,10 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import EntityCard from "../../components/EntityCard.astro";
 
 const title = "ERD — POS Apotek Lite";
-const description = "Entity Relationship Diagram for POS Apotek Lite covering owner, store, products, batches, sales, FEFO COGS, stock ledger, PBF receipts, Excel imports, and sync events.";
+const description = "Entity Relationship Diagram for POS Apotek Lite covering owner, platform admin role, store, products, batches, sales, FEFO COGS, stock ledger, PBF receipts, Excel imports, admin activity, and sync events.";
 
 const identityEntities = [
-  { name: "users", tag: "User account", fields: ["id PK", "name", "email unique", "password_hash", "created_at", "updated_at"] },
+  { name: "users", tag: "User account", fields: ["id PK", "name", "email unique", "password_hash", "platform_role=user|admin", "created_at", "updated_at"] },
   { name: "stores", tag: "Data apotek/outlet", fields: ["id PK", "name", "legal_name nullable", "address", "phone", "email nullable", "logo_url nullable", "receipt_header", "receipt_footer", "tax_no nullable", "created_at", "updated_at"] },
   { name: "store_memberships", tag: "User ↔ apotek", fields: ["id PK", "store_id FK", "user_id FK", "role=owner for v1", "status", "created_at", "updated_at"] },
 ];
