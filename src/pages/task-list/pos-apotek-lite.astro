@@ -134,10 +134,10 @@ const modules = [
     ["8B.5", "Update reports to use locked COGS", "Reports use sale_items.cogs_amount for COGS/profit instead of products.purchase_price estimate. Done backend commit `1e2b312`.", "Done"],
   ]},
   { title: "Module 9 — Admin Panel for Ary", tasks: [
-    ["9.1", "Create `admin_schema.py`", "AdminOverviewRead, AdminUserRead, AdminStoreRead, AdminActivityRead, AdminSyncErrorRead, AdminImportErrorRead. Done backend commit `e923290`.", "Done"],
-    ["9.2", "Create `admin_service.py`", "Aggregate signups, stores, sales count, gross sales, locked COGS/profit, sync failures, import failures, latest activity. Done backend commit `e923290`.", "Done"],
-    ["9.3", "Create `admin_api.py`", "Routes: /admin/overview, /admin/users, /admin/stores, /admin/activity, /admin/sync-errors, /admin/import-errors. Role-based users.platform_role=admin. Done backend commit `e923290`.", "Done"],
-    ["9.4", "Add admin activity instrumentation", "Record user_registered, store_created, sale_posted, stock_receipt_posted, sync_event_accepted/rejected events. Done backend commits `e923290` + `44846d9`.", "Done"],
+    ["9.1", "Create `admin_schema.py`", "AdminOverviewRead, AdminUserRead, AdminStoreRead, AdminActivityRead, AdminSyncErrorRead, AdminImportErrorRead. Done backend commit `e923290`.", "P0", "Done"],
+    ["9.2", "Create `admin_service.py`", "Aggregate signups, stores, sales count, gross sales, locked COGS/profit, sync failures, import failures, latest activity. Done backend commit `e923290`.", "P0", "Done"],
+    ["9.3", "Create `admin_api.py`", "Routes: /admin/overview, /admin/users, /admin/stores, /admin/activity, /admin/sync-errors, /admin/import-errors. Role-based users.platform_role=admin. Done backend commit `e923290`.", "P0", "Done"],
+    ["9.4", "Add admin activity instrumentation", "Record user_registered, store_created, sale_posted, stock_receipt_posted, sync_event_accepted/rejected events. Done backend commits `e923290` + `44846d9`.", "P0", "Done"],
   ]},
   { title: "Module 10 — Backend Ship Gates", tasks: [
     ["10.1", "Backend gate", "pytest + ruff + pyright + Alembic offline SQL + /openapi.json route tags.", "P0"],
