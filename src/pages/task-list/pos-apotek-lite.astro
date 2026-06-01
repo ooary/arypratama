@@ -31,7 +31,7 @@ const apiContracts = [
   ["Stock Receipts", "GET", "/api/v1/stock-receipts/{receipt_id}", "Detail barang masuk.", "-", "StockReceiptDetailRead", "Include items, batch, product, invoice-line cost fields, and batch traceability. Done backend commit `1e2b312`."],
   ["Stock", "POST", "/api/v1/stock/adjustments", "Koreksi stok/manual adjustment.", "StockAdjustmentCreate", "StockAdjustmentRead", "Untuk rusak, expired, hilang, opname."],
   ["Stock", "GET", "/api/v1/stock/movements", "List ledger movement.", "StockMovementQuery", "StockMovementListResponse", "Filter product, batch, movement_type, date."],
-  ["Stock", "GET", "/api/v1/stock/card", "Kartu stok produk.", "StockCardQuery", "StockCardResponse", "Menampilkan masuk/keluar/saldo berjalan."],
+  ["Stock", "GET", "/api/v1/stock/card/{product_id}", "Kartu stok per produk.", "batch_id, movement_type", "StockCardRead", "Returns product_name, current_stock, opening/closing balance, and rows with batch_no, qty_in, qty_out, balance_after, unit_cost, total_cost. Done backend commit `b304b8a`."],
   ["Reports", "GET", "/api/v1/reports/dashboard", "Dashboard owner.", "near_expiry_days", "DashboardRead", "Sales summary, top products, low stock, near expiry; COGS/profit uses locked sale_items.cogs_amount. Done backend commit `1e2b312`."],
   ["Reports", "GET", "/api/v1/reports/sales-summary", "Ringkasan penjualan.", "-", "SalesSummaryRead", "Gross/net sales, transaction count, items sold, COGS, gross profit, margin from locked sale_items.cogs_amount. Done backend commit `1e2b312`."],
   ["Reports", "GET", "/api/v1/reports/low-stock", "List stok menipis.", "-", "ReportLowStockRead[]", "Based on products.current_stock <= min_stock. Done backend commit `b77224b`."],
