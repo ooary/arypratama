@@ -16,11 +16,38 @@ const modules = [
   ["Admin Panel", "Panel internal untuk Ary memantau user daftar, apotek dibuat, transaksi/sync activity, error import/sync, dan aktivitas harian."],
 ];
 
+const v1Checklist = [
+  { done: true, label: "Backend FastAPI foundation, Scalar/OpenAPI docs, Alembic migrations, and test gates." },
+  { done: true, label: "Owner register/login and active-store resolution." },
+  { done: true, label: "Store profile data for receipt identity: name, address, phone, logo/header/footer fields." },
+  { done: true, label: "Product CRUD with SKU, barcode, unit, purchase/selling price, min stock, active/soft-delete behavior." },
+  { done: true, label: "Product categories per store and products.category_id relation." },
+  { done: true, label: "Supplier CRUD per store and seeded supplier reference data." },
+  { done: true, label: "Optional product batches with batch number, expiry date, and derived available quantity." },
+  { done: true, label: "Sales API with sale_items and automatic stock_movements decrement." },
+  { done: true, label: "Stock receipts/barang masuk with supplier, receipt items, batches, and stock_movements increment." },
+  { done: true, label: "Stock adjustments with required reason and ledger-backed correction movement." },
+  { done: true, label: "Basic reports API: revenue/transactions, low stock, near expiry, movements, and top products." },
+  { done: true, label: "Product Excel import preview/commit with import job tracking." },
+  { done: true, label: "Offline sync API foundation with idempotency/duplicate protection." },
+  { done: true, label: "Internal admin APIs for users, stores, transactions, sync/import activity, and admin activity events." },
+  { done: true, label: "Request/activity logging via Loguru." },
+  { done: false, label: "Frontend barcode camera scanner connected to product lookup." },
+  { done: false, label: "Receipt digital UI/share flow and thermal print best-effort integration." },
+  { done: false, label: "Export products, stock, transactions, and reports." },
+  { done: false, label: "Offline-first Android/web client storage and sync queue." },
+  { done: false, label: "Full end-to-end owner demo: register → product/category/supplier → restock → sale → receipt → report → sync." },
+];
+
+const v1DoneCount = v1Checklist.filter((item) => item.done).length;
+const v1TotalCount = v1Checklist.length;
+const v1Progress = Math.round((v1DoneCount / v1TotalCount) * 100);
+
 const roadmap = [
   {
     name: "v1 — MVP Owner-Only POS",
-    features: ["User owner + data apotek untuk struk", "Master produk + SKU/barcode + harga + stok minimal", "Barcode scanner kamera untuk cari produk", "Batch/expired opsional", "Penjualan dengan ledger movement otomatis", "Stock receipt/barang masuk", "Penyesuaian stok dengan alasan", "Dashboard laporan dasar", "Struk digital + print thermal best-effort", "Excel import/export produk dan transaksi", "Offline-first Android + web dengan sync cloud ringan", "Admin panel internal: user, store, transaction, sync activity"],
-    acceptance: ["Owner bisa daftar/login dan membuat data apotek.", "Nama/alamat/telepon apotek muncul di struk digital.", "Owner bisa tambah/edit produk dan batch/expired opsional.", "Owner bisa scan barcode via kamera untuk menemukan produk yang sudah punya barcode.", "Owner bisa jual produk offline dan stok berkurang via stock_movements.", "Owner bisa input barang masuk dan stok bertambah via stock_movements.", "Owner bisa koreksi stok dengan reason wajib.", "Owner bisa import produk Excel dengan preview validasi.", "Owner bisa lihat omzet hari ini, stok menipis, dan produk mendekati expired.", "Owner bisa share struk digital dan mencoba print thermal pada printer/device yang didukung.", "Sync online tidak membuat transaksi dobel karena idempotency key.", "Ary bisa buka admin panel dan melihat jumlah user, apotek, transaksi, sync error/activity."],
+    features: ["User owner + data apotek untuk struk", "Master produk + category + supplier + SKU/barcode + harga + stok minimal", "Barcode scanner kamera untuk cari produk", "Batch/expired opsional", "Penjualan dengan ledger movement otomatis", "Stock receipt/barang masuk", "Penyesuaian stok dengan alasan", "Dashboard laporan dasar", "Struk digital + print thermal best-effort", "Excel import/export produk dan transaksi", "Offline-first Android + web dengan sync cloud ringan", "Admin panel internal: user, store, transaction, sync activity"],
+    acceptance: ["Owner bisa daftar/login dan membuat data apotek.", "Nama/alamat/telepon apotek muncul di struk digital.", "Owner bisa tambah/edit produk, category, supplier, dan batch/expired opsional.", "Owner bisa scan barcode via kamera untuk menemukan produk yang sudah punya barcode.", "Owner bisa jual produk offline dan stok berkurang via stock_movements.", "Owner bisa input barang masuk dari supplier dan stok bertambah via stock_movements.", "Owner bisa koreksi stok dengan reason wajib.", "Owner bisa import/export data operasional penting dengan preview validasi untuk import.", "Owner bisa lihat omzet hari ini, stok menipis, dan produk mendekati expired.", "Owner bisa share struk digital dan mencoba print thermal pada printer/device yang didukung.", "Sync online tidak membuat transaksi dobel karena idempotency key.", "Ary bisa buka admin panel dan melihat jumlah user, apotek, transaksi, sync error/activity."],
   },
   {
     name: "v1.5 — Operasional Apotek Lebih Rapi",
@@ -59,6 +86,28 @@ const roadmap = [
     </section>
 
     <section class="mt-10"><h2 class="text-2xl font-bold">MVP Modules</h2><div class="mt-5 grid gap-4 md:grid-cols-2">{modules.map(([name, body]) => <article class="rounded-2xl border border-slate-200 p-5 dark:border-slate-800"><h3 class="font-semibold text-slate-950 dark:text-white">{name}</h3><p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{body}</p></article>)}</div></section>
+
+    <section class="mt-10 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p class="text-sm font-semibold uppercase tracking-[0.2em] text-blue-600">Roadmap V1 Checklist</p>
+          <h2 class="mt-2 text-2xl font-bold">Implemented vs Remaining</h2>
+          <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-300">Checklist ini mengikuti format task-list: item hijau berarti sudah ada di backend/dev contract, item abu-abu berarti masih perlu FE, export, atau end-to-end hardening sebelum v1 dianggap selesai.</p>
+        </div>
+        <div class="rounded-2xl bg-blue-50 p-4 text-right dark:bg-blue-950/30">
+          <div class="text-3xl font-bold text-blue-700 dark:text-blue-300">{v1Progress}%</div>
+          <div class="text-sm text-blue-700/80 dark:text-blue-300/80">{v1DoneCount}/{v1TotalCount} checked</div>
+        </div>
+      </div>
+      <div class="mt-6 space-y-2">
+        {v1Checklist.map((item) => (
+          <div class={`flex gap-3 rounded-xl border px-4 py-3 text-sm ${item.done ? "border-emerald-200 bg-emerald-50 text-slate-700 dark:border-emerald-900/60 dark:bg-emerald-950/20 dark:text-slate-200" : "border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"}`}>
+            {item.done ? <span class="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-emerald-600 text-xs font-bold text-white">✓</span> : <span class="mt-0.5 h-5 w-5 shrink-0 rounded-md border border-slate-400 dark:border-slate-600"></span>}
+            <span>{item.label}</span>
+          </div>
+        ))}
+      </div>
+    </section>
 
     <section class="mt-10 rounded-3xl border border-slate-200 p-6 dark:border-slate-800"><h2 class="text-2xl font-bold">Inventory Ledger Rule</h2><p class="mt-3 text-slate-600 dark:text-slate-300">Source of truth stok adalah <code>stock_movements</code>. Setiap sale, stock receipt, adjustment, expired, atau reversal membuat baris ledger append-only. <code>products.current_stock</code> dan <code>product_batches.available_qty</code> boleh disimpan sebagai derived read model untuk performa UI, tapi harus bisa direkonsiliasi ulang dari ledger. Data apotek untuk struk disimpan di <code>stores</code>: nama apotek, alamat, telepon, logo/header/footer.</p></section>
 
