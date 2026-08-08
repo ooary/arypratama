@@ -7,12 +7,14 @@ interface Props {
   title?: string;
   description?: string;
   image?: string;
+  noindex?: boolean;
 }
 
 const {
   title = 'Ary Pratama | Generalist Engineer',
   description = 'Backend-focused software engineer who loves building things, playing with system design, and exploring modern AI stuff.',
   image = '/img/avatar.png',
+  noindex = false,
 } = Astro.props;
 ---
 
@@ -26,6 +28,7 @@ const {
     <!-- SEO -->
     <meta name="description" content={description} />
     <meta name="author" content="Ary Pratama" />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
     <link rel="canonical" href={Astro.url.href} />
 
     <!-- OpenGraph -->
